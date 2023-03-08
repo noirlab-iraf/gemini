@@ -1,0 +1,106 @@
+.help nisupersky December2011 gemini.niri
+.ih
+NAME
+nisupersky -- Use coadded image to create deeper object masks for NISKY
+.ih
+USAGE
+nisupersky inimage
+.ih
+PARAMETERS
+.ls inimage 
+Combined (imcoadded) image for object identification.  Input 
+image must be a MEF file with one science extension and a valid
+WCS in the PHU.  The coadded image must also contain the list of
+individual frames that went into making it listed in the header
+as IMAGENN where the NN correspond to sequential numbers.
+All the input images must be on a common WCS coordinate system.
+.le
+.ls threshold = 3.5
+Threshold in sigma for object detection by OBJMASKS.  This 
+parameter can be tuned to balance between finding faint objects and
+triggering on spurious noise peaks.
+.le
+.ls ngrow = 3
+Number of iterations used by OBJMASKS to extend identified objects 
+to surrounding regions of lower surface brightness, to remove the wings.
+.le
+.ls agrow = 3.
+This  parameter sets the maximum area objects can be extended into the 
+wings by OBJMASKS.
+.le
+.ls minpix = 6
+Number of contiguous pixels above \fIthreshold\fR required for
+OBJMASKS to identify an object.
+.le
+.ls sci_ext = "SCI"
+Name or number of science extension.
+.le
+.ls dq_ext = "DQ"
+Name or number of data quality extension.
+.le
+.ls logfile = ""
+Logfile of operations.
+.le
+.ls verbose = yes
+Print actions to the screen.
+.le
+.ls status = 0
+This flag is non-zero after execution of NISUPERSKY if a fatal error was
+encountered.
+.le
+.ih
+DESCRIPTION
+.le
+NISUPERSKY creates deep object masks for use with NISKY.
+It begins by identifying objects using OBJMASKS 
+in a combined image, usually
+produced using IMCOADD.  NISUPERSKY retrieves the WCS 
+coordinates and the names of the files used to create it.
+These are taken from the header of the combined image, and
+must be in the form IMAGENN where the NN corresponds to
+sequential digits starting at 01.
+
+NISUPERSKY then extracts the portion of the mask created
+using the combined image that overlaps with each individual
+input image.  These are combined with the existing NISKY
+mask files, if they exist, or with the DQ plane of the
+individual images, if they exist.  NISUPERSKY writes mask
+files that NISKY can then use to create a better sky
+image, with objects masked that would otherwise be too faint to
+detect in the individual images.
+
+The order of steps would normally be:
+.le
+1. NISKY to create the initial sky frame.  
+.le
+2. NIREDUCE to sky subtract and flatten individual images.
+.le
+3. IMCOADD to combine the individual images.
+.le
+4. NISUPERSKY to create deeper sky masks.
+.le
+5. NISKY to create the final sky frame (delete sky frame
+first).
+.le
+6. NIREDUCE using the new sky frame (delete reduced files
+first).
+.le
+7. IMCOADD to create the final stacked image (delete combined
+files first).
+
+.le
+.ih
+EXAMPLES
+
+1. To make masks for a set of input images:
+
+.nf
+      cl> nisupersky coaddedimage_add
+.fi
+
+.ih
+BUGS
+.ih
+SEE ALSO
+nisky, imcoadd, objmasks, addmasks
+.endhelp

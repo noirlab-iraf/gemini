@@ -1,0 +1,50 @@
+# Task specific routines for the GEMTOOLS package.
+
+update:
+        $update libgexpr.a
+        $call x_gemexpr.e
+	$call install
+        ;
+ 
+x_gemexpr.e:
+	$omake	x_gemexpr.x
+        $link	x_gemexpr.o libgexpr.a -lmefio ../../libpkg.a \
+		-ldbc -lmef -lgemini -lxtools -o x_gemexpr.e
+        ;
+
+libgexpr.a:
+        $call generic
+
+        gettok.x
+        t_gemexpr.x	<../../../lib/mefio/mefio.h> gemexpr.h glogcommon.h \
+			nscommon.h
+	mimexpr.x	<../../../lib/mefio/mefio.h> gemexpr.h glogcommon.h \
+			nscommon.h
+	mimexpr_sup.x	<../../../lib/mefio/mefio.h> gemexpr.h glogcommon.h \
+			nscommon.h
+        ;
+
+generic:
+        $set GEN = "$$generic -k"
+ 
+	$iffile (mimexpr.x)
+	$ifnewer (mimexpr.gx, mimexpr.x)
+            $(GEN) mimexpr.gx -o mimexpr.x
+	$endif
+	$else
+	    $(GEN) mimexpr.gx -o mimexpr.x
+	$endif	
+	;
+
+install:
+	$move x_gemexpr.e gembin$x_gemexpr.e
+	;
+
+installpar:
+	$move garith.par ../../garith.par
+	$move mimexpr.par ../../mimexpr.par
+	;
+
+clean:
+	!rm *.o
+	;

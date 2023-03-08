@@ -1,0 +1,463 @@
+.help midirinfo December2011 gemini.midir
+.ih
+NAME
+midirinfo -- Reduction scripts for mid-IR data from Michelle or T-ReCS.
+.ih
+USAGE
+midirinfo
+.ih
+DESCRIPTION
+The midir package contains tasks for processing mid-IR data from
+the Michelle and T-ReCS instruments at Gemini Observatory.  The specifics of 
+the individual tasks can be found in their help files. This document describes 
+the common features of the tasks and gives a description of the mid IR data 
+format.  Spectroscopy data taken with the mid-IR instruments is processed 
+primarily using tasks in the GNIRS package, as it can be treated as generic 
+long-slit spectroscopy data after some initial reduction steps.
+
+The tasks are designed to provide a fairly complete and flexible
+reduction for the purpose of assessing data quality.  Real-time reductions 
+may not be optimal for a particular science application.  The tasks produce 
+logfiles of the performed processing steps.  The name of the logfile may be 
+set in each individual task, or at the package level by setting
+\fImidir.logfile\fR.  The tasks add header keywords to the output images. 
+These header keywords contain information about the performed processing 
+steps and timestamps for each step of the reduction.
+
+The basic file structure for raw mid-IR data is a multi-extension FITS file 
+with the primary header in extension 0, and one or more image extensions 
+containing co-added T-ReCS or Michelle data frames.  For CHOP or STARE 
+mode observations there will be only one extension.  For CHOP-NOD or  
+NOD  mode  there will  be  one extension per NOD position.  Each extension 
+contains a small FITS extension header with some of the parameters specific 
+to the individual images -- such as the start and end UT times and the 
+airmass. (For CHOP or STARE mode with just one extension these could have 
+been put in the primary header, but for MEF files with more than one 
+extension the values change for each image extension.)  The extension then 
+has the images themselves.  Each image is made up of one or more co-added 
+raw frames from T-ReCS or Michelle.  Each raw frame is a [320,240] array 
+of data values of type LONG or DOUBLE.
+ 
+The format of the image(s) in the extension(s) depends upon the mode of the 
+observation and on which instrument, T-ReCS or Michelle, was used to obtain 
+the data.  They all contain one or several, usually more than one, frames.  
+For Michelle data obtained in CHOP and CHOP-NOD mode, each image extension 
+is three dimensional: [320,240,3] where frames from each chop position are 
+combined to form chopA and chopB position images, and these are differenced 
+to form a dif frame.  These three (chopA, chopB and dif) co-added images are 
+delineated in the third data dimension in each image extension.  In turn 
+each of these images is a result of stacking a number of frames with 
+exposure time of order 25 milliseconds internally in Michelle during the 
+time at each NOD position.  This "frame time" is chosen to avoid saturation 
+of the individual frames due to the high mid-infrared background from the 
+atmosphere and the telescope.
+
+When chopping with T-ReCS, there are frames from each chop position.  In that 
+case a pair of co-added frames from the chop positions are called a saveset.  
+In STARE mode or NOD mode, where there is no chopping, one has a number 
+of co-added frames written out during the observation at a given nod position, 
+and the image dimension is [320,320,1,N] where N stands for the number of 
+savesets written out during the observation.  This N value is determined by 
+the T-ReCS set-up and the total exposure time.  In  CHOP or CHOP-NOD mode 
+one has two chop positions per saveset and some number M of savesets.  
+The image size is then [320,240,2,M].  The most common observation 
+mode is CHOP-NOD mode, and each extension contains the savesets for a 
+single NOD position. The T-ReCS NOD observations are done by starting 
+at NOD position A and then going to NOD position B for the same length 
+of time.  With T-ReCS the telescope then returns to NOD position A and 
+observations are taken in ABABABAB pattern.  Proper NOD or CHOP-NOD 
+observations with T-ReCS therefore should have an even number of 
+image extensions.
+
+As with Michelle, the actual "frame time" of T-ReCS observations is short, 
+of order 25 milliseconds for a typical imaging observation and somewhat 
+longer for a typical spectroscopy observation, and a number of these 
+frames are accumulated by co-adding in internal buffers for the two chop 
+positions in the normal case of chopping observations.  At the end of the 
+specified saveset time, normally 10 seconds, the stacked images are written 
+out to the FITS extension.  Thus there are three distinct "exposure times" 
+for T-ReCS data: the frame time, the saveset time, and the total exposure 
+time.
+
+In a normal T-ReCS chop-nod mode raw data file the images in each extension 
+have dimension [320,240,2,N] where N is the number of savesets per nod 
+position.  This value is given in the primary FITS header as the NSAVSETS 
+value.
+
+To calculate the number of frames co-added by T-ReCS for a saveset one uses 
+the FRMCOADD and CHPCOADD, values in the primary header of the MEF 
+file.  The number of frames co-added is the product of the FRMCOADD and 
+CHPCOADD values (the number of frames co-added per chop position times the 
+number of chop cycles per saveset).  This number of frames times the 
+FRMTIME parameter gives the exposure time per saveset on the target field, 
+in milli-seconds.  For flux calibration one can directly compare T-ReCS 
+raw difference images that have the same time on source per saveset.  
+If the images differ in the FRMTIME, FRMCOADD, or CHPCOADD, values 
+then one would need to scale to a common saveset exposure time before 
+comparing images.
+
+For Michelle the analogous keywords are EXPOSURE and NUMEXPOS, the
+product of which gives the observation time per nod position.  This
+value is the exposure time on target per nod position when carrying
+out chop-nod mode observations.  The time spent actually collecting
+data per nod is twice this since the target is in the (guided) beam
+only half the time.
+
+When data are obtained in CHOP or STARE mode for each instrument the output 
+data structure is the same as NOD or CHOP-NOD mode except that there is 
+only one NOD position.  A STARE mode observation is treated as a long 
+NOD observation in NOD position A.  A CHOP mode observation is treated 
+as a long CHOP-NOD observation in NOD position A.  STARE and CHOP mode 
+observations are assumed to have only one data extension whereas those 
+done in NOD or CHOP-NOD mode are assumed to have an even number of 
+data extensions.
+
+The main differences in data format between Michelle and T-ReCS are:
+.ls o 
+T-ReCS generally saves multiple accumulated savesets per NOD position, 
+whereas Michelle saves one accumulated image per NOD position
+.le
+.ls o 
+T-ReCS has an ABABABAB nodding pattern, whereas Michelle normally 
+uses an ABBAABBA nodding pattern
+.le
+.ls o
+T-ReCS stores values as type LONG, and Michelle stores them as type DOUBLE
+.le
+.ls o
+The internal format of frames within the image sections differ between T-ReCS 
+and Michelle.
+.le
+.sp
+The tasks TPREPARE and MPREPARE are designed to transform the individual image 
+formats of the two instruments into a common format, as well as harmonizing 
+the FITS header keywords.
+
+In order to have a common format for files from the Michelle and T-ReCS 
+instruments, the format of the "prepared" files was defined as follows:
+.ls Chopping Observations: (CHOP or CHOP-NOD mode)
+    
+For each NOD position, the output file from TPREPARE or MPREPARE has an image 
+extension with size [320,240,3] of type DOUBLE.  The three "planes" of this 
+three-dimensional image are the on-source co added image, in image section 
+[*,*,1], the off-source co-added image, in image section [*,*,2,], and the 
+difference image [*,*,1] - [*,*,2] image section [*,*,3].  These are in 
+ADU co-added over some number of individual frames as discussed above.
+.le    
+.ls Non-chopping Observations: (STARE or NOD mode)
+    
+For each  NOD position (only one for STARE mode, presumably an even number for 
+NOD mode) the output file from TPREPARE or MPREPARE has an image extension with
+size [320,240] of type DOUBLE containing the sum of frames taken on the 
+target field.
+
+Currently higher resolution Michelle spectroscopy is taken in NOD-only mode.  
+This applies to any spectroscopic observations with Michelle that do not use 
+the low resolution N-band or Q-band gratings.  When such files are prepared 
+using the MPREPARE task the nod A and nod B positions are subtracted so that 
+one should be left with two spectra, one positive, one negative, on the 
+resulting stacked image.  The spectral reduction routines are able to extract 
+both the positive and negative spectra which then can be co-added for further 
+analysis.
+
+For Michelle the spectral flat and bias observations are done in stare mode.
+.le
+.ls Polarimetry mode
+.sp
+Michelle has a polarimetry mode.  There is no such mode in T-ReCS.  
+Polarimetric observations are taken in chop-nod mode but with a half-wave plate
+inserted into the beam.  The plate is rotated to different angles and short 
+observations are taken, and after the plate has cycled through the different 
+positions all these images are written out as one image extension in the 
+raw data file.
+.sp
+The waveplate is rotated to angles 0, 45, 45, 0, 22.5, 67.5, 67.5, and 22.5 
+degrees during each nod.  Thus a total of 8 images are collected and the 
+raw data extension is an image of dimension [320,340,3,8] in this case.  The 
+last index in the image is for each of the waveplate positions in order as 
+listed here.  This abba type pattern of the waveplates is designed to 
+take out any linear trends with time in the background, just as the ABBA 
+nod pattern does for normal imaging.  When a polarimetry file is "prepared" 
+one gets 8 output extensions for each input extension, one per waveplate 
+position.  There is a header keyword inserted that indicates the waveplate 
+angle.
+.le
+.ih
+SHORT DESCRIPTIONS OF THE TASKS
+
+TPREPARE and MPREPARE are used on the raw T-ReCS and Michelle data, 
+respectively, in order to collapse and reformat the images into the same data 
+structure.  The TBACKGROUND task can be run on T-ReCS images to derive 
+statistics on the background flux in each chop saveset, and flag bad sets so 
+they are not co-added in TPREPARE.  Raw T-ReCS and Michelle data frames can be 
+viewed and, should the user desire, examined interactively using the TVIEW and 
+MVIEW routines, respectively.  These tasks allow the user to examine each data 
+image (using IMEXAMINE) and flag bad chop savesets (T-ReCS) or nods (Michelle).
+The TPREPARE and MPREPARE tasks collapse the T-ReCS chop frames and reorganize 
+the Michelle data so the output has the same file structure.  
+.sp
+Following the processing with the *PREPARE scripts, the data can be viewed and 
+examined using MIVIEW.  Like TVIEW and MVIEW, MIVIEW allows the user to examine
+each frame (using IMEXAMINE), derive statistics, and flag nods as BAD for 
+exclusion from the final data coaddition.
+.sp
+For CHOP-NOD and NOD mode data the nod sets for each data image are collapsed 
+into a single [320,240] image with the MISTACK or MIREGISTER tasks.  Both of 
+these routines require that the input frames have been prepared either with 
+TPREPARE or MPREPARE.  MISTACK merely averages (or sums, if the \fIcombine\fR 
+task parameter is changed to "sum" from the default of "average") each frame by
+co-adding the signal from each nod position and dividing by the number of 
+frames. MIREGISTER combines the nod frames by using the 
+IMAGES.IMMATCH.XREGISTER task in IRAF to shift the frames before they are 
+averaged (again, or summed if \fIcombine\fR is set to "sum").
+.sp
+The default behavior is to average the images, whether they are simply added 
+as is or whether they are registered first.  In that case the effective 
+exposure time remains the same as for an individual image in the raw data, 
+the on-source time per saveset for T-ReCS and the on-source time per nod 
+position for Michelle.  An alternative is to form the sum of the images 
+rather than the average, in which case the total on-source exposure time 
+applies to the final image.  This behavior is selected by the \fIcombine\fR 
+task parameter in MIREDUCE, TPREPARE, MISTACK, and MIREGISTER.  This in 
+turn is passed as the \fIcombine\fR parameter for the IMCOMBINE task which 
+is used to combine the images. The task MIPSF is used to measure the FWHM and
+the Strehl value for either Michelle or T-ReCS images.
+.sp
+All of the afore-mentioned reduction steps for each T-ReCS or Michelle raw data
+file can be done with one call to the MIREDUCE task.  By default, MIREDUCE 
+will identify if a file is from T-ReCS or Michelle, run TPREPARE or MPREPARE 
+on the image, and, if needed on NOD or CHOP-NOD data, it will combine the nod 
+positions using MISTACK.  The \fIfl_view\fR and \fIfl_background\fR keywords 
+can be flagged if the user wishes to interactively view the images or test 
+the background statistics (the latter for T-ReCS data, only).  At the present 
+time, a bad pixel mask is not applied to the data in the MIREDUCE call, but the
+\fIfl_flat\fR keyword can be set and a flat field image defined for the 
+MIFLAT routine to apply a flat-field correction to T-ReCS images (only).  The 
+\fIstackoption\fR parameter can be set to "stack" or "register", and the 
+MIREDUCE routine will call the appropriate combining script, MISTACK or 
+MIREGISTER to combine the data. The MICLEAN task can be used to remove pattern 
+noise and channel-channel offsets from the combined images, if desired. The 
+task MISTDFLUX is used to find the in-band filter flux density of a standard
+star.
+.sp
+Imaging polarimetry observations (see below) cannot be reduced by the 
+MIREDUCE task.  It applies only to regular imaging observations.
+.sp
+Most of the midir reduction tasks can be called with multiple data images in a 
+list format (i.e., "@inlist").  The tasks have the option of setting a 
+\fIrawpath\fR parameter to point to the appropriate directory where 
+the raw data resides.  The output filename can be defined for single 
+images, in a list for multiple images ("@outlist"), or an output prefix 
+can be prefixed to the name of the input file.  For additional information 
+and syntax for each step of the midir data reduction package, see the help 
+file included for each task.
+.sp
+For spectroscopy observations the initial processing to produce a single 
+stacked or registered image is carried out in the same way as for imaging
+observations.  From there one needs to carry out a series of steps to 
+extract and calibrate the spectrum, assuming that there is also a spectrum 
+of a standard star available to use in the analysis.  These steps use 
+various tasks in the GNIRS package.  The recommended processing 
+steps are outlined in the next section.  Some spectroscopy 
+tasks are currently available in the MIDIR package, all of which start with an 
+MS prefix.  These include MSDEFRINGE, MSREDUCE, MSSLICE, MSFLATCOR, MSTELLURIC 
+and MSABSFLUX
+
+.ih
+SPECTROSCOPY REDUCTIONS
+
+If one wishes to produce a calibrated spectrum one has to run all 
+the steps in the reduction except the last one (running MSTELLURIC) 
+for both the observation of the science target and the observation 
+of a standard star.  Thus steps (1) to (8) below would normally 
+be done twice to produce wavelength calibrated spectra for the two 
+targets, and then step (9) would be done with these two spectra 
+to produce the final calibrated spectrum of the object.  
+
+To carry out a normal spectroscopic reduction the following steps 
+are required:
+.ls (0) Define the instrument parameters with NSHEADERS
+.sp
+Before carrying out any reduction steps using the GNIRS routines 
+one needs to run the NSHEADERS task with the correct instrument 
+name ("michelle" or "trecs").
+.le
+.ls (1) For Michelle spectra, optionally do a flat fielding and 
+bias correction using the MSFLATCOR task
+.sp
+This step is optional, and only applies to Michelle observations 
+since it has not proved possible to obtain analogous flat field 
+frames with T-ReCS.  
+.le
+.ls (2) Stack the object raw data file with MIREDUCE
+.sp
+This is the normal processing which produces a stacked or registered
+image from the raw data.  The resulting file contains the long-slit 
+spectrum of the target.
+.le
+.ls (3) Produce a sky file for the object with MIREDUCE
+.sp
+The wavelength calibration is done with the sky spectrum rather than 
+with the object spectrum.  This requires extracting the stacked 
+reference images from the original raw data file to produce a sky 
+spectrum image.  This image is used with the NSWAVE task in the 
+GNIRS package.
+.sp
+Except for the last step to correct for atmospheric effects all 
+the rest of the processing is done with tasks in the GNIRS package.
+.le
+.ls (4) Optionally, subtract pattern noise and remove channel-channel 
+offsets with MICLEAN
+.sp
+The files output by MIREDUCE in steps 2 and 3 can be cleaned using the
+MICLEAN task, if desired.
+.le
+.ls (5) Identify the sky emission lines with NSWAVE
+.sp
+In this step certain atmospheric emission features are identified 
+for a small aperture through the center of the sky spectrum.  This 
+defines the wavelength calibration of the spectrum.  As most of the 
+atmospheric emission features in the N-band or Q-band are blends at 
+low spectral resolution, one cannot use the same line list at low and 
+at high resolution.  For both Michelle and T-ReCS in the low resolution 
+mode the dispersion is nearly linear.  In the higher spectral resolution 
+modes this need not be the case.
+.le
+.ls (6) Find the wavelength transformation function with NSTRANSFORM
+.sp
+Here the lines identified in the central part of the sky image are 
+re-identified for other parts of the image and based on this a 
+wavelength function lambda(x,y) is defined over the while image. 
+This is then applied to the object spectrum in the next step.
+.le
+.ls (7) Extract the spectrum with NSEXTRACT
+.sp
+Now the stacked difference spectrum is used to trace and extract 
+the object spectrum in the usual manner.  The wavelength solution 
+is taken from the transformation derived in step (6).  The output 
+is a wavelength calibrated raw spectrum of the object. Alternatively, 
+the MSSLICE task can be used instead of NSEXTRACT to extract multiple 
+T-ReCS or Michelle  spectra across an extended object, with an optional 
+call to MSABSFLUX (step 9).
+.le
+.ls (8) Defringe the spectrum with MSDEFRINGE, if that is required
+.sp
+Many spectra from T-ReCS and Michelle are subject to significant 
+fringing, which depends on the wavelength resolution, the wavelength, 
+and the slit width that are used.  It is usually possible to screen 
+out the fringes using filtering in the fourier domain.  This is done 
+with the MSDEFRINGE task.  For low resolution spectra the fringing 
+(if it is seen) has the highest possible pixel frequency and can be 
+filtered out automatically.  However for higher spectral resolution 
+observations the frequencies to be filtered cannot be determined 
+automatically.  Thus the MSDEFRINGE task needs to be run interactively.
+.le
+.ls (9) Correct for the atmosphere with MSTELLURIC or MSABSFLUX
+.sp
+Over most of the N-band and all of Q-band there are significant 
+atmospheric absorption effects.  These are removed by dividing the 
+spectrum of the object with that of a standard observed
+at a similar airmass.  The quotient spectrum can then be scaled by the 
+proper spectral shape of the standard star to produce a flux calibrated 
+spectrum of the object.
+.sp
+This process is carried out by the MSTELLURIC or MSABSFLUX tasks, which 
+call the TELLURIC task in NOAO.ONEDSPEC package.  It requires as 
+input the two wavelength calibrated spectra from step (5), for the 
+object and for the standard, and a description of the spectral shape 
+of the standard.  This can either be a blackbody function, when MSTELLURIC
+is used, or a spectral energy distribution template, when MSABSFLUX is 
+used.  The end spectrum made using MSTELLURIC has the correct shape--to 
+the extent that the spectrum of the standard follows the blackbody function--
+but has arbitrary normalization.  The end spectrum made using MSABSFLUX is 
+absolutely calibrated subject to the question of slit losses.
+.le
+
+
+.ih
+THE MSREDUCE TASK
+Starting with the 2006 release of the midir package there is a pipeline 
+spectral reduction task MSREDUCE which carries out any or all of the various 
+steps outlined above (with the exception of MICLEAN, which has not yet been
+integrated into MSREDUCE).  This task calls all of the spectral reduction tasks
+in the midir package.  It is not yet possible to automate all aspects of the 
+reduction, and it is strongly advised that at least the wavelength calibration 
+be carried out interactively.  As noted above, defringing of the spectra, if 
+needed, must also be done interactively.
+.sp
+The MSREDUCE task can either carry out a full reduction of a pair of spectra 
+(i.e. one for the science target, one for a standard) through to produce a 
+calibrated spectrum or it can be used to just produce a wavelength 
+calibrated individual spectrum without calibration of the intensity.
+.sp
+
+.ih
+POLARIMETRY
+Imaging polarimetry is offered by Michelle starting in 2006B.  A group of 
+polarimetry routines have been added to the package to aid reduction of these 
+types of observations.  The raw data consists of short observations through 
+four positions of a waveplate, corresponding to the selection of polarized 
+radiation at position angles 0, 45, 90, and 135 degrees.  The MPREPARE 
+task is able to recognize polarimetry observations, and it splits the original 
+observations into MEF extensions, one extension per waveplate position.  The 
+observations are taken in CHOP-NOD mode with 8 waveplate positions observed 
+per nod: the waveplate angle sequence is 0, 45, 45, 0, 22.5, 67.5, 67.5, and 
+22.5 degrees (where the selection angle is twice the waveplate angle).  The 
+time per waveplate position is short, only a few seconds, so that the time 
+per NOD position is not much longer than in regular imaging mode.  Thus the 
+signal-to-noise ratio per extension is significantly lower in polarimetry 
+mode than it is in the analogous regular imaging mode, and the total number 
+of data extensions is MUCH larger for a given total time on target.
+.sp
+Aside from MPREPARE, all the tasks that are used on polarimetry mode data 
+files are named with prefix "MIP".
+.sp
+After being reformatted with the MPREPARE task, the polarimetry files can have 
+the images from each waveplate position stacked up using the MIPSTACK task.  
+The resulting four waveplate position images can be transformed into Stokes 
+parameter (I, U, Q) images using the MIPTRANS task.  Alternatively one can make
+Stokes parameter images for each AB nod pair (which then removes the radiative 
+offset contribution) using the MIPSTOKES task and then combine these to form a 
+set of stacked Stokes parameter images using the MIPSSTK task.  In these cases 
+the output files include not only the Stokes (I, U, and Q) images but also 
+additional extensions giving the unpolarized flux, the polarized flux, the 
+percent polarization, and the polarization angle in degrees.  All of these 
+additional images are calculated from the Stokes I, U, and Q images in a fairly
+simple manner.  MIPQL carries out a calculation of the Stokes parameters and 
+polarization vectors from stacked data. Other software external to IRAF and the
+Gemini package (such as the Starlink software) may produce much better results 
+than these simple tasks are able to.
+.sp
+For all the polarimetry tasks that combine images there is an option of 
+registering the original images to make the stacked images.  This is generally 
+recommended as long as there is something bright and compact in the field of 
+view.
+.ih
+EXAMPLES
+.sp
+Refer to the Mid-IR data reduction web pages at:
+.sp
+.nf
+http://www.gemini.edu/sciops/instruments/midir-resources/data-reduction
+.fi
+.ih
+BUGS AND LIMITATIONS
+At the present time, MIFLAT will only work with data obtained with T-ReCS.  
+This task has not been tested with flat-field data obtained with Michelle.  
+.sp
+The NSWAVELENGTH task does not usually produce good initial identifications of 
+the spectral lines for low resolution N-band spectroscopy.  In most cases the 
+automatic IDs that are assigned when the task is started are simply way off, 
+and it is necessary to clear the identifications and do them interactively.
+.sp
+We do not yet have a line list for high resolution spectroscopy in either the 
+N or Q windows, particularly for the Michelle echelle mode.
+
+.ih
+SEE ALSO
+mprepare, tprepare, mview, tview, tbackground, miview, mistack, miregister, 
+mireduce, miflat, mstelluric, msabsflux, msreduce, msdefringe, msflatcor, 
+mipstack, miptrans, mipstokes, mipsttk, miclean, msslice, imcombine, gnirs, 
+mipql, mipsf, telluric
+.endhelp
+

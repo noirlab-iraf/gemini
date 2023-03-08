@@ -1,0 +1,7 @@
+# Copyright(c) 2002-2017 Association of Universities for Research in Astronomy, Inc.
+#
+# Package parameters for the gmos package
+ 
+logfile,s,h,"gmos.log",,,"Logfile for tasks in the gmos package"
+observatory,s,h,"gemini-north",,,"Observatory"
+version,s,h,"20Jul2017",,,"Package version date"

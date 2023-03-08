@@ -1,0 +1,21 @@
+# Library for the GEMTOOLS package.
+
+$checkout libpkg.a ../
+$update libpkg.a
+$checkin libpkg.a ../
+$exit
+
+libpkg.a:
+	dicstr.x
+	gargcomma.x	<ctotok.h> <error.h>
+	imexplode.x	<mach.h> <error.h> <ctotok.h> "imexplode.h" "../pkg/gemextn/gemerrors.h" 
+	imxdelete.x	"imexplode.h"
+	imxhas.x	"imexplode.h"
+	imxset.x	"imexplode.h"
+	keywordlist.x	<error.h> "../pkg/gemextn/gemerrors.h"
+	regexreplace.x	<error.h> <pattern.h> "../pkg/gemextn/gemerrors.h"
+	sscan.x		"scan.h"
+	resetscan.x	"scan.h"
+	freescan.x	"scan.h"
+	scanc.x		"scan.h"
+	;

@@ -1,0 +1,12 @@
+# Copyright(c) 2000-2011 Association of Universities for Research in Astronomy, Inc.
+#
+# Help directory for the oscir package
+
+$doc = "oscir$doc/"
+
+ohead          hlp = doc$ohead.hlp, src=oscir$ohead.cl
+oview          hlp = doc$oview.hlp, src=oscir$oview.cl
+obackground    hlp = doc$obackground.hlp, src=oscir$obackground.cl
+oreduce        hlp = doc$oreduce.hlp, src=oscir$oreduce.cl
+oflat          hlp = doc$oflat.hlp, src=oscir$oflat.cl
+oscirinfo      hlp = doc$oscirinfo.hlp

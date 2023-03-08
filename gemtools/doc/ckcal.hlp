@@ -1,0 +1,85 @@
+.help ckcal March2012 gemini.gemtools
+.ih
+NAME
+ckcal -- Check lamp and sdist calibration files and return an updated list
+.ih
+USAGE
+ckcal 
+.ih
+PARAMETERS
+.ls lampfiles = "" 
+List of input wavelength calibration files. The list may be given as a  
+comma  separated  list, a @filelist, or using wildcards. The number of 
+lampfiles must either be equal to one or equal to the number of input 
+NIFS spectra.
+.le
+.ls sdistfiles = ""
+List of input S-distortion calibration files containing @file names or image 
+templates. The list may be given as a comma separated  list, a @filelist, 
+or using wildcards. The number of calibration files must either be equal to 
+one or equal to the number of input spectra.
+.le
+.ls outlist = ""
+List to update with input lamp files and S-distortion files.
+.le
+.ls nfiles = 0
+Number of files in input list. \fInfiles\fR is CKINPUT output.
+.le
+.ls nver = 0
+Number of extensions. \fInver\fR is CKINPUT output.
+.le
+.ls sci_ext = "SCI"
+Name of the MEF extension containing the science data.
+.le
+.ls database = ""
+Location of lampfiles and sdistfiles.
+.le
+.ls name = "CKCAL"
+Name of task calling CKCAL for use in \fIlogfile\fR.
+.le
+.ls logfile = "STDOUT"
+Name of the logfile containing error and warning messages. 
+.le
+.ls verbose = yes
+Print actions to the screen and logfile.
+.le
+.ls vverbose = no
+Print every action to the screen.
+.le
+
+RETURN VALUES
+.ls nlamps (output)
+Number of lamp files
+.le
+.ls nsdist (output)
+Number of S-distortion calibration files
+.le
+.ls status = 0
+Exit status will be non-zero if CKCAL halted with an error.  This 
+parameter is always set by the task and should not be modified by the user.
+.le
+.ih
+DESCRIPTION
+CKCAL verifies that lamp wavelength calibration files and S-distortion files
+exist and adds them to an output list. Because it adds to the existing outlist,
+CKCAL is usually called after CKINPUT.
+
+CKCAL is not meant to be a stand-alone task used from a command line prompt.
+
+.ih
+EXAMPLES
+1. Verify calibration files exist in database. Append calibration files to
+tmpin for processing in NSFITCOORDS.  
+.sp
+.nf
+    ni> ckcal (lampfiles=lamptransf, sdistfiles=sdisttransf,
+    >>> outlist=tmpin, nfiles=nfiles, nver=nver, sci_ext=l_sci_ext,
+    >>> database=s_database, name="NSFITCOORDS", logfile=l_logfile,
+    >>> verbose=l_verbose, vverbose=no)
+.fi
+.ih
+BUGS AND LIMITATIONS
+.ih
+SEE ALSO
+ckinput, nsfitcoords
+.endhelp

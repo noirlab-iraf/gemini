@@ -1,0 +1,363 @@
+.help gaflat October2013 gemini.gsaoi
+.ih
+NAME
+gaflat -- Create master flat frame(s) from input GSAOI flat frames
+.ih
+USAGE
+gaflat inimages
+.ih
+PARAMETERS
+.ls inimages
+List of raw or prepared GSAOI flat images to combine to form master flat
+frame(s). All types of flats can be input at once - they will be sorted into
+their various types. \fIinimages\fR Can be a list of image names or numbers
+(comma separated or @ lists), or a range of images numbers - wild cards are
+supported. The image names may include the directory path. The images must be
+in multi-extension FITS (MEF) format and not be mosaiced. The file extension
+".fits" may or may not be included. See help for GAIMCHK for examples of all
+syntax allowed.
+.le
+.ls rawpath = ""
+Path to the directory where the images are located. One may
+set this parameter if the raw data are not located in the current
+working directory, or specify a path in the input image file names.
+If \fIrawpath\fR is supplied it will be prefixed to any path given as part of
+the input image names.
+.le
+.ls outsufx = "flat"
+Output suffix for master flat frame(s). The output flat frame(s) name(s) will
+take that of the first image the sorted list for the unique meta-configuration,
+with the suffix "_"\fIoutsufx\fR inserted before the file extension, e.g.,
+gS20120101S0001_flat.fits".
+.le
+.ls rootname = ""
+Root name of image(s) if supplying image number(s); blank for today's UT. For
+example, rootname="S20120101S".
+.le
+.ls minflat = 5
+The minimum number of flat frames required to combine to form a master flat.
+.le
+.ls ignore_exp = "default" (yes|no|default)
+This parameter determines whether the <time string>, i.e., exposure time, of
+the the METACONF should be ignored when sorting the input files by the
+METACONF value for combing. By default, for GCAL flats and dome flats
+\fIignore_exp\fR is set to no. Whereas, for twilight flats this is set to yes.
+.le
+.ls stattype = "mean" (mean|mode|midpt)
+This is the statistic to use as the normalization value, when normalizing the
+combined flat.
+.le
+.ls statextn = "ARRAY" (DETECTOR|ARRAY|<extnname,extnver>|<index>)
+This parameter determines how the normalization value is calculated.
+\fIstatextn\fR="ARRAY" means to calculate the statistic for the region 
+specified by \fIstatsec\fR separately for each individual
+array, i.e., 4 values will be calculated. \fIstatextn\fR="DETECTOR" means
+calculate the statistic using the areas specified by \fIstatsec\fR from each
+individual array but treat them as one pixel array, i.e., only 1 value is
+calculated. Or an extension index or EXTNAME and EXTVERSION can be supplied,
+returning the calculated statistic for the region specified in \fIstatsec\fR for
+that specified extension.
+.le
+.ls statsec = "[*,*]"
+Section of images to use in computing image statistics for normalization,
+and when scaling, weighting, and normalizing with GEMCOMBINE. If no section is
+given then the entire region of the input is sampled. \fIstatsec\fR is relative
+to an individual array but is applied to all arrays - assuming all arrays are
+of the same size.
+.le
+.ls fl_mask = yes
+Mask non-good pixels when calculating normalization statistic? Good pixels are
+assumed to have a value of 0 in the data quality planes. If there are no data
+quality planes present and \fIbadpix\fR is not "", this will be used to mask
+bad pixels during the calculation.
+.le
+.le
+.ls badpix = "gsaoi$data/gsaoibpm_high_full.fits"
+Static MEF bad pixel mask.
+.le
+.ls fl_vardq = no
+Create variance and data quality frames for the output image? If
+\fIfl_vardq=yes\fR, variance and data quality planes are required to be present
+in all prepared input frames.
+.le
+.ls maxtime = INDEF
+Maximum time interval, in seconds, from first image in the sorted unique
+meta-configuration list for a frame to be included in the combination step.
+.le
+.ls datename = "DATE-OBS"
+Header keyword for the date stamp.
+.le
+.ls timename = "UT"
+Header keyword for the UT time stamp.
+.le
+.ls ignore_nlc = no
+This parameter determines whether the non-linear correction state of the input
+images should be ignored when sorting the input files by the
+METACONF value for combing.
+.le
+.ls use_offs = "default" (default|yes|no)
+The current default behavior for GAFLAT is to only look for lamp OFF flats and
+subtract the resulting combined flat from the lamp ON flats for GCAL
+flats. Both ON and OFF flats must be supplied at the same time. You cannot
+supply a pre-created combined ON or OFF flat to GAFLAT for further passes
+through GAFLAT. The default behavior can be overridden by setting
+\fIuse_off\fR to "yes" or "no". In the "yes" case GAFLAT will expect to find
+lamp OFF flats included in the input list. If it cannot find any appropriate
+lamp OFF flats in the input list it will skip the current
+meta-configuration. If \fIuse_offs\fR="no" then lamp OFF flats will create
+their own master flat just like the lamp ON flats will.
+.le
+
+GAPREPARE PARAMETERS:
+.ls gaprep_pref = "g"
+Prefix for output images from GAPREPARE. The names of output images will be the
+names of the input images (without any paths included) with the prefix
+attached. If \fIgaprep_pref\fR does not contain a directory path, the
+prepared images are written in the current working directory. \fIgaprep_pref\fR
+may contain a directory path, in which case this defines where the prepared
+images are written relative to the current directory.
+.le
+.ls fl_trim = yes
+Trim the images? This will remove the non-illuminated regions of the
+arrays. The non-illuminated regions are a boarder of 4 pixels around the
+outside of each physical array. For some observing modes no physical trimming
+will take place.
+.le
+.ls fl_nlc = yes
+Apply non-linearity correction to each array?
+.le
+.ls fl_sat = yes
+Flag non-linear and saturated pixels in data quality frames?
+.le
+.ls arraysdb = "gsaoi$data/gsaoiAMPS.dat"
+Database file containing characteristic information about the individual
+arrays. This file contains the readnoise, gain, saturation values and
+percentages of saturation where the counts depart >5% and >2% from linearity,
+before and after non-linearity correction, respectively.
+.le
+.ls non_lcdb = "gsaoi$data/gsaoiNLC.dat"
+Database file containing the coefficients for the 2nd order non-linearity
+correction.
+.le
+
+GEMCOMBINE PARAMETERS:
+.ls combine = "default" (default|average|median)
+Type of combining operation performed on the final set of pixels (after
+offsetting, masking, thresholding, and rejection). The choices are
+"average" or "median". The median uses the average of the two central
+values when the number of pixels is even. When \fIcombine\fR="default", then
+both \fIcombine\fR and \fIreject\fR parameters passed to GEMCOMBINE are set
+internally by GAFLAT. The default setting of \fIcombine\fR and \fIreject\fR for
+GCAL flats are "average" and "avsigclip", receptively. For both dome and
+twilight flats, \fIcombine\fR and \fIreject\fR are set to "median" and
+"minmax", respectively. In addition, when \fIcombine\fR=default for dome and
+twilight flats, "\fInlow\fR" and \fInhigh\fR are both set to 1, though
+\fInhigh\fR is set to 2 for 8 or more images. However, should the number of
+images to be combined be less than 5 and \fIcombine\fR=default, regardless of
+type, \fIcombine\fR="average", \fIreject\fR="minmax", "\fInlow\fR"=0 and
+\fInhigh\fR=1.
+.le
+.ls reject = "avsigclip" (none|minmax|ccdclip|crreject|sigclip|avsigclip|pclip)
+Type of rejection operation performed on the pixels remaining after offsetting,
+masking and thresholding. The algorithms are described in the help for
+IMCOMBINE.
+.le
+.ls masktype = "goodvalue" (none|goodvalue)
+Type of pixel masking to use. Note that not all IMCOMBINE options are
+currently available. See the IMCOMBINE help page for more details.
+.le
+.ls maskvalue = 0.
+Mask value to use with the \fImasktype\fR parameter. See the IMCOMBINE help
+page for a complete description.
+.le
+.ls zero = "none" (none|mode|median|mean|@<file>|!<keyword>)
+Additive zero level image shifts to be applied.
+.le
+.ls weight = "none" (none|mode|median|mean|exposure|@<file>|!<keyword>)
+Weights to be applied during the final averaging.
+.le
+.ls expname = "EXPTIME"
+Image header keyword to be used with the exposure scaling and weighting
+options.
+.le
+.ls lthreshold = INDEF, hthreshold = INDEF
+Low and high thresholds to be applied to the input pixels. This is done
+before any scaling, rejection, and combining. If INDEF the thresholds
+are not used.
+.le
+.ls nlow = 1, nhigh = 1
+The number of low and high pixels to be rejected by the "minmax" algorithm.
+.le
+.ls nkeep = 1
+The minimum number of pixels to retain or the maximum number to reject
+when using the clipping algorithms (ccdclip, crreject, sigclip,
+avsigclip, or pclip).
+.le
+.ls mclip = yes
+Use the median as the estimate for the true intensity rather than the
+average with high and low values excluded in the "ccdclip", "crreject",
+"sigclip", and "avsigclip" algorithms?
+.le
+.ls lsigma = 3., hsigma = 3.
+Low and high sigma clipping factors for the "ccdclip", "crreject", "sigclip",
+"avsigclip", and "pclip" algorithms.
+.le
+.ls key_ron = "RDNOISE", key_gain = "GAIN", ron = 0.0, gain = 1.0
+CCD readout noise in electrons and gain in electrons/DN.
+These parameters are used with the "ccdclip" and "crreject"
+algorithms. \fIron\fR and \fIgain\fR are only used if the keywords
+\fIkey_ron\fR and \fIkey_gain\fR are set to "".
+.le
+.ls snoise = "0.0"
+Sensitivity noise as a fraction.
+.le
+.ls sigscale = 0.1
+This parameter determines when Poisson corrections are made to the
+computation of a sigma for images with different scale factors.
+.le
+.ls pclip = -0.5
+Percentile clipping algorithm parameter.
+.le
+.ls grow = 0.0
+Radius in pixels for additional pixel to be rejected in an image with a
+rejected pixel from one of the rejection algorithms.
+.le
+.ls fl_dqprop = no
+Propagate data quality values to the combined frame data quality extensions? If
+\fImasktype\fR="none" all input data quality values will be propagated. If
+\fImasktype\fR="goodvalue" only the data quality values for those output pixels
+that have no data in will be propagated.
+.le
+
+GENERAL PARAMETERS:
+.ls sci_ext = "SCI"
+Name of the MEF extension containing the science data.
+.le
+.ls var_ext = "VAR"
+Name of the MEF extensions containing the calculated variance planes.
+.le
+.ls dq_ext = "DQ"
+Name of the MEF extensions containing the data quality information.
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes use of the logfile
+defined by gsaoi.logfile.
+.le
+.ls verbose = yes
+Print actions to screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted
+with an error. This parameter is set by the task and should not be
+modified by the user.
+.le
+.ih
+DESCRIPTION
+
+This task, GAFLAT, takes raw or prepared GSAOI flat data (4-extensions), sorts
+them by unique METACONF keyword values and combines them to form master flats.
+
+If the input files are raw, GAFLAT will check for previously prepared versions
+looking for files with the same name but prefixed with the \fIgaprep_prep\fR
+value. If a prepared version doesn't already exist, GAFLAT will then call
+GAPREPARE (with the parameters specified above) to prepare the data and add the
+METACONF keyword. If it does exist that prepared file will be used instead.
+
+Once all input files are prepared, all of their METACONF keyword values are
+read and the unique values determined. The prepared flat files are then grouped
+by unique METACONF keyword values. These grouped flats are then sorted by
+file name to form the lists that are to be combined to form the master flats.
+
+In the case of GCAL flats "OFF" flats, i.e., GCAL shutter is closed, are
+also required as part of the inputs. There is no need to sort them into
+separate lists. If GCAL flats are supplied and no "OFF" flats are supplied the
+task will give a warning and skip this configuration.
+
+If \fImaxtime\fR is not set to INDEF and the number of flats that have the
+same METACONF keyword value is greater than \fIminflat\fR, further
+grouping will occur. Those files that were observed within \fImaxtime\fR from
+the first file within the sorted unique METACONF list will be combined,
+assuming that there are \fIminflat\fR that match this criteria. If there are
+files in that list that do not match the time criteria then a second pass is
+made using the either the next file in the unique METACONF list or the first
+file in the list containing those files that didn't match the time criteria for
+this unique METACONF list as the reference file for sorting by time. This is
+repeated until the list of files for this unique METACONF value is exhausted.
+
+In the case of GCAL flats the combined "off" flat will be subtracted from the
+combined "on" flats. Given that combination of parameter setting may produce
+more than one "off" flat, the closet "off" flat in time to the "on" flat will
+be used.
+
+The combined science frames are then normalized using the statistic given by
+\fIstattype\fR calculated in the manner determined by \fIstatextn\fR. Masking
+of bad pixels can be performed when calculating the normalization value if
+\fIfl_mask\fR=yes. The statistic calculated by first calculating the
+statistic and standard deviation (sigma) then recalculating the values using
+a +/- 3 sigma clipping in the final pass. The normalization factor is written
+to the science extension headers (NORMFACT) along with the calculated standard
+deviation of that value (NORMFERR).
+
+If \fIfl_vardq\fR=yes, the variance and data quality extensions created by
+GEMCOMBINE will be included in the output image. The variance is the square of
+the output sigma plane from IMCOMBINE divided by the number of contributing
+pixels for a given pixel, then divided by the square of normalization
+factor(s). If \fIfl_dqprop\fR=yes depending on the "masktype" setting the input
+data quality values will be propagated (see parameter description for more
+information).
+
+Finally, the output METACONF keyword is updated. The output METACONF keyword
+takes the value of the first image to be combined (all images being combined
+together have the same METACONF value). However, the string "_FLAT" is inserted
+before the <ROI> description but after the flat type. In addition, the <time
+string> is removed. For example, input value:
+
+.in 4
+40._1_1+H_G1103_Clear+TWLT+FF+TRIM+NLC
+.in -4
+
+Output value:
+
+.in 4
+H_G1103_Clear+TWLT_FLAT+FF+TRIM+NLC
+.in -4
+.ih
+EXAMPLES
+
+.nf
+   cl> gaflat *.fits fl_vardq+ fl_sat+
+.fi
+
+For the purposes of this example the current directory contains two types of
+flats, twilights and GCAL flats. There are both "on" and "off" GCAL flats all
+with the same <time string> (exposure time, low-noise reads and coadds). The
+exposure times of the twilight flat vary but have the same (low-noise reads and
+coadds). The same filters were used and the reduction steps at the prepare
+stage were the same. There are 10 images of each type (including GCAL "off"
+flats), which greater than the \fIminflat\fR value. Therefore, with the default
+parameter settings, two master flats would be created one for the twilight
+flats and one for the GCAL flats (combined "on" - combined "off").
+
+.nf
+   cl> gaflat g@flats.list minflat=3 maxtime=1800
+.fi
+
+The file flat.list contains the names of 10 files that are raw dome flats,
+however, they have already been prepared and files with the same name prefixed
+with "g" exist in the current directory. The first 5 flats were observed
+together, the next 3 were observed an hour later and the final 2 an hour after
+that. As \fImaxtime\fR is set to 1800s, the first 5 flats will be combined
+together, then another master dark will be created by combing the next 3
+flats. However, as \fIminflat\fR is set to 3 the final 2 frames will not be
+combined. So, in total only two master flats will be created.
+.ih
+BUGS AND LIMITATIONS
+Only images with an object keyword value of either "TWILIGHT", "DOMEFLAT",
+"DOMEFLAT OFF" or "GCALFLAT" will be selected. The use of skies or science
+observations as inputs to be combined to create a master flat is not currently
+supported.
+.ih
+SEE ALSO
+
+GAPREPARE, GASTAT, GADIMSCHK, GAIMCHK, GEMCOMBINE and GEMARITH
+.endhelp

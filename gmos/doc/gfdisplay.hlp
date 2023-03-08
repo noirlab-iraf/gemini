@@ -1,0 +1,145 @@
+.help gfdisplay December2012 gemini.gmos
+.ih
+NAME
+gfdisplay -- Reconstruct, display and analyse extracted GMOS IFU spectra (uses 
+LDISPLAY)
+.ih
+USAGE   
+gfdisplay input frame
+.ih
+PARAMETERS
+.ls input
+Input MEF file of extracted GMOS IFU spectra. List and wild cards 
+are not supported.
+.le
+.ls frame = 1
+Frame buffer to use for display.
+.le
+.ls z1 = 0.0, z2 = 0.0
+Minimum and maximum greylevel to be displayed. Autoscaling is used
+if \fIz1\fR=0 and \fIz2\fR=0.
+.le
+.ls ztrans = log (linear|log)
+Grey level transformation.
+.le
+.ls output = ""
+Name of output reconstructed image. The reconstructed image is only
+saved if \fIoutput\fR is defined. Otherwise the reconstructed image
+is deleted when the interaction with the display is exited.
+.le
+.ls extname = "SCI"
+The value of EXTNAME to display. Normally this would be SCI, VAR, or
+DQ.
+.le
+.ls version = "*" (1|2|*)
+The value of EXTVER to display.  This specifies the slit(s).  
+The configuration and dead fiber files must match this selection (see below).
+\fIversion\fR="*" should only be used if the image has two extensions
+with the name \fIextname\fR, otherwise \fIversion\fR="1" should be used.
+.le
+.ls config = "default"
+The name of the LDISPLAY configuration file with relative lenslet positions.
+The default will use information in the the MDF to construct the
+configuration file.  The name will need to be specified for data
+reduced with MDFs that do not have columns XLDIS,YLDIS (see below).
+.le
+.ls deadfib = "default"
+Name of the LDISPLAY dead fiber configuration file.
+The default will use information in the the MDF to construct the
+configuration file.  The name will need to be specified for data
+reduced with MDFs that do not have columns XLDIS,YLDIS (see below).
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error. 
+This parameter is always set by the task, and should not be modified by 
+the user.
+.ih 
+DESCRIPTION 
+
+GFDISPLAY is a simple wrapper for the GEMTOOLS.LDISPLAY task.  Given a
+file with the relative spatial positions of the lenslets and a
+multispec file of extracted spectra, LDISPLAY will reconstruct the IFU
+image and allow the user to look at individual spectra.  However, it
+cannot directly read the format of the extracted spectra from
+GFEXTRACT.  GFDISPLAY copies the appropriate slit (extension version,
+or \fIversion\fR) of extension name \fIextname\fR to a single
+multispec file and calls LDISPLAY.  In two-slit mode the default is to
+merge the two science extensions so that all 1500 spectra from the two
+slits can be analyzed.
+
+Starting with the v1.6 release (April 2004) of the Gemini IRAF package
+the information for the LDISPLAY configuration files is contained in
+the columns XLDIS,YLDIS of the MDF.  If those columns are present then
+GFDISPLAY will use them by default.  Both \fIconfig\fR and
+\fIdeadfib\fR must be given if special configuration files are needed
+or if displaying data reduced using a MDF from Gemini package version
+1.5 or earlier.  For previously reduced GMOS-N IFU data the following
+configuration files in gmos$data/ should be used.
+
+.br
+.nf
+    IFU mode  Slit       Configuration file     Dead-fiber file
+    -----------------------------------------------------------
+    1-slit    Red        gnifu_slitr.cfg        gnifu_deadr.cfg
+    1-slit    Blue       gnifu_slitb.cfg        gnifu_deadb.cfg 
+    2-slit    Both       gnifu_slits.cfg        gnifu_deads.cfg          
+.fi
+
+In the 2-slit mode, half of the field is reconstructed if the configuration
+files for the red or the blue slit is defined instead of the configuration
+files for both slits.
+
+In the reconstructed images from the GMOS-N IFU the left-hand 10/20
+(one/two slit modes) columns of hexagons are from the sky region
+(small IFU field) and the right-most 20/40 columns of hexagons are
+from the object region (larger IFU field).  The GMOS-S IFU fields are
+reversed with respect to the GMOS-N IFU, so the larger of the two
+GMOS-S IFU fields appears on the left-hand side of the reconstructions.
+IN GMOS-S IFU data taken with nod&shuffle only the larger field is
+used so the small field cannot be displayed.
+
+The orientation of the output image is the same as the orientation of
+the imaging field. The pixel scale of the output image is 0.0125
+arcsec/pixel.  The resulting reconstructed image can be saved to
+\fIoutput\fR. If the same output image is specified in subsequent
+calls, then this image will be overwritten.
+
+The minimum and maximum display levels, greylevel transformation, and
+the frame buffer to be used can be specified.  If \fIz1\fR and
+\fIz2\fR are 0.0, then autoscaling is used.  The greylevel
+transformation, \fIztrans\fR, can be either linear or log.  
+
+GFCUBE represents an alternative to reconstructing and visualizing 
+reduced IFU data.
+
+.ih
+EXAMPLES
+
+1. Display both slits from a GMOS IFU flat
+
+.nf
+        cl> gfdisplay ergN20010908S092.fits 
+.fi
+
+2. Display the blue slit (\fIversion\fR=2) from the same GMOS-N IFU flat
+
+.nf
+        cl> gfdisplay ergN20010908S092.fits ver=2 \
+        >>> config=gmos$data/gnifu_slitb.cfg dead=gmos$data/gnifu_deadb.cfg
+.fi
+
+3. Visualize a cube taken in 1-slit mode and save the reconstructed image.
+
+.nf
+        cl> gfdisplay ergN20020516S0034 out=ergN20020516S0034_img \
+        >>> z1=1.e5 z2 =1.e7 ver=1
+
+.fi
+
+.ih
+BUGS AND LIMITATIONS
+
+.ih
+SEE ALSO
+gmosinfoifu, gfextract, gfreduce, ldisplay, gfcube
+.endhelp

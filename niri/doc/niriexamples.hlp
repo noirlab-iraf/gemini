@@ -1,0 +1,52 @@
+.help niriexamples December2011 gemini.niri
+.ih
+NAME
+niriexamples - Print example scripts
+.ih
+USAGE
+niriexamples example
+.ih
+PARAMETERS
+.ls example (imaging|longslit)
+Example script to print to the screen.
+.le
+.ih
+DESCRIPTION
+
+A few example scripts are provided for the NIRI package.
+NIRIEXAMPLE prints these to the screen.
+The examples use real data and have all been used for data reduction.
+The users will need to modify directory and image names for their own use.
+The example files are located in niri$doc.
+
+.nf
+    Example       File
+    ---------------------------------------
+    imaging       niri_imaging_example.cl
+    longslit      niri_longslit_example.cl
+    ---------------------------------------
+.fi
+
+To print the example of reduction of imaging data (including flat and
+sky generation):
+
+.nf
+  cl> niriexamples imaging
+.fi
+
+To print the example of the reduction of observations of a spectroscopic 
+telluric standard star, including generating flats, subtracting sky,
+determining wavelength calibration and correcting for S-distortion:
+
+.nf
+  cl> niriexamples longslit
+.fi
+
+.ih
+BUGS AND LIMITATIONS
+The tasks in the NIRI package have not all been tested in all modes.
+They can crash if used in ways not yet tested.
+.ih
+SEE ALSO
+niriinfo
+.endhelp

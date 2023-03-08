@@ -1,0 +1,25 @@
+# Make the compiled tasks in the GNIRS sub-package
+
+$call   relink
+$exit
+
+update:
+        $call relink
+        $call install
+        ;
+
+relink:
+        $set LIBS = ""
+#        $set XFLAGS = "-f"
+        $update libpkg.a
+        $omake x_gnirs.x
+        $link x_gnirs.o libpkg.a $(LIBS) -o xx_gnirs.e
+        ;
+
+install:
+        $move xx_gnirs.e gembin$x_gnirs.e
+
+libpkg.a:
+        t_peakhelper.x  <imhdr.h>
+        ;
+

@@ -1,0 +1,189 @@
+.help tbackground December2011 gemini.midir
+.ih
+NAME
+tbackground -- Performs statistics on frames in a T-ReCS file; allows user to 
+mark nodsets/savesets as "bad".
+.ih
+USAGE
+tbackground inimages
+.ih
+PARAMETERS
+.ls inimages
+The input image(s) to be examined for bad savesets.  This parameter 
+can be an image name, a list of image names, a wild-card image name, 
+or the "@" syntax can be used to direct the task to read a list of 
+file names.
+.le
+.ls outimages = ""
+The output image name(s).  Since the task changes the headers automatically 
+if any bad frames are found, the task requires that the output image 
+names are distinct from the input image names.  If this field is left 
+blank the \fIoutpref\fR string is used to create new file names from the 
+input file names.  Otherwise the number of output file names must match 
+the number of input file names or an error condition occurs.  The field 
+must contain either a list of output file names or use the "@" syntax to 
+direct the task to read a list of file names.  The task tests for whether 
+the output images exist and exits with an error condition if any of them 
+do exist.
+.le
+.ls outpref = "b"
+A prefix string which is prefixed to each input image name to make
+the corresponding output image name if the output file name(s) are 
+not specified via the \fIoutimages\fR parameter.
+.le
+.ls rawpath = ""
+The path to the directory containing the T-ReCS images files.  If the 
+value is "" (empty string) the current directory is used.
+.le
+.ls sigma = 4.0
+A number of standard deviations for the rejection of bad frames.  The 
+value must be greater than zero, but no other checks of it are made.
+.le
+.ls bsetfile = ""
+The name of a file which records the "bad" saveset numbers.  If no name is 
+specified, the file name defaults to (inputfilename).bsets.  If this file 
+already exists, the current values are appended to it.
+.le
+.ls writeps = no
+A boolean value for whether postscript plots are made of the set of 
+mean values for each saveset.  Plots are also directed to STDPLOT.
+.le
+.ls sh_change = no
+A boolean value for whether the changes made to the image headers 
+are listed for the user.  This value is used for the SHOW 
+parameter to the HEDIT task.
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes the task use the logfile
+defined by \fImidir.logfile\fR.
+.le
+.ls verbose = yes
+Print actions to the screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error. 
+This parameter is always set by the task, and should not be modified by 
+the user.
+.le
+.ih
+DESCRIPTION
+This routine examines raw T-ReCS images file and produces matching 
+output files with any "bad" savesets marked with header keywords in 
+the extension header.  If there are no "bad" savesets, the output 
+files will be identical to the input files.
+.sp
+Given a list of input images, or the name of a file containing a set of 
+input file names, the TBACKGROUND task copies each raw T-ReCS image 
+to an output file.  It then examines each output file for bad frames 
+based upon statistics of the "reference" frames.  Any such frames that 
+deviate from the mean by more than \fIsigma\fR standard deviations are 
+marked as "bad".  To preserve the number of savesets in an AB nod pair, 
+the corresponding saveset in the other nod of the pair is also marked as 
+"bad".  If bad frames are found, the keywords NBADSET and BADSET?? are 
+written to the extension headers.
+.sp
+This is the behaviour when the image is taken in CHOP or CHOP-NOD mode.  For 
+the STARE or NOD modes the same process is carried out for the signal 
+frames, since there are no reference frames.
+.sp
+If the image(s) specified have already been processed by TBACKGROUND 
+then no output file is produced.  A message is printed to the logfile, but 
+the error status remains "good".
+.ih 
+Screening of Savesets
+The TBACKGROUND task works on raw T-ReCS files in which there are 
+multiple savesets per nod position.  The normal operation requires that 
+the observation be taken in either CHOP or CHOP-NOD mode, so that the 
+"on-source" and "reference" frames can be defined for either one (CHOP
+mode) or both (CHOP-NOD mode) NOD positions A and B.  For the alternate 
+modes (STARE and NOD) there are no reference frames and the task examines
+the "on-source" images for discrepant frames.  In what follows it will 
+be assumed that the task is used with CHOP-NOD or CHOP mode observations, 
+since it is not clear that TBACKGROUND can be usefully applied to 
+images taken in the other modes. 
+.sp
+What is done is to assemble statistics for the set of reference frames in 
+each pair of data extensions in the file (or for the only extension in the 
+file, if the observation was taken in CHOP or STARE modes) with the IMSTAT task
+in the \fIimages.imutil\fR package.  These are then used to define the mean and
+standard deviation of the signal level in the reference images.  Once this 
+has been done, images in the group that deviate more than the set \fIsigma\fR 
+limit number of standard deviations are flagged.  Following this, header 
+keywords are written to both extension headers of the NOD pair (or to 
+the single extension in CHOP or STARE modes).  It is assumed that any nodding 
+is done in ABABAB sequence.
+.sp
+The header keywords that are used are:
+.ls NBADSET
+This is an integer value giving the number of bad savesets in the 
+current image extension.  The value will be 1 or larger.  One could set 
+NBADSET to zero for image extensions that have no bad reference files, 
+but this is not necessary.
+.le
+.ls BADSET01, BADSET02, and so on
+The saveset numbers for the bad frames are listed in these keywords, the 
+number of "BADSET??" keywords being determined by the NBADSET value.  Each 
+keywords has a corresponding integer value between 1 and the number of 
+savesets in the image extension (which is given by the SAVESETS keyword in 
+the primary FITS header of the file).  It is assumed that no more than 99 
+bad savesets need to be marked--one does not expect that many savesets per 
+extension in CHOP-NOD mode, and one does expects only a small subset of 
+the frames will be flagged as bad.
+.sp
+It is also possible to mark bad frames interactively using the TVIEW 
+task.  Normally one would run TBACKGROUND first and then TVIEW 
+afterwards.
+.sp
+Note that if a saveset in one nod position is marked as being bad, the 
+corresponding saveset in the other nod position is also marked as bad to 
+insure that the two nod positions have the same exposure time.
+.le
+.ih
+EXAMPLES
+1. The basic usage is
+.sp
+.nf
+    cl> tbackground S2003B0909S0012 
+.fi
+.sp
+which will produce an output file named "bS2003B0909S0012.fits". (Assuming 
+that there are no errors.)
+.sp
+2. Using TBACKGROUND for images in another directory is done as with 
+.sp
+.nf
+    cl> tbackground S2003B0909S0012 rawpath="/home/user/trecs"
+.fi
+.sp
+which would read "/home/user/trecs/S2003B0909S0012.fits" and produce an 
+output file named "bS2003B0909S0012.fits" if all goes well.
+.sp
+3. Defining the output file name works the following way:
+.sp
+.nf
+    cl> tbackground S2003B0909S0012 frame12 verbose=no
+.fi
+.sp
+which should produce "frame12.fits" in the current directory.  In this 
+case most of the log messages are not written to the terminal because 
+\fIverbose\fR is set to "no"
+.sp
+4. If one wants to define the prefix explicitly and apply it to all 
+the images in a list it is done by
+.sp
+.nf
+    cl> tbackground @file.list prefix="new" sigma=3.0 \
+    >>> logfile="tb.log"
+.fi
+.sp
+which produces an output file named "newS2003B0909S0012.fits" for an 
+input file name "S2003B0909S0012" listed in file "files.list".  In this 
+example the logfile name is set to "tb.log".  This example also 
+sets the threshold for bad frames to +/-3 standard deviations from the 
+default of 4 standard deviations.
+.ih
+BUGS AND LIMITATIONS
+.ih
+SEE ALSO
+tprepare, tview, mireduce, midir
+.endhelp

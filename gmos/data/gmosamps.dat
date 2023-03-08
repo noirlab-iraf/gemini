@@ -1,0 +1,104 @@
+# Database of GMOS CCD amplifier properties
+#
+# Values for older GMOS detectors are found in gmosamps-20060831.dat &
+# gmosamps-20150826.dat, gmosamps-20170224.dat
+#
+# Note: If adding more lines of information,
+#       please make sure there is no whitespace
+#       after the closing quote around the AMPNAME.
+#       Otherwise print out in GGAIN looks bad.
+
+# GMOS-N  
+# READOUT GAINSTATE GAIN RDNOISE BIAS AMPNAME
+# Hamamatsu upgrades (12 AMPS) (2017Feb24) #hcode
+# Amplifier names in order of 'engineering' readout
+# EXTs in order they are read out in a raw image
+# Updated slow/low(all), fast/low(all)
+# Latest values from K.Chiboucas on May 5, 2017.  Typical uncertainty on gain: 0.04
+#   with update from J.Scharwaechter on Jun 30, 2017.  Some values tweaked, higher precision
+#   needed following user feedback.
+#EXT 1-4 CCDr  #hcode
+slow low  1.675  4.06  456.  "BI13-20-4k-1, 4"
+fast high 5.21  9.90  500.  "BI13-20-4k-1, 4"
+fast low  2.01  8.02  499.  "BI13-20-4k-1, 4"
+slow low  1.618  4.12  456.  "BI13-20-4k-1, 3"
+fast high 5.18  8.94  502.  "BI13-20-4k-1, 3"
+fast low  1.95  6.88  501.  "BI13-20-4k-1, 3"
+slow low  1.620  4.12  448.  "BI13-20-4k-1, 2"
+fast high 5.05  8.75  502.  "BI13-20-4k-1, 2"
+fast low  1.97  6.02  499.  "BI13-20-4k-1, 2"
+slow low  1.568  3.99  446.  "BI13-20-4k-1, 1"
+fast high 5.04  8.17  501.  "BI13-20-4k-1, 1"
+fast low  1.91  5.88  501.  "BI13-20-4k-1, 1"
+#EXT 5-8 CCDg  #hcode
+slow low  1.69  4.20  439.  "BI12-09-4k-2, 4"
+fast high 5.29  9.42  500.  "BI12-09-4k-2, 4"
+fast low  2.03  6.71  499.  "BI12-09-4k-2, 4"
+slow low  1.65  3.98  452.  "BI12-09-4k-2, 3"
+fast high 5.13  8.91  500.  "BI12-09-4k-2, 3"
+fast low  1.97  6.34  501.  "BI12-09-4k-2, 3"
+slow low  1.633  3.88  451.  "BI12-09-4k-2, 2"
+fast high 5.14  8.19  500.  "BI12-09-4k-2, 2"
+fast low  1.96  5.39  500.  "BI12-09-4k-2, 2"
+slow low  1.664  4.20  448.  "BI12-09-4k-2, 1"
+fast high 5.29  8.84  500.  "BI12-09-4k-2, 1"
+fast low  2.01  5.86  501.  "BI12-09-4k-2, 1"
+#EXT 9-12 CCDb  #hcode
+slow low  1.604  4.04  441.  "BI13-18-4k-2, 4"
+fast high 5.03  8.13  501.  "BI13-18-4k-2, 4"
+fast low  1.95  6.10  500.  "BI13-18-4k-2, 4"
+slow low  1.63  4.35  456.  "BI13-18-4k-2, 3"
+fast high 5.10  8.13  501.  "BI13-18-4k-2, 3"
+fast low  1.95  6.13  501.  "BI13-18-4k-2, 3"
+slow low  1.587  4.02  456.  "BI13-18-4k-2, 2"
+fast high 4.86  8.03  502.  "BI13-18-4k-2, 2"
+fast low  1.89  5.98  499.  "BI13-18-4k-2, 2"
+slow low  1.654  4.55  456.  "BI13-18-4k-2, 1"
+fast high 5.09  8.80  501.  "BI13-18-4k-2, 1"
+fast low  1.95  6.79  499.  "BI13-18-4k-2, 1"
+
+# GMOS-S
+# Hamamatsu upgrades (12 AMPS) (2015sep14) #hcode
+# Amplifier names in order of 'engineering' readout
+# EXTs in order they are read out in a raw image
+# Updated slow/low(all), fast/low(all)
+#EXT 1-4 CCDr  #hcode
+slow low  1.834  4.04   730.  "BI5-36-4k-2, 4"
+fast high 5.183  8.07  2909.  "BI5-36-4k-2, 4"
+fast low  1.556  5.49   841.  "BI5-36-4k-2, 4"
+slow low  1.874  4.28   633.  "BI5-36-4k-2, 3"
+fast high 5.300  8.85  2932.  "BI5-36-4k-2, 3"
+fast low  1.593  6.35   856.  "BI5-36-4k-2, 3"
+slow low  1.878  4.24   897.  "BI5-36-4k-2, 2"
+fast high 5.330  9.13  2854.  "BI5-36-4k-2, 2"
+fast low  1.592  7.10  1040.  "BI5-36-4k-2, 2"
+slow low  1.852  4.21   500.  "BI5-36-4k-2, 1"
+fast high 5.240  8.93  2811.  "BI5-36-4k-2, 1"
+fast low  1.566  6.68   819.  "BI5-36-4k-2, 1"
+#EXT 5-8 CCDg  #hcode
+slow low  1.908  3.90   905.  "BI11-33-4k-1, 4"
+fast high 5.407  8.02  3252.  "BI11-33-4k-1, 4"
+fast low  1.634  5.77  2172.  "BI11-33-4k-1, 4"
+slow low  1.933  4.24   495.  "BI11-33-4k-1, 3"
+fast high 5.459  8.62  3091.  "BI11-33-4k-1, 3"
+fast low  1.648  7.38  2114.  "BI11-33-4k-1, 3"
+slow low  1.840  4.07   760.  "BI11-33-4k-1, 2"
+fast high 5.225  8.59  3272.  "BI11-33-4k-1, 2"
+fast low  1.582  6.14  2551.  "BI11-33-4k-1, 2"
+slow low  1.878  4.29   990.  "BI11-33-4k-1, 1"
+fast high 5.334  8.35  3334.  "BI11-33-4k-1, 1"
+fast low  1.613  5.19  2682.  "BI11-33-4k-1, 1"
+#EXT 9-12 CCDb  #hcode
+slow low  1.813  4.15   230.  "BI12-34-4k-1, 4"
+fast high 5.120  9.34  3058.  "BI12-34-4k-1, 4"
+fast low  1.549  7.72   893.  "BI12-34-4k-1, 4"
+slow low  1.724  3.61   525.  "BI12-34-4k-1, 3"
+fast high 4.894  7.99  3003.  "BI12-34-4k-1, 3"
+fast low  1.478  7.88  1445.  "BI12-34-4k-1, 3"
+slow low  1.761  3.72   470.  "BI12-34-4k-1, 2"
+fast high 5.129  8.30  3078.  "BI12-34-4k-1, 2"
+fast low  1.545  6.80  1322.  "BI12-34-4k-1, 2"
+slow low  1.652  3.53   795.  "BI12-34-4k-1, 1"
+fast high 4.828  7.94  3078.  "BI12-34-4k-1, 1"
+fast low  1.445  6.36  1856.  "BI12-34-4k-1, 1"
+

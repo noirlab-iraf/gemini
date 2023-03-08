@@ -1,0 +1,86 @@
+.help gffindblocks January2015 gemini.gmos
+.ih
+NAME
+gffindblocks -- Identify unilluminated image rows between IFU blocks (for
+later scattered light subtraction).
+.ih
+USAGE   
+gffindblocks image extspec mask
+.ih
+PARAMETERS
+.ls image
+Image in which to determine gap locations (this is only used to find the
+extension dimensions and could be any GMOS image of the same size/binning).
+.le
+.ls extspec
+Image containing extracted spectra (from GFEXTRACT/GFREDUCE), to use for
+determining gap locations from aperture information in the header. 
+.le
+.ls mask
+Output text file listing unilluminated image regions that may be used for
+scattered light estimation.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error. 
+This parameter is always set by the task, and should not be modified by 
+the user.
+.le
+.ih 
+DESCRIPTION 
+
+GFFINDBLOCKS uses the APEXTRACT header information in \fIextspec\fR to
+obtain the locations of apertures bounding each gap between GMOS IFU blocks
+in \fIinimage\fR and thereby estimates which image rows fall closest to the
+middle of each gap; these rows, which nominally receive zero signal from
+the IFU, are subsequently used by GFSCATSUB to model superimposed scattered
+light.
+
+The regions identified here are only a rectangular approximation of the
+unilluminated gaps, based on aperture locations at a reference column used
+in GFEXTRACT (averaged over the 2 IFU slits, if applicable). However, the
+row ranges are trimmed somewhat conservatively to avoid direct signal from
+the IFU and the resulting regions have been used successfully to improve
+the accuracy of the background level in flat field and science spectra.
+
+For optimal results, the user should check the output file produced here
+against the unextracted input image and if necessary adjust the rows listed
+in the output text file before running GFSCATSUB. In particular, bright
+targets sometimes spill significant light into the gap(s) between the
+most-illuminated blocks, in which case the user may need to exclude one or
+more gaps from the list, to avoid distorting the more general scattered
+light model.
+
+For data taken with the nod-and-shuffle IFU masks at Gemini South,
+GFFINDBLOCKS will identify the full gaps between illuminated blocks, which
+gives the correct background regions for flats but not for science data,
+where these gaps are mostly filled by the image from the second shuffle
+position (and with any remaining unilluminated rows depending on the
+shuffle itself). The nod-and-shuffle sky subtraction should itself help
+remove scattered light from science exposures, however, probably with some
+residual due to the object and sky charge being integrated at slightly
+different detector rows (on average). If that is not adequate, the user
+will have to create the output \fImask\fR file manually for the science
+data, eg. by running GFFINDBLOCKS on a flat taken without the nod and shuffle
+mask and adjusting the resulting rows after inspecting the N+S science
+exposures.
+
+.ih
+EXAMPLES
+
+1. Find gap locations in an IFU flat from the extracted aperture headers:
+
+.nf
+cl> gffindblocks rgN20060820S0016 ergN20060820S0016 rgN20060820S0016_gaps
+.fi
+
+.ih
+BUGS AND LIMITATIONS
+Sample regions are approximate, as described above, and do not account for
+small rotations between detectors.
+This task has undergone limited testing after inclusion from the
+experimental gmosifudr package on the Gemini Data Reduction User Forum and 
+may crash under some error conditions, such as with incomplete input headers.
+.ih
+SEE ALSO
+gfscatsub
+.endhelp

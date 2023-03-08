@@ -1,0 +1,200 @@
+.help miclean November2011 gemini.midir
+.ih
+NAME
+miclean -- Remove pattern noise from Michelle or T-ReCS images
+.ih
+USAGE
+miclean inimages 
+.ih
+PARAMETERS
+.ls inimages
+The name of an image, an image list, or a wildcard image name, for which 
+the cleaning is to be done.  These will usually be stacked images produced 
+by MPREPARE or TPREPARE.
+.le
+.ls rawpath = ""
+An optional path name where the input files are located.
+.le
+.ls outimages = ""
+The names of the output cleaned images.  If the names are defined, the 
+number of output images must equal the number of input images.  This 
+option supersedes the \fIoutpref\fR option.
+.le
+.ls outpref = "c"
+A prefix to the input file names to generate the output file names.  Used only 
+if \fIoutimages\fR is blank.
+.le
+.ls fl_stair = yes
+Remove the channel-to-channel "staircase" offsets from the image.  This is 
+done before any row or column pattern noise cleaning.  The T-ReCS and Michelle 
+arrays have 16 read channels each 20 columns wide, which may have small 
+offsets with respect to each other.  The "staircase" option attempts to 
+remove these offsets.
+.le
+.ls fl_columns = no
+Remove the vertical "noise" signal in the image.  Only one of 
+\fIfl_columns\fR and \fIfl_rows\fR can be set to "yes" in a given call to 
+this routine.
+.le
+.ls fl_rows = no
+Remove the horizontal "noise" signal in the image. Only one of 
+\fIfl_columns\fR and \fIfl_rows\fR can be set to "yes" in a given call to 
+this routine.
+.le
+.ls fl_simage = no
+Create an image of the "staircase" offsets.   If this option is chosen, an 
+additional output file is made for each input file showing the "staircase" 
+offsets that have been subtracted off of the input image to make the output 
+image.  The "staircase" image file name is made by prefixing the 
+\fIstairpref\fR to each input image name.
+.le
+.ls stairpref = "s"
+Prefix to each input file name to generate the name of the "staircase" image.
+Used only if the \fIfl_simage\fR flag is set to "yes".
+.le
+.ls fl_nimage = no
+Create an image of the horizontal or vertical noise model that is removed 
+from the input image.  If this option is chosen, an additional output file is 
+made for each input file showing the noise value that have been subtracted off 
+from the input image to make the output image.  The noise image file name is 
+made by prefixing the \fInoisepref\fR to each input image name.  
+.le
+.ls noisepref = "n"
+Prefix to each input file name to generate the name of the "noise" image.  
+Used only if the \fIfl_nimage\fR flag is set to "yes".
+.le
+.ls threshold = 3.0
+Mask off pixels with values deviating from the mean by more than
+\fIthreshold\fR times the standard deviation.  The statistics are calculated
+using the whole image and before any processing.  The values are masked to
+zero.  If the \fIthreshold\fR value is less than 2, then NO masking is done.
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes the task use the logfile defined
+by \fImidir.logfile\fR.
+.le
+.ls verbose = yes
+Print actions to the screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error.  This 
+parameter is always set by the task, and should not be modified by the user.
+.le
+.ih
+DESCRIPTION
+This task is designed to remove certain types of undesirable low-level 
+structure from T-ReCS or Michelle images.  It can remove the small channel 
+to channel offsets, called "staircasing", often observed in Michelle or 
+T-ReCS images, as well as certain types of pattern noise that are sometimes 
+seen in the images.  There is sometimes a low level horizontal signal pattern 
+in the images which is fairly uniform from left to right on the array, or 
+an analogous vertical pattern signal going up and down the columns.  These 
+pattern signal can be removed by this routine provided the source 
+is small on the array.  This routine will NOT work very well in those cases 
+where there is signal over a large fraction of the array, as it assumes that 
+over the entire array most of the area is detecting residual sky background 
+plus the pattern noise signals to be removed.
+.sp
+For each input file a "cleaned" output file is produced.  The name of the 
+output files are either specified in the \fIoutimages\fR parameter or defined 
+by prefixing the \fIoutpref\fR string to each input file name.  The task will 
+exit if either any of the specified input files does not exist or if any of 
+the specified output files already exists.
+.sp
+In order to remove these various structured signals from the input image, 
+median values are found for different subsets of the image (using the 
+IMSTATISTICS task) and subtracted off to produce the output image.  
+For the "staircase" offsets the region used for the calculation of the 
+median is each 20 by 240 pixel channel.  These are image sections [1:20,*], 
+[21:40,*], etc to [301:320,*] for a stacked Michelle or T-ReCS image of 
+dimension [320,240].  The 16 median values are calculated and then these 
+are subtracted off of each section.  In those channels where the source 
+is located, or where a negative source image is located, the median will 
+not as accurately represent the background value compared to channels where 
+there is no signal and only residual noise from the chopping and nodding.  
+This is why the task will fail if the source is too large in the field, as 
+the median values for many of the channels will be determined by the source 
+signal rather than the residual channel responses.
+.sp
+The staircase noise is removed if the \fIfl_stair\fR flag is set to "yes".  
+If the \fIfl_simage\fR flag is set to "yes" then an additional output file 
+will be produced for each input file that shows the staircase values that have 
+been subtracted off of the input image.  A check is made as to whether any 
+of these output files already exist, and if any do the task exits with an 
+error state.
+.sp
+In a similar way, either vertical or horizontal pattern noise can be removed 
+from the input images if the \fIfl_column\fR or \fIfl_row\fR flags are set. 
+The task is written to do only one of these two options in a single call 
+(the staircasing option can co-exist with either of these options, in which 
+case it is done first).  If the \fIfl_row\fR option is chosen then the 
+median of each row is found and subtracted from that row.  If the 
+\fIfl_column\fR option is chosen the median of each column is found and 
+subtracted off of the column values.  The effect of this is to produce as 
+close to a zero average background as possible.
+.sp
+For all these methods of cleaning, if the task is applied to a raw data image 
+rather than a difference image then the task takes the average value over 
+the entire 320 by 240 image and makes all the offsets relative to this value.  
+Otherwise the base sky level will be completely lost in the cleaning process, 
+which leads to very odd looking images.  The relative shifts from channel to 
+channel are preserved in this process.
+.sp
+Where any of these types of cleaning is requested the \fIthreshold\fR 
+value determines whether any signal from an object is masked off before the 
+median values are determined for the rows or the columns or the sections.  
+If this value is less than 2 no masking is done.  If the value is 2.0 or 
+larger then this number of standard deviations above or below the mean is 
+taken as the threshold for masking off signal.  Thus if the 
+\fIthreshold\fR value is 3.0, for example, all pixels brighter than the 
+image mean plus 3.0 times the image standard deviation are masked to 0.0 
+and all pixels with values below the image mean minus 3.0 times the image 
+standard deviation are masked to 0.0 before the median values for the rows 
+or columns are calculated.  This masking will affect the median value that 
+is obtained somewhat.  The user of the task needs to judge whether the 
+result of masking is good or not.  In general where a target is somewhat 
+extended such that it overlaps two or more of the 16 channels the masking 
+improves the staircase subtraction.
+.sp
+As with the case of the staircase cleaning, when the vertical or horizontal 
+pattern noise is to be removed it is possible to have the noise images 
+written out, one per input image.  This is done if the \fIfl_nimage\fR 
+flag is set to "yes".  When this is the case the \fInoisepref\fR string is 
+prefixed to each input file name to make the output noise file name.  If 
+any of these files already exist the task will exit with an error.
+.sp
+All of the cleaning functions in this task will fail if the source is too 
+large on the array.  In such cases one will be subtracting off some amount of 
+real signal.  For a point source or a small extended source the task should 
+work well.
+.ih
+EXAMPLES
+1. Remove the "staircase" noise and the vertical noise pattern from a Michelle
+stacked image.  Create a copy of the staircase and noise patterns that are 
+being removed.
+.sp
+.nf
+    mi> miclean rN20051218S0038 fl_stair+ fl_col+ fl_simage+ fl_nimage+
+.fi
+.sp
+The task will produce output images \fIcrN20051218S0038\fR, 
+\fIsrN20051218S0038\fR, and \fInmN20051218S0038\fR containing the cleaned 
+image, the staircase offsets, and the (column0 noise pattern respectively.  
+The output files are MEF files with the same number of extensions as the 
+original image has, one in this case.
+.ih
+BUGS AND LIMITATIONS
+This routine will not work very well in those cases where there is signal over
+a large fraction of the array, as it assumes that over the entire array most of
+the area is detecting residual sky background plus the pattern noise signals to
+be removed.
+.sp
+The task is mainly designed for usage with the stacked images.  While it can 
+be applied to either the raw data files or "prepared" files, in which case the 
+process will be applied to each image plane, it is not clear how well this 
+works with the raw data images.  Using \fImiclean\fR on the non-stacked 
+images would seem to only be useful if one is intending to examine the 
+individual nods or savesets in detail.
+.ih
+SEE ALSO
+.endhelp

@@ -1,0 +1,64 @@
+-------------------------------------------------------------------------------
+FLAMINGOS-2 data files included in the Gemini IRAF package
+Version: October 8, 2013
+-------------------------------------------------------------------------------
+File                   Description
+-------------------------------------------------------------------------------
+README                 This file
+
+f2array.fits           General array information for FLAMINGOS-2:
+
+                           detid          Rockwell detector ID number
+                           lnrs           Number of non-destructive read pairs
+                           readnoise      Detector read noise [ADU]
+                           gain           Detector gain [electrons / ADU]
+                           well           Full well depth [electrons]
+                           linearlimit    Fraction of well that is linear
+                           coeff1         First coefficient of function use to
+                                          correct for non-linearity
+                           coeff2         Second coefficient of function use to
+                                          correct for non-linearity
+                           coeff3         Third coefficient of function use to
+                                          correct for non-linearity
+                           nonlinlimit    Fraction of well that is linear after
+                                          correcting for non-linearity
+
+f2filters.fits         General filter information for FLAMINGOS-2:
+
+                           filter          Filter name (including Gemini ID)
+                           center          Center wavelength [microns]
+                           width           Equivalent width [microns]
+                           cuton80         80% cut-on wavelength [microns]
+                           cutoff80        80% cut-off wavelength [microns]
+                           cuton50         50% cut-on wavelength [microns]
+                           cutoff50        50% cut-off wavelength [microns]
+                           transmission    Name of file containing transmission
+                                           information
+
+f2offsets.fits         Offset information for spectroscopic FLAMINGOS-2 data:
+
+                           grism           Grism name (including Gemini ID)
+                           filter          Filter name
+                           slit            Slit name
+                           yoffset         Offset in y (from the center of the
+                                           array i.e., y=1024), indicating the
+                                           pixel at which the central
+                                           wavelength falls
+                           x1, x2          Pixel coordinates in x defining the
+                                           region to cut (longslit data only)
+
+Y_G0811.dat            FLAMINGOS-2 transmission information for Y filter
+Y_G0811.png            FLAMINGOS-2 transmission information for Y filter
+Jlow_G0801.dat         FLAMINGOS-2 transmission information for Jlow filter
+Jlow_G0801.png         FLAMINGOS-2 transmission information for Jlow filter
+J_G0802.dat            FLAMINGOS-2 transmission information for J filter
+J_G0802.png            FLAMINGOS-2 transmission information for J filter
+H_G0803.dat            FLAMINGOS-2 transmission information for H filter
+H_G0803.png            FLAMINGOS-2 transmission information for H filter
+Ks_G0804.dat           FLAMINGOS-2 transmission information for Ks filter
+Ks_G0804.png           FLAMINGOS-2 transmission information for Ks filter
+JH_G0809.dat           FLAMINGOS-2 transmission information for JH filter
+JH_G0809.png           FLAMINGOS-2 transmission information for JH filter
+HK_G0806.dat           FLAMINGOS-2 transmission information for HK filter
+HK_G0806.png           FLAMINGOS-2 transmission information for HK filter
+-------------------------------------------------------------------------------

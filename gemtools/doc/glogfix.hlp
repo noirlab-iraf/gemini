@@ -1,0 +1,47 @@
+.help glogfix March2005 gemini.gemtools
+.ih
+NAME
+glogfix -- Quick fix of a Gemini log file after a crash
+.ih
+USAGE
+glogfix logfile
+.ih
+PARAMETERS
+.ls logfile
+The name of the Gemini logfile to fix.
+.le
+.ls verbose = yes
+Print messages to the screen as well as to the logfile.
+.le
+.ls status = 0
+Exit status will be non-zero if the task halted with an error.  This parameter
+is always set by the task, and should not be modified by the user.
+.le
+.ih
+DESCRIPTION
+GLOGFIX is used to fix a Gemini log file by adding missing EOE (End-of-Entries)
+tags.  When a task is interrupted, because of a crash or a Control-C for 
+example, the GEMLOG closing comments, the comments stating the success or
+failure of the task, will most likely not be written to the 
+log file.  Therefore, the BOE (Beginning-of-Entries) and EOE tags will no 
+longer match.  The task GLOGEXTRACT relies on those tags to find its way 
+through a Gemini log file.  By adding the missing EOE tags, GLOGFIX 
+ensures that the subsequent log entries will be interpreted correctly by 
+GLOGEXTRACT.
+.ih
+EXAMPLES
+1. After a crash, fix a potentially damaged logfile.
+.sp
+.nf
+    ge> glogfix midir.log
+.fi
+.ih
+BUGS AND LIMITATIONS
+GLOGFIX is not smart enough to know exactly which EOE tags are missing.  It 
+simply counts the number of BOE tags and appends EOE tags to the end of the 
+logfile to match the number BOE tags.  Because of that GLOGEXTRACT might not 
+work very well on the log entries _preceding_ the fix.
+.ih
+SEE ALSO
+gemlog, glogextract
+.endhelp

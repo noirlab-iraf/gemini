@@ -1,0 +1,223 @@
+.help nsoffset December2012 gemini.gnirs
+.ih
+NAME
+.nf
+nsoffset -- Measure the offset between two 2D images
+.fi
+.ih
+USAGE
+nsoffset refimage inimages
+.ih
+PARAMETERS
+.ls refimage
+The reference image from which offsets are measured.
+.le
+.ls inimages
+The images whose shift relative to the reference should be measured
+and/or adjusted.
+.sp
+This may be a list of images.  If \fIfl_all+\fR then each will be
+measured in turn.  Otherwise the shift of the first image will be
+applied to all.
+.sp
+If an input does not contain any science extension then it is assumed
+to be an MDF.  An image is generated from the MDF with a
+background of zero and a value of 1 inside any apertures.  This image
+is then smoothed (to emphasise a central correlation peak) and treated
+as an observation.
+.le
+.ls outimages = ""
+A list of output images.  This is used only if \fIfl_apply+\fR.
+.sp
+If used, the number of entries must match \fIinimages\fR
+unless the parameter is empty (in which case \fIoutprefix\fR is used).
+.sp
+If the input image is an MDF, the output MDF contains shifted apertures.
+.sp
+If the input image contains an observation, then the header will be
+updated according to the description for \fIfl_apply\fR.
+.le
+.ls outprefix = "o"
+The prefix used to generate output image names from the input image
+list \fIinimages\fR if \fIoutimages\fR="" and \fIfl_apply+\fR.
+.le
+.ls shift = 0.
+If \fIfl_measure+\fR then this is the measured offset for the last
+image is measured.  If \fIfl_measure-\fR then the input shift will be 
+used for all files.
+.le
+.ls axis = INDEF
+The axis to shift along.  If INDEF then the dispersion axis is read
+from \fIkey_dispaxis\fR in the header, and the shift axis taken as
+perpendicular to that direction.  This is appropriate for
+aligning spectral apertures in the spatial direction.
+.le
+.ls pixscale = INDEF
+The image pixel scale, if not given in the header (see \fIkey_pixscale\fR).
+.le
+.ls fl_measure = yes
+Measure the shift using cross-correlation?  If no, then the \fIshift\fR
+parameter value is used.
+.le
+.ls fl_apply = no
+If \fIfl_apply+\fR then output images/MDFs will be generated (see 
+\fIoutimages\fR and \fIoutprefix\fR).
+.sp
+For observations the PHU will be modified to accurately reflect the
+shift relative to the reference image.  The images can then be shifted
+and combined with NSCOMBINE.
+.sp
+For MDF tables, the aperture positions will be shifted to the
+apertures present in the reference image.
+.le
+.ls fl_all = yes
+If \fIfl_all+\fR then the shift is measured (if \fIfl_measure+\fR) and
+applied for each input image in turn.  Otherwise, a shift is only
+measured for the first image only (but, assuming \fIfl_apply+\fR, is applied 
+to all images).
+.le
+.ls fl_project = no
+If \fIfl_project+\fR then the images are projected in the dispersion
+direction before cross-correlation.  This gives faster results, but is
+less sensitive to spatial information.  It works with LS and IFU data,
+but can give poor results with XD data, especially if they are unevenly
+illuminated.
+.le
+.ls fl_inter = no
+Fit peak interactively. If \fIfl_inter\fR = no then all queries and plotting 
+are disabled.
+.le
+.ls logfile = ""
+Name of logfile.  The GNIRS package logfile "gnirs.log" is used by default.
+.le
+.ls verbose = yes
+Print more actions to the screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error.
+This parameter is always set by the task, and should not be modified
+by the user.
+.le
+
+.ce
+Parameters from NSHEADERS
+.sp
+The following values are read from GNIRS.NSHEADERS
+.ls sci_ext
+Name of science extension
+.le
+.ls dq_ext
+Name of data quality extension
+.le
+.ls key_dispaxis
+Header keyword for dispersion axis
+.le
+.ls key_pixscale
+Header keyword for pixel scale
+.le
+.ih
+DESCRIPTION
+.sp
+This task measures and/or modifies the offset between \fIrefimage\fR
+and the input images/MDFs.
+.sp
+If \fIfl_measure+\fR then the offset is measured using the
+cross-correlation between data and reference image.  Otherwise, the
+\fIshift\fR parameter value is used directly.
+.sp
+If \fIfl_all+\fR then the offset is measured (assuming
+\fIfl_measure+\fR) for each input image, otherwise it is only measured
+for the first.
+.sp
+If \fIfl_apply+\fR then the PHU of each observation is updated to
+reflect the offset from the reference and the apertures of each MDF
+file are shifted to match the reference.
+.sp
+It is an error if \fIfl_measure-\fR and \fIfl_apply-\fR because there
+is no work for the task to do.  It is also an error if
+\fIfl_measure-\fR and \fIfl_all+\fR because only a single \fIshift\fR
+value can be specified as a parameter.
+.sp
+\fIsci_ext\fR from NSHEADERS is used to find the appropriate extension
+in observations.  Only the first extension is used (the WCS in the PHU
+is updated, which applies to all extensions).
+.sp
+For MDF files, an image is constructed with 0 everywhere except within
+apertures.  This is then convolved with a Gaussian (sigma 10 pixels) to
+encourage centring with, for example, flats.
+.sp
+For observations, if data quality information is present then any bad
+pixels are set to zero.  Next, values below zero at clipped to zero.
+.sp
+The process followed to calculate the cross correlation starts by
+preparing the reference data.  It must contains science data.  Bad
+(those flagged in the DQ extension) and negative pixels are set to
+zero.  Next, the reference is projected (averaged) in the dispersion
+direction to give a 1D spatial profile.  A taper is then applied to
+10% of values at either end.
+.sp
+Next, for each measurement, the comparison data is prepared in a
+similar manner (except that, if the file is an MDF, then a template is
+first constructed using the apertures, as described above).  The two
+1D spatial profiles are then cross-correlated and the pixel with the
+maximum value is used to determine the offset (relative to the
+expected "no-shift" position, which depends on the conventions used by
+the convolution task).
+.sp
+Note that, for this method to work accurately with MDF files, the
+apertures must provide some structure.  So, for example, IFU apertures
+should not cover 100% of the detector area, but rather leave small
+gaps.
+.ce
+INTERACTIVE USE
+.sp
+When calling NSOFFSET from NSCOMBINE, some observations do not give a
+single, clean peak in the cross-correlation.  This is seen particularly
+with cross-dispersed data, where the aperture edges and sky subtracted
+objects create intervening peaks that appear as object emission.
+.sp
+In such cases, it is better to use \fIfl_inter+\fR.  This will display
+the cross-correlation in the image display and ask you to fit the
+appropriate peak with IMEXAMINE.
+.sp
+To fit the peak and find its position use the "k" key.  Put the cursor 
+on the profile on one side of the peak, hit "k", then do the same  
+on the other side of the peak.  The position of the peak will be 
+calculated and used to find the appropriate shift to apply. 
+.sp
+If the cross-correlation has several peaks then the initial fit is
+typically a broad approximation.  To fit a single peak, adjust the
+sigma parameter (see IMEXAMINE help) by typing ":sigma" and an initial
+width in pixels.  For GNIRS XD data a value of 0.5 often gives a good
+fit to a single peak.  Using the "k" key again in the plot
+display can then isolate the correct peak.
+.sp
+Once the fit is correct, press "q" to exit. 
+.sp
+It is not usually necessary nor recommended to run NSOFFSET interactively 
+when calling the task via NSPREPARE, to determine the initial MDF shift 
+from a flat field exposure.
+.ih
+EXAMPLES
+1. Generate a shifted MDF for use during data preparation (e.g., from within
+NSPREPARE, using uncut images).
+.sp
+.nf
+   ge> nsoffset flat mdf outimages=shifted_mdf fl_measure+ \
+   >>> fl_apply+ fl_all+
+.fi
+.sp
+2. Update headers for accurate combining of data (e.g., from with
+nschelper, using the same shift for all data in a particular stack,
+with cut data):
+.sp
+.nf
+   ge> nsoffset ref stack outprefix="x" fl_measure+ fl_apply+ \
+   >>> fl_all-
+.fi
+.ih
+BUGS AND LIMITATIONS
+.ih
+SEE ALSO
+nsprepare, nscombine
+.endhelp

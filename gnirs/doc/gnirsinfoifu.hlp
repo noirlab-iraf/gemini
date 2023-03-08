@@ -1,0 +1,260 @@
+.help gnirsinfoifu June2012 gemini.gnirs
+.ih
+NAME
+gnirsinfoifu -- Description of reduction scripts for integral field GNIRS 
+spectroscopic data
+.ih
+USAGE
+gnirsinfoifu
+.ih
+DESCRIPTION
+
+The GNIRS package contains tasks for processing GNIRS long-slit,
+cross-dispersed and integral field spectroscopy data.  Detailed
+descriptions of the individual tasks can be found in their help files.
+This document summarizes the tasks and describes how they can be used
+to reduce integral field unit (IFU) data.
+
+The tasks produce logfiles of the performed processing steps.  The
+name of the logfile may be set in each individual task, or at the
+package level by setting \fIgnirs.logfile\fR.
+
+The tasks add header keywords to the output images.  These header
+keywords contain valuable information about the performed processing
+steps and the values of the critical parameters that were used.
+
+All GNIRS images are written as multi-extension FITS (MEF) files.  Raw
+data have two unnamed extensions.  Most of the header information is
+written to the primary header unit [0] (PHU).  The detector array data
+is in extension [1].  After being processed with NSPREPARE, GNIRS data
+extensions will be named as described in GNIRSINFO.  Processing with
+NSCUT will generate extensions for each cross-dispersed order.
+
+It is recommended to use \fIimtype\fR="fits".  This is set automatically 
+when loading the GEMINI package.
+.ih
+TASK SUMMARY
+
+.ls NFQUICK - View IFU acquisition images
+
+This task reconstructs a two-dimensional image of the IFU field from the
+raw acquisition exposure (without using NSPREPARE) and allows an offset
+to be measured for a central star.
+.le
+.ls NSHEADERS - Prepare the GNIRS package for a particular instrument
+
+This task is described in more detail in GNIRSINFO.  It should be
+called before the other scripts, to configure the package for processing
+data from a particular instrument.
+.le
+.ls NSPREPARE - Prepare GNIRS data for reduction
+
+This task is described in more detail in GNIRSINFO.  It must be called
+before the other tasks listed below. 
+.le
+.ls NSREDUCE - Process GNIRS data
+
+NSREDUCE is used for basic reduction of raw data - it provides a
+single, unified interface to most of the tasks below and also allows
+for the subtraction of dark frames and zero level corrections.
+
+Note that NSREDUCE will not call NSPREPARE.
+.le
+.ls NSFLAT -  Produce a normalized spectral flatfield
+
+NSFLAT is used to produce a normalized spectral flatfield image.  For
+IFU data it is usually used after calling NSREDUCE or NSCUT. To preserve
+a consistent normalization between slices, IFU flats must also be
+processed subsequently with nsslitfunction.
+.le
+.ls NSEDGE - Update the BPM to flag aperture edges
+
+NSEDGE takes the bad pixel map (BPM) produced by NSFLAT and adds 
+information about the edge of apertures.  If the BPM is then used by
+NSPREPARE to process the observations, aperture edges that
+appear will be flagged as bad (edges are included in the aperture if
+the MDF defines an aperture that is slightly too large, or if the
+dispersion direction isn't perfectly aligned with the Y axis of the
+detector).
+.le
+.ls NSSLITFUNCTION - Include sky illumination information in the flat
+
+NSSLITFUNCTION extends the flatfield produced by NSFLAT to include
+a low-order flatness correction, based on the sky illumination, as
+well as correcting the NSFLAT normalization for inter-slice variations.
+The output from this task is used as the flatfield image for further
+reduction.
+.le
+.ls NFFLT2PIN - Generate a synthetic pinhole trace from a flat field
+
+NFFLT2PIN takes an uncut IFU flat-field spectrum, processed with
+NSPREPARE, and uses it to generate an artificial pinhole spectrum that
+can be traced by NSSDIST.
+.le
+.ls NSAPPWAVE - Determines a simple wavelength calibration
+
+NSAPPWAVE provides a quick, approximate wavelength solution for GNIRS
+spectroscopic images. The wavelength solution is based on the header
+information and (by default) information in the table
+gnirs$data/nsappwave.fits (use the ttools package to examine this -
+ttools.tprint will display the contents - but if it is necessary to
+add/delete entries or create a new table, this can be done with the
+dedicated NSWEDIT task).
+
+The task is for quick reduction purposes and to provide a starting
+point for the wavelength calibration derived by NSWAVELENGTH.
+
+For IFU (or long slit) data, the central wavelength will normally be
+calculated from the values of \fInsheaders.key_wave\fR and
+\fInsheaders.key_waveorder\fR, so the entry in nsappwave.fits will be
+INDEF (although the dispersion will be defined in the table and used).
+To allows this behaviour, the specorder column in the MDF should have
+a value of -1 (to indicate that, unlike for XD data, it is not to be
+used).
+.le
+.ls NSWAVELENGTH - Establish an accurate wavelength calibration
+
+NSWAVELENGTH (automatically, if possible) determines the wavelength
+solution for GNIRS calibration lamp images, starting with the initial
+value supplied by NSAPPWAVE (this is done using the underlying IRAF
+tasks autoidentify and reidentify). 
+
+This task does not calibrate the data directly, but provides a
+database entry that can be used by NSFITCOORDS (described below).
+.le
+.ls NSSDIST - Establish S-distortion calibration
+
+NSSDIST traces the location of spectral orders or IFU image slices
+on the detector. For the long-slit or cross-dispersed modes, this is
+done using standard star or pinhole data.  For the IFU, the processed
+(cut) output of NFFLT2PIN is used in place of a pinhole spectrum, to
+trace the image slices based on a flat-field spectrum. 
+.le
+.ls NSFITCOORDS - Compute 2D dispersion and distortion maps
+
+NSFITCOORDS uses the wavelength solution found by NSWAVELENGTH and/or the
+spatial correction found by NSSDIST to create coordinate fitting maps and
+adds them to the database directory and the output headers of each science
+extension.
+.le
+.ls NSTRANSFORM - Rectify spectra
+
+NSTRANSFORM applies the coordinate fitting maps calculated with NSFITCOORDS
+to images.  The data are rectified and interpolated.
+
+.le
+
+.ls NSEXTRACT - Extract GNIRS spectra
+
+This could be used to extract spectra from IFU image slices in a
+similar way to long slit spectra, but the normal IFU reduction process
+proceeds via NFCUBE.
+.le
+.ls NSSTACK
+
+Combine exposures at the same nod/dither position.
+.le
+.ls NFCUBE - Generate a data cube
+
+NFCUBE stacks the extensions (image slices) in processed IFU data to
+produce a three-dimensional 'cube'. This can be imported into the Euro3D
+analysis tools, for example (untested), or examined using standard IRAF
+tasks by specifying appropriate one- or two-dimensional image sections
+as part of the filename (e.g., display datacube.fits[sci][*,500,*] 1).
+
+.le
+.ih
+TYPICAL REDUCTION
+
+For typical reductions the user will need appropriate flat fields, arc
+calibration images, and science images.
+
+0. Use GEMTOOLS.GEMLIST to make separate lists of the files associated
+with different exposure types.  Typically these will be called
+obj.lis, arc.lis, star.lis. dark.lis, lamps.lis etc.  Tasks can then
+be invoked on all the data of one type using iraf's "@" syntax.  For
+example, NSPREPARE might be called with
+\fIinimages\fR=@obj.lis,@star.lis and then NSREDUCE with
+\fIinimages\fR=n@obj.lis (which prepends the letter "n" -
+\fInsprepare.outprefix\fR - to each filename).
+
+1. Use NSPREPARE to update the raw data headers and attach the
+mask definition file (MDF) as a binary table on all files.  Note that
+dark frames will not have an MDF attached by default.  Instead, the
+appropriate MDF is added in NSREDUCE or NSFLAT to match the data being
+reduced (the darks may be taken with a different telescope 
+configuration, so the MDF from NSPREPARE, based on header information,
+would be incorrect).
+
+2. Use NSREDUCE or NSCUT to cut the calibration (flat/arc) spectra to
+the size specified by the MDF, placing different IFU slices in separate
+image extensions.
+
+3. Use NSFLAT to generate a normalized flat field (for each IFU slice
+or cross-dispersed order) from lamp flats. A mask (BPM) will also be
+generated by thresholding - this can be used to flag bad pixels in
+other data.
+
+4. Process twilight sky flats similarly, and use NSSLITFUNCTION to
+produce a "super flat".
+
+5. Optionally, use NFFLT2PIN to create an image from an uncut flat-field
+spectrum that can later be traced in place of a pinhole spectrum (required
+for accurate creation of a datacube at the final step). 
+
+6. Use NSREDUCE to process the object data.  The \fIskyrange\fR
+parameter is typically 50% larger than the time between exposures,
+so that only immediately neighbouring frames are used for sky.
+
+7. Group exposures by spatial offset and combine object observations
+using NSSTACK.
+
+8. Use NSWAVELENGTH to calibrate arc data (after cutting and optionally
+applying a flatfield with NSREDUCE).
+
+9. Optionally, measure spatial curvature for the image slices with
+NSSDIST, using the output from step 5 after cutting with NSCUT or NSREDUCE
+(this step is required for accurate alignment of the slices if a datacube
+is to be created).
+
+10. Use NSFITCOORDS to calculate coordinate maps using the wavelength 
+calibration from NSWAVELENGTH and/or the spatial distortion from NSSDIST.
+
+11. Use NSTRANSFORM to resample the combined object data to a uniform
+(linear or logarithmic) wavelength scale, with consistent spatial alignment
+between different slices and wavelengths (assuming NSSDIST was used).
+
+12. Use NFCUBE to construct a datacube from the final data.
+.ih
+REDUCTION EXAMPLES
+
+An example reduction script is available, see GNIRSEXAMPLES.
+.ih
+BUGS AND LIMITATIONS
+
+Support for variance and data quality handling is somewhat limited (and has
+not been tested very extensively). This is partly due to lack of built-in
+support in IRAF. If error handling is required, please read the
+documentation for individual help tasks carefully and check the results for
+accuracy. 
+
+The tasks in the GNIRS package are designed to operate on MEF FITS
+images that have been processed using NSPREPARE (for GNIRS data) or
+NPREPARE (NIRI data).
+
+It is possible that the reduction procedure for IFU data will change
+non-trivially in a future release of the Gemini IRAF package, allowing
+for replacement of some of the current tasks with improved, more
+generic versions.
+
+For more information regarding the GNIRS data structure and for
+generic GNIRS package information, see GNIRSINFO. For more information
+about reducing cross-dispersed data, GNIRSINFOXD. For more information
+about the longslit tasks, see GNIRSINFOLS.
+.ih
+SEE ALSO
+
+gnirsinfo, gnirsinfols, gnirsinfoxd, gnirsexamples, nsflat, nsreduce, 
+nsappwave, nswavelength, nstransform, nsextract, nprepare, nsprepare,
+nssdist, gemlist, nfflt2pin.
+.endhelp

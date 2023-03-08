@@ -1,0 +1,198 @@
+.help gsstandard September2014 gemini.gmos
+.ih
+NAME
+gsstandard -- Establish spectrophotometric calibration for GMOS spectra
+.ih
+USAGE
+gsstandard input sfile sfunction
+.ih
+PARAMETERS
+.ls input
+Input standard star spectra to be used as the calibrators. Lists and wildcards
+are supported. It is assumed that the input standard star spectra are MEF
+files and that the star spectra have been reduced with GSREDUCE, GSTRANSFORM
+and GSSKYSUB, and extracted using GSEXTRACT. Directory names should not be
+included as part of the image names.
+.le
+.ls sfile = "std"
+The name of a text file which will contain the output flux file. This
+text file is used to determine the sensitivity and extinction functions.
+The value is passed to the \fIoutput\fR parameter in STANDARD.
+.le
+.ls sfunction = "sens"
+Output sensitivity function image name or rootname. This is a simple
+FITS file. The value is passed to the parameter \fIsensitivity\fR in
+SENSFUNC.
+.le
+.ls sci_ext = "SCI"
+Name of the MEF extension containing the science data.
+.le
+.ls var_ext = "VAR"
+Name of the MEF extension containing the variance data.
+.le
+.ls dq_ext = "DQ"
+Name of the MEF extension containing the data quality data.
+.le
+.ls key_airmass = "AIRMASS", key_exptime = "EXPTIME"
+The image header airmass and exposure time keywords. If the airmass and
+exposure time are not in the header GSSTANDARD exits with an error.
+.le
+.ls fl_inter = no
+Run task interactively. If \fIfl_inter\fR=yes, the tasks STANDARD and
+SENSFUNC will be run interactively.
+.le
+.ih
+PARAMETERS USED BY STANDARD
+.le
+.ls starname = ""
+List with the names of the standard stars. The names have to match those
+in the calibration directory \fIcaldir\fR. If more than one star is used,
+a list of star names can be supplied. If more than one star name
+is defined, then the number
+names must be equal to the number of input standard star spectra.
+.le
+.ls samestar = yes
+Is the same star in all apertures.
+.le
+.ls apertures = ""
+List of apertures to be selected from the input list of spectra.
+If no list is specified then all apertures are selected.
+The parameter is used by both STANDARD and SENSFUNC.
+.le
+.ls beamswitch = no
+Beam switch the spectra.
+.le
+.ls bandwidth = INDEF, bandsep = INDEF
+Bandpass widths and separations in wavelength units.
+.le
+.ls fnuzero = 3.68E-20
+The absolute flux per unit frequency at a magnitude of zero.
+.le
+.ls caldir = "onedstds$spec50cal/"
+Calibration directory containing standard star data.
+.le
+.ls observatory = "Gemini-North"
+Observatory at which the spectra were obtained if not specified in the image
+header by the keyword OBSERVAT. See OBSERVATORY for additional information.
+The parameter is used by both STANDARD and SENSFUNC.
+.le
+
+The following three queried parameters apply if the selected calibration file
+is for a blackbody.
+.le
+.ls mag = ""
+The magnitude of the observed star in the band given by \fImagband\fR.
+.le
+.ls magband = "" (U|B|V|R|I|J|H|K|L|Lprime|M)
+The standard band name for the input magnitude.
+.le
+.ls teff = ""
+The effective temperature (deg K) or the spectral type of the star being
+calibrated.
+.le
+
+NOTE: If more than one standard star is used, the number of input magnitudes
+in \fImag\fR, the number of input standard band names in \fImagband\fR and
+and the number of input effective temperatures in \fIteff\fR must be equal
+to the number of input standard star spectra.
+
+.ih
+PARAMETERS USED BY SENSFUNC
+.le
+.ls ignoreaps = yes
+Ignore aperture numbers and create a single sensitivity function.
+.le
+.ls extinction = ""
+Extinction file used to make second order extinction corrections across
+the bandpasses. The parameter is used by both STANDARD and SENSFUNC.
+.le
+.ls out_extinction = "extinct.dat"
+Output revised extinction file.
+.le
+.ls function = "spline3" (spline3|chebyshev|legendre|spline1)
+Function used to fit the sensitivity data.
+.le
+.ls order = 6
+Order of the sensitivity fitting function.
+.le
+.ls graphs = "sr"
+Graphs to be displayed per frame.
+.le
+.ls marks = "plus cross box"
+Symbols used to mark included, deleted, and added data respectively.
+.le
+.ls colors = "2 1 3 4"
+Colors to use for "lines", "marks", "deleted" data, and "added" data.
+
+.ih
+GENERAL PARAMETERS
+.sp 1
+These general parameters are applicable to all GMOS tasks.
+.le
+.ls verbose = yes
+Print actions to the screen.
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes the task use the
+logfile defined by gmos.logfile.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error. This
+parameter is always set by the task and should not be modified by the user.
+.le
+.ih
+DESCRIPTION
+
+GSSTANDARD is used to establish spectrophotometric calibration for either
+longslit or MOS spectra. This is done calling the tasks STANDARD and
+SENSFUNC in the NOAO.IMRED.SPECRED package. The user is encouraged to
+read the help pages for STANDARD and SENSFUNC before using GSSTANDARD.
+This help page for GSSTANDARD concentrates on the issues specific to
+GMOS data. The user is referred to help pages for STANDARD and SENSFUNC
+for a description of the methods and algorithms used in these tasks.
+
+The input spectra are required to be MEF files. Also it is assumed that
+the input spectra have been processed with GSREDUCE, GSTRANSFORM, GSSKYSYB and
+GSEXTRACT, such that the spectra are 1-dimensional.
+The output sensitivity function generated by this task is a simple FITS
+file and is used by the task GSCALIBRATE to apply the flux calibration
+and extinction correction to longslit or MOS data.
+
+GSSTANDARD uses STANDARD to assemble the standard star information
+into the ascii output file \fIsfile\fR.
+This file is then used as the input file to SENSFUNC.
+SENSFUNC is used to determine the sensitivity function and
+(optionally) the extinction function.
+
+For a detail description of how the calibration factor at each
+point is computed see the help text for SENSFUNC in SPECRED package.
+
+The sensitivity and extinction functions are determined as fitted
+curves. If \fIfl_inter\fR=yes, STANDARD and SENSFUNC are run interactively.
+In SENSFUNC this allows the user to examine the fitting of the functions.
+For a detailed description of the interactive query
+parameters see the help pages for STANDARD and SENSFUNC.
+
+The sensitivity function is output as an one dimensional image.
+This image is simple FITS, not MEF. The sensitivities are in
+magnitude units. See SENSFUNC for further information about the units.
+
+.ih
+EXAMPLES
+1. Compile observations of two standards stars and generate one
+sensitivity spectra
+
+.nf
+    gm> gsstandard wolf1346.fits,bd284211.fits starname="wolf1346,bd284211"
+.fi
+
+.ih
+TIME REQUIREMENTS
+.ih
+BUGS AND LIMITATIONS
+This task does not support variance and data quality planes.
+.ih
+SEE ALSO
+gmosinfo, gmosinfospec, standard, sensfunc, observatory, gssextract,
+gscalibrate, calibrate
+.endhelp

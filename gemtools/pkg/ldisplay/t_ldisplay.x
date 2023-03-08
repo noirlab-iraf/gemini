@@ -1,0 +1,1927 @@
+# LDISPLAY Written by Matthew Kenworthy latest version 1/11/98
+#          Commants and suggestions to: 
+# 	   mak@ast.cam.ac.uk
+# Updated November 9, 2000 by Bryan Miller (bmiller@gemini.edu)
+# MAXLENS=3000
+# procedure initval
+#                m = int (2 * BOUND * real (nrow) / (rangey*s3))
+
+include <error.h>
+include <gset.h>
+include <imhdr.h>
+include <mwset.h>
+include <fset.h>
+
+# GETIMAGE files below.
+
+include <pkg/gtools.h>
+include <smw.h>
+include <units.h>
+include <ctype.h>
+include <evexpr.h>      # For reading in data and evaluating the expression
+
+define  KEY             "gemtools$pkg/ldisplay/ldisplay.key"
+define  PROMPT          "ldisplay options"
+
+# Function types.
+define  CHEBYSHEV       1       # CURFIT Chebyshev polynomial
+define  LEGENDRE        2       # CURFIT Legendre polynomial
+define  SPLINE3         3       # CURFIT cubic spline
+define  SPLINE1         4       # CURFIT linear spline
+define  PIXEL           5       # pixel coordinate array
+define  SAMPLE          6       # sampled coordinates
+
+procedure t_ldisplay()
+
+############################################################################
+#
+#  Hard set definitions
+#  
+############################################################################
+
+define	MAXLENS 3000		# Can't be bothered to malloc and pop stuff
+				# so here is a large number of lenses 
+				# so I can define the arrays below
+define  LXOFF   0.5
+define  LYOFF   0.5
+
+define  BOUND   0.95
+
+############################################################################
+#
+#  Variables for reading in from the .par file
+#
+############################################################################
+
+pointer	lconf                   # File name for hexagonal lens geometry
+pointer output			# File name for output image
+char    title[SZ_LINE]          # Title for output image
+int     nlens                   # Number of lenslets/fibres read in from .par
+real	xlens[MAXLENS]		# Arrays to hold lens array geometries 
+real	ylens[MAXLENS]		#
+real    lscale                  # Scale of lens array (arcsecs per lenslet)
+int     imsiz                   # Size of output image, must be 512, 1024, etc.
+pointer device
+pointer graphcur
+pointer imagecur
+                
+bool    xflip, yflip, axisflip  # Flipping the array about for right orientation
+bool    disqu                   # Automatically display the image?
+real    datlens[MAXLENS]        # Intensity/velocity data 
+pointer flatfield               # Filename for optional flatfield
+#int     mincol, maxcol          # Columns to sum over
+bool    quick                   # Is a quick display required
+int     qfibres                 # number of expected fibres in the flatfield
+int     wfibres                 # width in pixels of single fibre image
+int     firfib, lasfib          # the first and last rows for the fibres
+int     dispaxis
+
+pointer	helpfile
+pointer deadfibs
+
+int	clgeti()
+bool	clgetb()
+real	clgetr()	
+pointer input
+
+int     access()
+int     imaccess()
+
+
+############################################################################
+#
+# Integer hex array drawing
+#
+############################################################################
+
+pointer gp
+pointer hexar                   # Pointers for the hex geometries
+int     npix, nrow              # Size in pixels along sides of image
+int     area                    # Variables for the drawing hexes loop
+int     xlt, ylt
+int	i			# Integers for random loops in the prog
+real    backval                 # Value for background in output image
+
+pointer display                 # From .par, the command 'display input=..'
+
+############################################################################   
+#                                                                        
+# Key loop ( all pinched from p.201 of SPP Reference Manual )
+#                                                           
+############################################################################
+
+char    command[SZ_LINE]        # Cursor command string
+real    wx, wy                  # Cursor coordinates in WCS
+int     clgcur()                                                           
+int     wcs                     # Graphics WCS
+int     key                     # Cursor key value
+int     closest()
+int     lenssel
+bool    strsearch()
+bool    newgraph
+bool    isitms
+
+############################################################################   
+#                                                                        
+# Miscellaneous other variables
+#                                                           
+############################################################################
+
+
+real    r1, r2
+int     nline, nband
+bool    wavescale
+double  w0, wpc
+char    units[SZ_LINE]
+pointer im, mw, sh, gt
+
+pointer gt_init(), gopen
+real    sumrange()
+real    binvalue()
+real    contin
+
+###### Added as mods on the COHSI UKIRT Mar 98 run #####################
+# 
+# Specifies a working directory for all temp files generated by LDISPLAY
+#
+########################################################################
+
+pointer ldispdir
+int	band
+
+###########################
+
+pointer x, y
+int     npts
+
+int     i1, i2
+
+begin
+         # Allocate memory to the pointers
+
+        call malloc (graphcur, SZ_FNAME, TY_CHAR)
+        call malloc (imagecur, SZ_FNAME, TY_CHAR)
+        call malloc (device, SZ_FNAME, TY_CHAR)
+	call malloc (ldispdir, SZ_FNAME, TY_CHAR)
+	call malloc (lconf, SZ_FNAME, TY_CHAR)
+	call malloc (helpfile, SZ_FNAME, TY_CHAR)
+
+        call malloc (output, SZ_FNAME, TY_CHAR)
+        call malloc (input, SZ_FNAME, TY_CHAR)
+        call malloc (display, SZ_LINE, TY_CHAR)
+
+        call malloc (flatfield, SZ_FNAME, TY_CHAR)
+        call malloc (deadfibs, SZ_FNAME, TY_CHAR)
+
+
+         # Get all the data from the .par file
+
+	call clgstr ("lconf", Memc[lconf], SZ_FNAME)
+	call clgstr ("input", Memc[input], SZ_FNAME)
+        call clgstr ("output", Memc[output], SZ_FNAME)
+        call clgstr ("title", title, SZ_LINE)
+        call clgstr ("device", Memc[device], SZ_FNAME)
+        call clgstr ("deadfibs", Memc[deadfibs], SZ_FNAME)
+	call clgstr ("ldispdir", Memc[ldispdir], SZ_FNAME)
+
+	xflip = clgetb ("xflip")
+	yflip = clgetb ("yflip")
+	axisflip = clgetb ("axisflip")
+        disqu = clgetb ("disqu")
+        dispaxis = clgeti ("dispaxis")
+
+        lscale = clgetr ("lscale")
+        imsiz = clgeti("siz")
+#        call clgstr ("graphcur", Memc[graphcur], SZ_FNAME)
+#        call clgstr ("imagecur", Memc[imagecur], SZ_FNAME)
+	call strcpy ("graphcur", Memc[graphcur], SZ_FNAME)
+	call strcpy ("imagecur", Memc[imagecur], SZ_FNAME)
+        call clgstr ("display", Memc[display], SZ_LINE)
+
+        quick = clgetb ("quick")
+        call clgstr ("flatfield", Memc[flatfield], SZ_FNAME)
+        qfibres = clgeti ("qfibres")
+        wfibres = clgeti ("wfibres")
+        firfib = clgeti ("firfib")
+        lasfib = clgeti ("lasfib")
+
+	band = clgeti ("band")
+
+        npix = imsiz
+        nrow = imsiz
+
+	 # forces a print on STDOUT when a newline is detected
+        call fseti (STDOUT, F_FLUSHNL, YES)
+
+	 # UKIRT : adds the path for all the config files
+
+#	call addpath (output, ldispdir)
+	call addpath (lconf, ldispdir)
+	call addpath (deadfibs, ldispdir)
+
+#	call strcpy (Memc[ldispdir], Memc[helpfile], SZ_FNAME)
+#	call strcat ( KEY, Memc[helpfile], SZ_FNAME)
+	call strcpy (KEY, Memc[helpfile], SZ_FNAME)
+
+        call initval (xlens, ylens, nlens, npix, nrow, lconf, xflip, yflip, axisflip, xlt, ylt, hexar, area, lscale)
+
+        if (quick) {
+                call printf ("\n   ---+++ QUICK LOOK MODE +++---\n\n")
+                isitms = true
+
+                call qu2 (input, flatfield, qfibres, wfibres, firfib, lasfib, dispaxis, deadfibs)
+
+                wavescale = false
+                w0 = INDEFD
+                wpc = INDEFD
+                nline = 1
+                nband = band
+                im = NULL
+                sh = NULL
+                y = NULL
+ 
+                gt = gt_init()
+
+                i = 0
+
+                do i = 1, nlens {
+                        call getimage (Memc[input], nline, nband, i, wavescale, w0, wpc, units, im, mw, sh, gt)
+                        y = SY (sh)
+                        npts = SN (sh)
+                        datlens[i] = sumrange (Memr[y], npts, 1, npts, 0.0)
+                }
+
+
+
+        } else {
+                # Calculating what file type input we've got.
+                # Expecting either a .ms file or a .dat file.
+                
+                if (!strsearch (Memc[input], ".ms") && !strsearch (Memc[input], ".dat")) {
+                        call error (1, "Input filename must be .ms or .dat when not in QUICKLOOK mode.")
+                }
+
+      
+                if (strsearch (Memc[input], ".dat")) {
+
+                        if ( access (Memc[input], READ_ONLY, TEXT_FILE) == NO )
+                                call error (2, "Input .dat file not found.")
+                
+                        isitms = false
+                
+                        call printf ("'%g' appears to be a data file.\n")
+                                call pargstr (Memc[input])
+                
+                        call readdata (input, datlens, i)
+                
+                        if ( i != nlens) 
+                                call error (3, "Number of data points in 'input' not equal to number of lenses.") 
+                
+                } else {
+                        if ( imaccess (Memc[input], READ_ONLY) == NO )
+                                call error (2, "Input .ms file not found.")
+
+                         # We know it's an .ms file for sure - so read it in...
+                        isitms = true
+                
+                        wavescale = true
+                        w0 = INDEFD
+                        wpc = INDEFD
+                        nline = 1
+                        nband = band
+                        im = NULL
+                        sh = NULL
+                        y = NULL
+                
+                        gt = gt_init()
+                        do i = 1, nlens {
+                                call getimage (Memc[input], nline, nband, i, wavescale, w0, wpc, units, im, mw, sh, gt)
+                                y = SY (sh)
+                                npts = SN (sh)
+                                datlens[i] = sumrange (Memr[y], npts, 1, npts, 0.0)
+                        }
+                }
+        }        
+
+        call img_setup (Memc [output], imsiz, imsiz, title)
+
+        backval = 0.0
+
+        call drawhex (Memc[output], xlens, ylens, datlens, backval, nlens, xlt, ylt, hexar, area)
+
+        call displhex (display, output)
+
+        gp = gopen (Memc[device], NEW_FILE+AW_DEFER, STDGRAPH)
+        call gseti (gp, G_WCS, 1)
+
+         # change histogram below for alternative type of line display
+        call gt_sets (gt, GTTYPE, "histogram")
+
+         # Now the keyboard detecting loop.
+        while (clgcur (Memc[imagecur], wx, wy, wcs, key, command, SZ_LINE) != EOF) {
+
+         # Work out which is the closest hex
+        lenssel = closest (xlens, ylens, nlens, wx, wy, xlt, ylt)
+
+           switch (key) {
+
+            # quit the loop (same as EOF)
+           case 'q':
+                call mfree (hexar, TY_REAL)
+                call mfree (graphcur, TY_CHAR)
+                call mfree (imagecur, TY_CHAR)
+                call mfree (device, TY_CHAR)
+                call mfree (output, TY_CHAR)
+                call mfree (deadfibs, TY_CHAR)
+		call mfree (lconf, TY_CHAR)
+		call mfree (ldispdir, TY_CHAR)
+		call mfree (helpfile, TY_CHAR)
+                call gclose (gp)
+                call gt_free (gt)
+                break
+           
+            # Continuum add: just add up the flux between selected values
+           case 'c':
+                call twopick (i1, i2, sh, Memc[graphcur])
+                do i = 1, nlens {
+                        call getimage (Memc[input], nline, nband, i, wavescale, w0, wpc, units, im, mw, sh, gt)
+                        x = SX(sh)
+                        y = SY(sh)
+                        npts = SN (sh)
+                        datlens[i] = sumrange (Memr[y], npts, i1, i2, 0.0)
+                }
+                call printf ("Regenerating the hex array....\n")
+                call drawhex (Memc[output], xlens, ylens, datlens, backval, nlens, xlt, ylt, hexar, area)
+                call displhex (display, output) 
+
+            # Peak add: take endpoints to define continuum, take off from average.
+           case 'l':
+                call twopick (i1, i2, sh, Memc[graphcur])
+                
+                do i = 1, nlens {
+                        call getimage (Memc[input], nline, nband, i, wavescale, w0, wpc, units, im, mw, sh, gt)
+                        x = SX(sh)
+                        y = SY(sh)
+                        npts = SN (sh)
+                        contin = (binvalue (Memr[y], npts, i1) + binvalue (Memr[y], npts, i2)) / 2.0
+                        datlens[i] = sumrange (Memr[y], npts, i1, i2, contin)
+                }
+                call printf ("Regenerating the hex array....\n")
+                call drawhex (Memc[output], xlens, ylens, datlens, backval, nlens, xlt, ylt, hexar, area)
+                call displhex (display, output) 
+
+            # ratio of two lines
+           case 'r':
+                call twopick (i1, i2, sh, Memc[graphcur])
+                do i = 1, nlens {
+                        call getimage (Memc[input], nline, nband, i, wavescale, w0, wpc, units, im, mw, sh, gt)
+                        x = SX(sh)
+                        y = SY(sh)
+                        npts = SN (sh)
+                        contin = (binvalue (Memr[y], npts, i1) + binvalue (Memr[y], npts, i2)) / 2.0
+                        datlens[i] = sumrange (Memr[y], npts, i1, i2, contin)
+                }
+                call twopick (i1, i2, sh, Memc[graphcur])
+                do i = 1, nlens {
+                        call getimage (Memc[input], nline, nband, i, wavescale, w0, wpc, units, im, mw, sh, gt)
+                        x = SX(sh)
+                        y = SY(sh)
+                        npts = SN (sh)
+                        contin = (binvalue (Memr[y], npts, i1) + binvalue (Memr[y], npts, i2)) / 2.0
+                        datlens[i] = datlens[i] / sumrange (Memr[y], npts, i1, i2, contin)
+                }
+ 
+                call printf ("Regenerating the hex array....\n")
+                
+                call drawhex (Memc[output], xlens, ylens, datlens, backval, nlens, xlt, ylt, hexar, area)
+                call displhex (display, output)
+ 
+            # get the spectra of the closest lens and display
+           case ' ':
+                call getimage (Memc[input], nline, nband, lenssel, wavescale, w0, wpc, units, im, mw, sh, gt)
+                x = SX(sh)
+                y = SY(sh)
+                npts = SN (sh)
+                call replot (gp, gt, Memr[x], Memr[y], npts, YES)
+
+            # save the current array, specifying the parameters
+
+                # the name is entered, and checked if it already exists
+                # the header is written to the file, detailing i1, i2, w1, w2 and the orig file, and method used
+                # write actual numbers
+
+            # load in a new data array
+
+                # check that file exists
+                # read the data in 
+                # regenerate hexes and display
+
+            # distance on arcsec of current lenslet from centre of array
+           case 'i':
+                r1 = xlens[lenssel] - (real (npix - xlt) / 2.0)
+                r2 = ylens[lenssel] - (real (nrow - ylt) / 2.0)
+                if (!axisflip) {
+                        r1 = r1 / real (xlt) * lscale
+                        r2 = r2 / real (ylt - (xlt / 4)) * (sqrt (3.0) / 2) * lscale
+                } else {
+                        r1 = r1 / real (xlt - (ylt / 4)) * (sqrt (3.0) / 2) * lscale
+                        r2 = r2 / real (ylt) * lscale
+                }
+                 # print the results
+                call printf ("Lens %d: d(N-S) =  %4f d(E-W) = %4f arcsec. total d  = %4f arcsec.\n")
+                        call pargi (lenssel)
+                        call pargr (r2)
+                        call pargr (r1)
+                        call pargr (sqrt ((r2 * r2) + (r1 * r1)))
+                
+
+            # distance in arcsec between two lenslets
+           case 'd':
+                # select one lens
+                call printf ("Distance from one lens to another: pick first lens.\n")
+                 
+                i = clgcur (Memc[imagecur], wx, wy, wcs, key, command, SZ_LINE)
+                # Work out which is the closest hex
+                i1 = closest (xlens, ylens, nlens, wx, wy, xlt, ylt)
+
+                # select another lens                 
+                call printf ("Distance from one lens to another: now pick second lens.\n")
+                 
+                i = clgcur (Memc[imagecur], wx, wy, wcs, key, command, SZ_LINE)
+ 
+                i2 = closest (xlens, ylens, nlens, wx, wy, xlt, ylt)
+                          
+                # using the array of lenspositions, work out dx, dy
+
+                if (!axisflip) {
+                        r1 = ((xlens[i1]) - (xlens[i2])) / real (xlt) * lscale
+                        r2 = ((ylens[i1]) - (ylens[i2])) / real (ylt - (xlt / 4)) * (sqrt (3.0) / 2) * lscale
+                } else {
+                        r1 = ((xlens[i1]) - (xlens[i2])) / real (xlt - (ylt / 4)) * (sqrt (3.0) / 2) * lscale
+                        r2 = ((ylens[i1]) - (ylens[i2])) / real (ylt) * lscale
+                }
+
+                # print the results
+                call printf ("delta(N-S) = %3f arcsec. delta(E-W) = %3f arcsec. Total delta = %4f arcsec.\n")
+                        call pargr (r2)
+                        call pargr (r1)
+                        call pargr (sqrt ((r2 * r2) + (r1 *r1)))
+                 
+
+            # centroid
+
+                # select a hexagon
+                # find six closest hexes, if possible
+                # work out if central hex is the brightest
+                # if not, pick brightest hex and repeat above
+                # do a weighted centroid thingy on it.
+
+            # line widths
+
+                # determine if wanted in angs or velocity
+                # run widthfinding programme ( in splot it's 'k')
+
+            # window thingumy
+           case 'w':
+                call gt_window (gt, gp, Memc[graphcur], newgraph)
+
+            # Page keystroke help file
+           case '?':
+                call gpagefile (gp, Memc[helpfile], PROMPT)
+
+            # Direct the user to the '?' help
+           default:
+                call eprintf ("Unknown command, type '?' for help\n")
+
+           }
+        }
+end
+
+
+procedure initval (xl, yl, nl, npix, nrow, lensconf, xflip, yflip, aflip, hexwid, hexhei, himg, area, lsc)
+#
+#
+#       INITVAL - read in lens array geometry and prepare for printing
+#
+#       Parameters (">" Input, "<" Output, "W" Workspace, "!" Changed)
+#
+real    xl[MAXLENS], yl[MAXLENS]# < Arrays holding the lens coords
+int     nl                      # < Number of lenslets in the array
+int     npix, nrow              # > The size of the output image to be made
+pointer	lensconf		# > Name of file containing lens coords
+bool    xflip, yflip, aflip     # > Whether output is flipped in x, y, or x=y
+int     hexwid, hexhei          # > Width and height of 'himg'
+pointer himg                    # < Pointer to hex image
+int     area                    # < Area of 'himg' in pixels
+real    lsc                     # ! lens scale - changed from arcsec/lens to arcsec/pixel
+
+pointer fd                      # W File pointer
+int     stat                    # W Checking on status of 'lensconf'
+real    rangex, rangey          # W Used for scaling the xl, yl values        
+real    minvalue, maxvalue      # W   "         "               "
+real    r1                      # W Temp variable                             
+int     m, n                    # W Initial width and height of hexes    
+real    q, mbytwo               # W Values from m and n to multiply into xl, yl    
+real    rtmpx, rtmpy            # W Temp vars    
+pointer htemp                   # W Temp copy of 'himg'    
+                                    
+pointer open (), fscan (), close ()
+real    s3
+
+begin
+
+        s3 = sqrt (3.0)
+
+         # Read in the lens positions.
+        fd = open (Memc[lensconf], READ_ONLY, TEXT_FILE)
+       
+        nl = 0
+
+        while ( fscan (fd) != EOF ) {
+                nl = nl + 1
+                call gargr (xl[nl])
+		call gargr (yl[nl])
+	}
+	stat = close (fd)
+
+        if (nl == 0) {
+                call error (1, "Can't find any lens positions in the config file.\n")
+        }
+        call printf ("Found %d lens positions in the file '%s' \n")
+                call pargi (nl)
+                call pargstr (Memc[lensconf])
+        
+	 # Reflecting the array if wanted
+	if (yflip) 
+		call amulkr (xl, -1.0, xl, nl)
+	if (xflip)
+                call amulkr (yl, -1.0, yl, nl)
+
+	 # Now check current ranges of the lens array coordinates
+	 # I added 2 to rangex and 2/rt3 to rangey to adjust for the
+	 # extension of the hexagons. rtmp1 and rtmp2 find the midpoint
+         # of the array, so that the asubkr calls can centre the array on (0,0)
+
+        call alimr (xl, nl, minvalue, maxvalue)
+        rangex = (maxvalue - minvalue) + 2.0
+        r1 = (maxvalue + minvalue) / 2.0
+        call asubkr (xl, r1, xl, nl)
+
+        call alimr (yl, nl, minvalue, maxvalue)
+        rangey = (maxvalue - minvalue) + (2.0 / s3)
+        r1 = (maxvalue + minvalue) / 2.0
+        call asubkr (yl, r1, yl, nl)
+
+         # m has to be worked out first - it is the distance from
+         # one flat to another flat on a hex. Because m has to be
+         # divisible by four and n (the height of the hex) is
+         # unconstrained, we work out m first.
+
+        if (rangex > rangey)
+                m = int (2 * BOUND * real (npix) / rangex)
+        else
+                m = int (2 * BOUND * real (nrow) / (rangey*s3))
+
+         # m mod 4 has to be zero, and we must
+         # errorcheck that m is not less than 4 and tell
+         # the user to generate a larger output image if
+         # need be.
+
+        m = m - mod (m, 4)
+        if ( m == 0) {
+                call error ( 2, "Hexes are too small for output image. Increase resolution of output image by factor of two.")
+        }
+
+        n = int ((real (2 * m) / s3) + 0.5)
+
+        n = n - mod (n, 2)
+
+        q = real (n - (m / 4))
+
+        mbytwo = real (m / 2)
+
+         # Multiply yl by q and xl by half of m
+
+        call amulkr (xl, mbytwo, xl, nl)
+        call amulkr (yl, q , yl, nl)
+
+         # Shift lens centres by LXOFF, LYOFF
+
+        rtmpx = real ((LXOFF * npix) - (m / 2))
+        rtmpy = real ((LYOFF * nrow) - (n / 2))   
+        call aaddkr (xl, rtmpx, xl, nl)   
+        call aaddkr (yl, rtmpy, yl, nl)
+
+        area = m * n
+
+        call malloc (himg, area, TY_REAL)
+        call hexag (m, n, Memr[himg])
+
+        if (aflip) {
+                call malloc (htemp, area, TY_REAL)
+                call fliphex (m, n, Memr[himg], Memr[htemp])
+                call amulkr (Memr[htemp], 1.0, Memr[himg], area)
+                call mfree (htemp, TY_REAL)
+                hexwid = n
+                hexhei = m
+                call swop (xl, yl, nl)
+        } else {
+                hexwid = m
+                hexhei = n
+        }
+end
+
+
+################### UKIRT added routine 15/3/98
+
+procedure addpath (fname, path)   # adds the path to the filename
+
+pointer	fname		# filename, also the output
+pointer	path		# location of the path
+
+pointer	tmp		# temporary place for strcat to work
+
+begin
+	call malloc (tmp, SZ_FNAME, TY_CHAR)
+
+	call strcpy (Memc[path], Memc[tmp], SZ_FNAME)
+	call strcat (Memc[fname], Memc[tmp], SZ_FNAME)
+	call strcpy (Memc[tmp], Memc[fname], SZ_FNAME)
+
+	call mfree (tmp, TY_CHAR)
+end
+
+
+procedure qu2 (ip, ff, qfib, wfib, firstf, lastf, dispaxis, deadf)
+
+
+pointer ip
+pointer ff
+int     qfib
+int     wfib
+int     firstf, lastf
+int     dispaxis
+pointer deadf
+
+int     imaccess()
+bool    anyffthere
+int     access()
+
+pointer imgp, flatp, qlmsp
+pointer imql
+pointer curr_row
+pointer immap(), imgl2r(), impl2r()
+pointer key, str1
+pointer flatnum
+real    asumr()
+pointer fd
+int     nl
+pointer deadval
+
+int     i, j
+int     fibord
+int     curr_number
+int     nearside
+real    deltafib
+                              
+int     npts, nrows
+pointer open(), fscan(), close()
+int     stat
+bool 	streq()
+
+begin
+
+        if ( imaccess (Memc[ip], READ_ONLY) == NO )
+                call error (2, "Input raw image file not found.")
+
+
+        imgp = immap (Memc[ip], READ_ONLY, 0)
+
+         # see if ff file exists; warn user if not and carry on regardless
+        if (imaccess (Memc[ff], READ_ONLY) == NO ||  streq(Memc[ff],"")) {
+                call printf ("quicklook: Can't find a flat-field. Carrying on anyway...\n")
+                anyffthere = false
+        } else {
+                call printf ("quicklook: Found the flat-field image.\n")
+                flatp = immap (Memc[ff], READ_ONLY, 0)
+                anyffthere = true
+call error (1, "ok #1")
+
+                 # check that ip and ff are same size and dimension,
+                 # if not then tell user that ff is ignored and carry on anyway.        
+                if ( ((IM_LEN (imgp, 1)) != (IM_LEN (flatp, 1))) || ((IM_LEN (imgp, 2)) != (IM_LEN (flatp, 2))) ) {
+                        call eprintf ("quicklook: Flat field and image are not the same size.\nI will ignore the flat field and carry on...\n") 
+                                
+                        anyffthere = false
+                }
+        }
+
+        call calloc (deadval, qfib, TY_REAL)
+
+ call printf ("quicklook: found dead fibre file '%g'\n")
+ call pargstr (Memc[deadf])
+     
+
+
+        if ( access (Memc[deadf], READ_ONLY, TEXT_FILE) == YES ) {
+                call printf ("quicklook: found dead fibre file '%g'\n")
+                        call pargstr (Memc[deadf])
+
+
+                fd = open (Memc[deadf], READ_ONLY, TEXT_FILE)
+       
+                nl = 0
+
+                while ( fscan (fd) != EOF ) {
+                       nl = nl + 1
+                       call gargr (Memr[deadval + nl - 1])
+		}
+                stat = close (fd)
+
+                call printf ("quicklook: found %d fibres in the dead fibre file.\n")
+                        call pargi (nl)
+
+        } else {
+                call printf ("quicklook: No dead fibre file found. Assuming no dead fibres.\n")
+
+                call amovkr ( 1.0, Memr[deadval], qfib)
+        }
+
+         # size of the image
+        npts = IM_LEN (imgp, 1)
+        nrows = IM_LEN (imgp, 2)
+
+         # check that first and last fibre positions fall within range...
+        if ( (firstf > nrows) || (lastf > nrows) )
+                call error (9, "quicklook: Fibre image row positions outside image boundaries")
+                                           
+         # then place integers corresponding to fibre numbers in the corres
+         # ponding array positions. The array index refers to the current row
+         # and the contents of the array tell you where to put the row into
+         # final image.
+
+         # need to generate a new image, with the filename of "ip.qlmsp"
+        call malloc (imql, SZ_FNAME, TY_CHAR)
+        call strcpy (Memc[ip], Memc[imql], SZ_FNAME)
+        call strcat ("_ql.ms", Memc[imql], SZ_FNAME)
+
+        call img_setup (Memc [imql], npts, qfib, "QUICK LOOK SPECTRA")
+
+        qlmsp = immap (Memc[imql], READ_WRITE, 0)
+
+
+         # if wfib is even, make it odd and inform the user
+        if ( mod (wfib, 2) == 0 ) {
+                call printf ("quicklook: wfib rounding up to nearest odd number.\n")
+                wfib = wfib + 1
+        }
+
+         # find rows to sum for each fibre and store results in arrays
+         # set up skipfib (remember - 37 fenceposts, 36 metres of wire to connect them!)
+        deltafib = real ((lastf - firstf)) / real (qfib - 1)
+        nearside = (wfib - 1) / 2
+
+        call malloc (curr_row, npts, TY_REAL)
+        call calloc (flatnum, qfib, TY_REAL)
+
+        do i = 1, qfib {
+                fibord = nint ( (real (i - 1)) * deltafib) - nearside + firstf
+                do j = 1, wfib {
+                         # make sure curr_row is zeroed
+                        call aclrr (Memr[curr_row], npts)
+#piffle
+                        curr_number = fibord + j - 1
+
+                         # copy row curr_number from imgp to curr_row
+                        call amovr ( Memr[imgl2r (imgp, curr_number)],
+                                     Memr[curr_row],
+                                     npts)  
+
+                         # if ff exists, divide row curr_number from flatp into curr_row
+                        if (anyffthere) {
+                                Memr [flatnum + i - 1] = Memr [flatnum + i - 1] + asumr (Memr[imgl2r (flatp, curr_number)], npts)
+                                
+#                                call adivr ( Memr[curr_row],
+#                                             Memr[imgl2r (flatp, curr_number)],
+#                                             Memr[curr_row],
+#                                             npts)
+                        }
+
+                         # this is for any dead fibres that happen to be around
+                        call amulkr ( Memr[curr_row],
+                                      Memr[deadval + i - 1],
+                                      Memr[curr_row],
+                                      npts)
+
+                         # now add curr_row to the qlmsp image on row i
+                        call aaddr ( Memr[curr_row],
+                                     Memr[imgl2r (qlmsp, i)],
+                                     Memr[impl2r (qlmsp, i)],
+                                     npts)
+                }
+
+                 # Force a write to qlmsp
+                call imflush (qlmsp)
+        }
+
+        call mfree (curr_row, TY_REAL)
+
+         # all this flat fielding business could be done better, I'm sure...
+        if (anyffthere) {
+                 # first normalise the flatnum array
+                call adivkr ( Memr[flatnum],
+                              (asumr (Memr[flatnum], qfib) / qfib),
+                              Memr[flatnum],
+                              qfib)
+
+                 # now divide those values into each of the final spectra
+                do i = 1, qfib {
+#call printf ("For fibre %d the normalization is: %g")
+#      call pargi (i)
+#      call pargr (Memr[flatnum + i - 1])
+
+                        call adivkr ( Memr[imgl2r (qlmsp, i)],
+                                      Memr[flatnum + i - 1],
+                                      Memr[impl2r (qlmsp, i)],
+                                      npts)
+                }
+        }
+
+        call mfree (flatnum, TY_REAL)
+        call mfree (deadval, TY_REAL)
+
+         # add APNUM keywords containing details of apertures extracted
+        call malloc (key, SZ_LINE, TY_CHAR)
+        call malloc (str1, SZ_LINE, TY_CHAR)
+ 
+        do i = 1, qfib {
+                fibord = nint ( (real (i - 1)) * deltafib) - nearside + firstf
+                 # Now write the aperture to the image header
+                call sprintf (Memc[key], SZ_LINE, "APNUM%d")
+                        call pargi (i)
+                call sprintf (Memc[str1], SZ_LINE, "%d %d %.2f %.2f")
+                        call pargi (i)
+                        call pargi (i)
+                        call pargr (real (fibord))
+                        call pargr (real (fibord+wfib-1))
+                call imastr (qlmsp, Memc[key], Memc[str1])
+
+        }
+
+        call mfree (key, TY_CHAR)
+        call mfree (str1, TY_CHAR)
+
+         # Now copy the imql filename into the input filename slot
+        call strcpy (Memc[imql], Memc[ip], SZ_FNAME)
+
+         # add image header parameters to make it see .ms
+
+        call imastr (qlmsp, "BANDID1", "spectrum - background none, weights none, clean no")
+        call imaddi (qlmsp, "WCSDIM", 2)
+        call imastr (qlmsp, "WAT0_001","system=equispec")
+        call imastr (qlmsp, "WAT1_001","wtype=linear label=Pixel")
+        call imastr (qlmsp, "WAT2_001","wtype=linear")
+
+        call imastr (qlmsp, "CTYPE1","PIXEL   ")
+        call imastr (qlmsp, "CTYPE2","LINEAR  ")
+
+        call imaddr (qlmsp, "CRVAL1", 1.0)
+        call imaddr (qlmsp, "CRPIX1", 1.0)
+        call imaddr (qlmsp, "CDELT1", 1.0)
+        call imaddr (qlmsp, "CDELT2", 1.0)
+        call imaddr (qlmsp, "CD1_1", 1.0)
+        call imaddr (qlmsp, "CD2_2", 1.0)
+        call imaddr (qlmsp, "LTM1_1", 1.0)
+        call imaddr (qlmsp, "LTM2_2", 1.0)
+
+         # tidy up by closing the image files concerned
+        call imunmap (qlmsp)
+        call imunmap (imgp)
+        if (anyffthere)
+                call imunmap (flatp)
+
+end
+
+
+
+procedure readdata (ipfile, datarray, linesread)
+
+pointer ipfile
+real    datarray[MAXLENS]
+int     linesread
+
+pointer fd
+int     stat
+
+pointer fscan(), open(), close()# Functions for FIO
+
+char    charact[SZ_LINE]
+bool    strsearch ()
+int     strlen()
+pointer op, evexpr()
+
+begin
+        fd = open (Memc[ipfile], READ_ONLY, TEXT_FILE)
+        linesread = 0
+        while ( fscan (fd) != EOF ) {
+                call gargstr (charact, SZ_LINE)
+                if (!strsearch (charact, "#") && (strlen (charact) != 0 ) ) {
+                        linesread = linesread + 1
+                        call strcat ( " * 1.0", charact, SZ_LINE)
+                        op = evexpr (charact, NULL, NULL)
+                        datarray[linesread] = O_VALR (op)
+
+#                        call printf ("Line number %g read in with a value of %g.\n")
+#                          call pargi (linesread)
+#                          call pargr (datarray[linesread])
+                }
+        }
+        call mfree (op, TY_STRUCT)
+        stat = close (fd)
+end                                                                   
+
+
+
+
+procedure displhex (display, opimage)
+
+pointer display, opimage
+pointer cldisp
+
+begin
+                call malloc (cldisp, SZ_LINE, TY_CHAR)
+                call strcpy (Memc[display], Memc[cldisp], SZ_LINE)
+                call strcat (Memc[opimage], Memc[cldisp], SZ_LINE)
+                call printf ("displhex: Executing the cl command:'%g'\n")
+                        call pargstr (Memc[cldisp])
+                
+                call clcmdw (Memc[cldisp])
+                call mfree (cldisp, TY_CHAR)
+end
+
+
+procedure twopick (i1, i2, sh, gcur)
+
+int     i, i1, i2
+pointer sh
+char    gcur[SZ_LINE]
+
+int     wc, key
+char    command[SZ_FNAME]
+real    wx1, wy1, wx2, wy2
+
+int     clgcur()
+
+begin
+        # Get first position
+        call printf ("Press 'm' to mark one end:")
+        
+
+        i = clgcur (gcur, wx1, wy1, wc, key, command, SZ_FNAME)              
+
+        # Get second position
+        call printf ("m again:")
+        
+        i = clgcur (gcur, wx2, wy2, wc, key, command, SZ_FNAME)
+
+        # Fix pixel indices
+        call fixx (sh, wx1, wx2, wy1, wy2, i1, i2)
+        if (i1 == i2) {
+            call printf ("Cannot determine range - move cursor")
+            return
+        }
+end
+
+
+real procedure binvalue (array, arraypts, point)
+
+real    array[arraypts]
+int     arraypts
+int     point
+real    val
+
+begin
+        if ( point < 1 || point > arraypts) 
+                call error (1, "proc binvalue: point out of bound of array!")
+
+        val = array[point]
+        return (val)
+end
+
+
+
+real procedure sumrange (array, arraypts, lowval, highval, takeoff)
+
+real    array[arraypts]
+int     arraypts
+int     lowval, highval
+real    sum
+real    takeoff
+
+int     i
+
+begin
+        sum = 0.
+        do i = lowval, highval 
+                sum = sum + array[i] - takeoff
+        return (sum)
+end
+
+
+# FIXX - Adjust so that pixel indices are increasing.
+
+procedure fixx (sh, x1, x2, y1, y2, i1, i2)
+
+pointer sh
+real	x1, x2, y1, y2
+int	i1, i2
+
+double	z, z1, z2, shdr_wl(), shdr_lw()
+
+begin
+	z1 = x1
+	z2 = x2
+	z1 = max (0.5D0, min (double (SN(sh)+.499), shdr_wl(sh, z1)))
+	z2 = max (0.5D0, min (double (SN(sh)+.499), shdr_wl(sh, z2)))
+	if (z1 > z2) {
+	    z = y1; y1 = y2; y2 = z
+	    z = z1; z1 = z2; z2 = z
+	}
+
+	x1 = shdr_lw (sh, z1)
+	x2 = shdr_lw (sh, z2)
+	i1 = nint (z1)
+	i2 = nint (z2)
+end
+
+
+procedure img_setup (opname, imsize1, imsize2, title)
+
+char    opname[SZ_FNAME]
+char    title[SZ_LINE]
+int     imsize1, imsize2
+
+pointer imp
+int     imaccess()
+int     dims[2]
+pointer rt_crfile()
+#bool    envgetb()
+
+begin
+        if ( imaccess (opname, READ_ONLY) == YES) {
+                call printf ("img_setup: I've found a file called '%g'.\n")
+                        call pargstr (opname)
+                
+#                if (!envgetb("imclobber")) 
+#			call error (1,
+#	"img_setup: Either 'set imclobber=yes' or change output image name.")
+                call printf ("img_setup: I am overwriting new image on that.\n")
+                
+                call imdelete (opname)
+        }
+
+        call printf ("\nimg_setup: Making the new image...\n")
+        
+        dims[1] = imsize1
+        dims[2] = imsize2
+        imp = rt_crfile(opname, NEW_FILE, 0, 2, dims, TY_REAL)
+        call impstr (imp, "i_title", title)
+        call printf ("img_setup: Created new file '%g' with size [%d,%d]\n")
+                call pargstr (opname)
+                call pargi (imsize1)
+                call pargi (imsize2)
+        
+        call imunmap (imp)
+end
+
+procedure hexag (m, n, book)
+#
+#
+#       HEXAG - return a square real array with ones where the hex is
+#  
+#       Parameters (">" Input, "<" Output, "W" Workspace, "!" Changed)
+#
+real    book[m, n]      # ! Array to hold hex shape
+int     m, n            # < The size of a hexagon
+int     neven, m2       # W Variables do define hex boundary
+int     i, j            # W Loopy mad for it
+real    val             # W Value placed within hexagon shape
+
+begin
+         # This is done for the case of no axisflip
+         # Make sure n is rounded up to nearest even number
+
+        neven = n + mod (n, 2)
+        neven = neven / 2
+        m2 = m / 2
+        do j = 1, neven  {
+                do i = 1, m2 {
+                        val = 1.0
+                        if ( (i + (2 * j)) < (m2 + 2))
+                                val = 0.0
+                        book [i,j] = val
+                        book [i,(n + 1 - j)] = val
+                        book [(m + 1 - i),j] = val
+                        book [(m + 1 - i),(n + 1 - j)] = val
+                }
+        }
+end
+
+
+procedure fliphex (m, n, h1, h2)
+#
+#
+#       FLIPHEX - transpose a real array
+#
+#       Parameters (">" Input, "<" Output, "W" Workspace, "!" Changed)
+#
+real    h1[m, n]        # > The input array
+real    h2[n ,m]        # < The flipped output array
+int     n, m            # > Size of the array
+int     i, j            # W Loopy nuts are we!
+
+begin
+        do i = 1, n
+                do j = 1, m
+                        h2[i, j] = h1[j, i]
+end
+
+
+procedure pit ( r1, r2, r3)
+#
+#
+#	PIT - print a real value to the screen
+#
+#       Parameters (">" Input, "<" Output, "W" Workspace, "!" Changed)
+#
+real	r1, r2		# > Real values to be printed
+int	r3		# > Integer value to be printed
+
+begin
+	call printf (" Val 1: %g Val 2: %g at break point no. %g\n")
+		call pargr (r1)
+		call pargr (r2)
+		call pargi (r3)
+end
+
+
+procedure swop (a, b, np)
+#
+#
+#       SWOP - swop two real arrays
+#
+#       Parameters (">" Input, "<" Output, "W" Workspace, "!" Changed)
+#
+int     np              # > Number of elements in both arrays
+real    a[np], b[np]    # ! The arrays to be swopped
+pointer temp            # W Temporary pointer
+
+begin
+        call malloc (temp, np, TY_REAL)
+        call amovr (a, Memr[temp], np)
+        call amovr (b, a, np)
+        call amovr (Memr[temp], b, np)
+        call mfree (temp, TY_REAL)
+end
+
+
+int procedure closest (xl, yl, nl, xcur, ycur, hexwid, hexhei)
+#
+#
+#       CLOSEST - find the closest lenslet to the cursor
+#
+#       Parameters (">" Input, "<" Output, "W" Workspace, "!" Changed)
+#
+int     nl              # > Number of lenslets
+real    xl[nl], yl[nl]  # > Positions of lenslets in image coordinates
+real    xcur, ycur      # > Detected cursor position 
+int     hexwid, hexhei  # > Width and height of one hex image
+
+real    t1, t2          # W Readjusted positions of the cursor
+pointer rdist           # W Radial distance of each lenslet from cursor
+real    minr            # W Distance between cursor and closest lenslet  
+int     l               # < Returned closest lenslet number  
+real    alovr ()        # W   
+pointer xl2, yl2        # W   
+                          
+begin
+         # xl + hexwid is the centre of the lens
+         # xlen2 now holds distance of cursor from each lens
+         # similiar with y
+         # The + 0.5 factor below is making sure that it is the CENTRE of
+         # the hex that the distance is measured from, so that even at the 
+         # pixel boundaries the cursor selects the right hexagon
+        call malloc (xl2, nl, TY_REAL)
+        call malloc (yl2, nl, TY_REAL)
+        call malloc (rdist, nl, TY_REAL)
+
+        t1 = xcur + 0.5 - real (hexwid) / 2.0
+        t2 = ycur + 0.5 - real (hexhei) / 2.0
+        call asubkr (xl, t1, Memr[xl2], nl)
+        call asubkr (yl, t2, Memr[yl2], nl)
+
+         # rdist contains mag^2 of the distance of xlen2, ylen2
+        call amgsr (Memr[xl2], Memr[yl2], Memr[rdist], nl)
+
+         # Pick out the 1st smallest element from rdist
+        minr = alovr (Memr[rdist], nl)
+
+         # Now work out its position in the array, thereby identifying
+         # its lens number.
+        l = 0
+        while ( Memr[rdist+l] != minr)                 
+                l = l + 1
+
+        call mfree (yl2, TY_REAL)
+        call mfree (xl2, TY_REAL)
+        call mfree (rdist, TY_REAL)
+
+        return (l + 1)
+end
+
+
+procedure drawhex (opname, xl, yl, dl, bgndval, nl, hexwidth, hexheight, imphex, area)
+#
+#
+#       DRAWHEX - draws the hex arrays into the image
+#
+#       Parameters (">" Input, "<" Output, "W" Workspace, "!" Changed)
+#
+char    opname[SZ_FNAME]        # > Image filename, presumed size known 
+real    xl[nl], yl[nl]          # > Corrected lenslet positions
+real    dl[nl]                  # > Array containing lenslet data numbers
+real    bgndval                 # > Real value for background of image 
+int     nl                      # > Number of lenslets
+int     hexwidth                # > Width of hex image in pixels
+int     hexheight               # > Height of hex image in pixels
+pointer imphex                  # > pointer to constructed hex image
+int     area                    # > Area of 'imphex' in pixels
+
+int     xsize, ysize            # W Pixel size of the output image
+int     i                       # W integer for loops
+pointer hexcopy                 # W Temporary duplicate for 'imphex'
+pointer im                      # W Pointer to output image
+int     xli, xlj                # W   
+int     yli, ylj                # W             
+                                    
+pointer immap ()                # W 
+pointer imps2r(), imgs2r()      # W     
+                                    
+begin
+        im = immap (opname, READ_WRITE, 0)
+
+        xsize = IM_LEN(im,1)
+	ysize = IM_LEN(im,2)
+
+         # Fill the image with the value 'bgndval'
+
+        call amovkr (bgndval, Memr[imps2r (im, 1, xsize, 1, ysize)], (xsize * ysize))
+
+        call imflush (im)
+
+        call malloc (hexcopy, area, TY_REAL)
+        call amovr ( Memr[imphex], Memr[hexcopy], area)
+
+         # Draw the lens array
+        do i = 1, nl {
+                xli = int (xl[i])
+                yli = int (yl[i])
+                xlj = xli + hexwidth - 1
+                ylj = yli + hexheight - 1
+
+                call amulkr (Memr[imphex], 
+                             dl[i],
+                             Memr[hexcopy], 
+                             area)
+
+                call aaddr  (Memr[hexcopy],
+                             Memr[imgs2r (im, xli, xlj, yli, ylj)],
+                             Memr[imps2r (im, xli, xlj, yli, ylj)],
+                             area)
+
+                call imflush (im)
+        }
+        call mfree (hexcopy, TY_REAL)
+
+        call imunmap (im)
+end
+
+
+
+# REPLOT -- Replot the current array
+
+procedure replot (gfd, gt, x, y, npts, clear)
+
+pointer gfd
+pointer gt
+real	x[ARB]
+real	y[ARB]
+int	npts
+int	clear
+
+int	wc, gstati()
+
+begin
+	if (clear == YES) {
+	    wc = gstati (gfd, G_WCS)
+	    call gclear (gfd)
+	    call gseti (gfd, G_WCS, wc)
+	    call gt_ascale (gfd, gt, x, y, npts)
+	    call gt_swind (gfd, gt)
+	    call gt_labax (gfd, gt)
+	}
+
+	call gt_plot (gfd, gt, x, y, npts)
+end
+
+
+
+
+pointer procedure rt_crfile(name,mode,template,ndim,dims,type)
+#------------------------------------------------------------------------------
+#      RT_CRFILE -- Create an output file from scratch
+#
+#      Parameters (">" Input, "<" Output, "W" Workspace, "!" Changed)
+#
+#      (>) name:       (char) Name for the file
+#      (>) mode:       (int) Mapping mode
+#      (>) template:   (pointer) Template on which file is based
+#      (>) ndim:       (int) Number of dimensions in data array
+#      (>) dims:       (int[ndim]) Dimensions of data array
+#      (>) type:       (int) Data type of data array
+#
+#      Returns:
+#          fptr:       (pointer) Pointer to the new output file
+#
+#
+#      AUTHOR:      Jim Lewis -- RGO
+#      DATE:        30-MAR-1993
+#      UPDATE:      09-JUN-1994 -- Fixed bug which restricted scope to 2d.(JRL)
+#
+#------------------------------------------------------------------------------
+
+# Parameters
+
+char name[ARB]
+int mode,ndim,dims[ndim],type
+pointer template
+
+# Local variables
+
+pointer fptr,ptr1
+int i
+long vin[IM_MAXDIM],vout[IM_MAXDIM],one_l
+
+# Functions
+
+pointer immap(),impgsr()
+
+errchk immap,impgsr
+
+begin
+
+      # Begin by mapping the new file
+ 
+      fptr = immap(name,mode,template)
+      # Now set the necessary header items...
+
+      IM_NDIM(fptr) = ndim
+      do i = 1,ndim
+         IM_LEN(fptr,i) = dims[i]
+      IM_PIXTYPE(fptr) = type
+
+      # Set up some data array indicies
+
+      one_l = 1
+      call amovkl(one_l,vin,IM_MAXDIM)
+      call amovkl(one_l,vout,IM_MAXDIM)
+
+      # Now map some data and close the file.  This creates the data array.
+      # Reopen it READ_WRITE access...
+
+      ptr1 = impgsr(fptr,vin,vout,ndim)
+      call imunmap(fptr)
+      fptr = immap(name,READ_WRITE,0)
+
+      # Return the pointer
+
+      return (fptr)
+end
+
+
+
+# GETIMAGE -- Read new image pixels.
+
+procedure getimage (image, nline, nband, nap, wave_scl, w0, wpc, units,
+	im, mw, sh, gt)
+
+char	image[ARB]
+int	nline, nband, nap
+bool	wave_scl
+double	w0, wpc
+real	a, b
+char	units[ARB]
+pointer sp, imsect, im, mw, sh, gt
+
+int	da, n, sec[3,3], clgeti()
+real	gt_getr()
+double	shdr_lw()
+pointer immap(), smw_openim()
+errchk	immap, shdr_open, shdr_system, un_changer
+
+begin
+	call smark (sp)
+	call salloc (imsect, SZ_FNAME, TY_CHAR)
+
+	# Map the image if necessary.  Don't allow image sections but
+	# determine requested spectrum from any explicit specification.
+
+	da = 0
+	if (im == NULL) {
+	    call imgsection (image, Memc[imsect], SZ_FNAME)
+	    call imgimage (image, image, SZ_FNAME)
+	    im = immap (image, READ_ONLY, 0)
+	    mw = smw_openim (im)
+	    n = IM_NDIM(im)
+	    if (Memc[imsect] != EOS) {
+		call amovki (1, sec[1,1], n)
+		call amovi (IM_LEN(im,1), sec[1,2], n)
+		call amovki (1, sec[1,3], n)
+		call id_section (Memc[imsect], sec[1,1], sec[1,2], sec[1,3], n)
+		 switch (SMW_FORMAT(mw)) {
+		case SMW_ND:
+		    if (n == 1)
+			da = 1
+		    if (n == 2) {
+			if (abs (sec[1,2]-sec[1,1]) == 0) {
+			    nline = sec[1,1]
+			    da = 2
+			} else if (abs (sec[2,2]-sec[2,1]) == 0) {
+			    nline = sec[2,1]
+			    da = 1
+			}
+		    } else {
+			if (abs (sec[1,2]-sec[1,1]) == 0) {
+			    nline = sec[1,1]
+			    if (abs (sec[2,2]-sec[2,1]) == 0) {
+				nband = sec[2,1]
+				if (abs (sec[3,2]-sec[3,1]) > 0)
+				    da = 3
+			    } else if (abs (sec[3,2]-sec[3,1]) == 0) {
+				nband = sec[3,1]
+				da = 2
+			    }
+			} else if (abs (sec[2,2]-sec[2,1]) == 0) {
+			    nline = sec[2,1]
+			    if (abs (sec[3,2]-sec[3,1]) == 0) {
+				nband = sec[3,1]
+				da = 1
+			    }
+			}
+		    }
+		    if (da > 0) {
+			call smw_daxis (mw, im, da, INDEFI, INDEFI)
+			call smw_saxis (mw, NULL, im)
+		    }
+		default:
+		    da = 1
+		    if (n > 1 && abs (sec[2,2]-sec[2,1]) == 0)
+			nline = sec[2,1]
+		    if (n > 2 && abs (sec[3,2]-sec[3,1]) == 0)
+			nband = sec[3,1]
+		}
+	    }
+	}
+
+	# Get header info.
+	switch (SMW_FORMAT(mw)) {
+	case SMW_ND:
+	    nap = INDEFI
+	    n = SMW_LLEN(mw,2)
+	    if (n > 1) {
+		if (nline == 0)
+		    nline = max (1, min (n, clgeti ("line")))
+	    } else
+		nline = 0
+	    n = SMW_LLEN(mw,3)
+	    if (n > 1) {
+		if (nband == 0)
+		    nband = max (1, min (n, clgeti ("band")))
+	    } else
+		nband = 0
+	default:
+	    n = SMW_NSPEC(mw)
+	    if (n > 1) {
+		if (nline == 0) { 
+		    nline = clgeti ("line")
+		    nap = nline
+		}
+	    } else {
+		nline = 0
+		nap = INDEFI
+	    }
+	    n = SMW_NBANDS(mw)
+	    if (n > 1) {
+		if (nband == 0) 
+		    nband = max (1, min (n, clgeti ("band")))
+	    } else
+		nband = 0
+	}
+
+	call shdr_open (im, mw, nline, nband, nap, SHDATA, sh)
+	nap = AP(sh)
+
+	if (DC(sh) == DCNO && !IS_INDEFD(w0))
+	    call usercoord (sh, 'l', 1D0, w0, 2D0, w0+wpc)
+
+	# Cancel wavelength coordinates if not desired or set units.
+	if (!wave_scl)
+	    call shdr_system (sh, "physical")
+	else {
+	    iferr (call shdr_units (sh, units))
+		;
+	}
+
+	if (da > 0) {
+	    a =  gt_getr (gt, GTXMIN)
+	    b =  gt_getr (gt, GTXMAX)
+	    if (IS_INDEF(a) && IS_INDEF(b)) {
+		if (!wave_scl) {
+		    call gt_setr (gt, GTXMIN, real(sec[da,1]))
+		    call gt_setr (gt, GTXMAX, real(sec[da,2]))
+		} else {
+		    a = shdr_lw (sh, double(sec[da,1]))
+		    b = shdr_lw (sh, double(sec[da,2]))
+		    call gt_setr (gt, GTXMIN, a)
+		    call gt_setr (gt, GTXMAX, b)
+		}
+	    }
+	}
+
+	# Make a title.
+	call mktitle (sh, gt)
+
+	call sfree (sp)
+end
+
+
+
+# MKTITLE -- Make a spectrum title (IIDS style)
+
+procedure mktitle (sh, gt)
+
+pointer sh, gt
+
+pointer sp, str
+
+begin
+	# Do nothing if the GTOOLS pointer is undefined.
+	if (gt == NULL)
+	    return
+
+	call smark (sp)
+	call salloc (str, SZ_LINE, TY_CHAR)
+
+	call sprintf (Memc[str], SZ_LINE,
+	    "[%s%s]: %s Lenslet no:%d") # IT(sh) has %.2s beam:%d
+	    call pargstr (IMNAME(sh))
+	    call pargstr (IMSEC(sh))
+	    call pargstr (TITLE(sh))
+ #	     call pargr (IT(sh))
+	    call pargi (AP(sh))
+ #	     call pargi (BEAM(sh))
+
+	# Set GTOOLS labels.
+	call gt_sets (gt, GTTITLE, Memc[str])
+	if (UN_LABEL(UN(sh)) != EOS) {
+	    call gt_sets (gt, GTXLABEL, UN_LABEL(UN(sh)))
+	    call gt_sets (gt, GTXUNITS, UN_UNITS(UN(sh)))
+	} else {
+	    call gt_sets (gt, GTXLABEL, LABEL(sh))
+	    call gt_sets (gt, GTXUNITS, UNITS(sh))
+	}
+
+	call sfree (sp)
+end
+
+
+
+# USERCOORD -- Set user coordinates
+
+procedure usercoord (sh, key, w1, u1, w2, u2)
+
+pointer sh
+int	key
+double	w1, u1, w2, u2
+
+int	i, format, ap, beam, dtype, nw
+double	shift, wa, wb, ua, ub, w0, dw, z, smw_c1trand()
+real	aplow[2], aphigh[2]
+pointer coeff, smw, mw, ct, smw_sctran()
+errchk	smw_sctran
+
+begin
+	coeff = NULL
+	smw = MW(sh)
+	mw = SMW_MW(smw,0)
+	format = SMW_FORMAT(smw)
+
+	iferr {
+	    call un_ctrand (UN(sh), MWUN(sh), w1, wa, 1)
+	    call un_ctrand (UN(sh), MWUN(sh), u1, ua, 1)
+
+	    call smw_gwattrs (MW(sh), APINDEX(sh), LINDEX(sh,2),
+		ap, beam, dtype, w0, dw, nw, z, aplow, aphigh, coeff)
+
+	    switch (key) {
+	    case 'd':
+		wa = wa * (1 + z)
+		switch (UN_CLASS(MWUN(sh))) {
+		case UN_WAVE:
+		    z = (wa - ua) / ua
+		case UN_FREQ, UN_ENERGY:
+		    z = (ua - wa) / wa
+		default:
+		    call error (1, "Inappropriate coordinate units")
+		}
+	    case 'z':
+		shift = ua - wa
+		w0 = w0 + shift
+		if (dtype == 2)
+		    call sshift1 (shift, coeff)
+	    case 'l':
+		call un_ctrand (UN(sh), MWUN(sh), w2, wb, 1)
+		call un_ctrand (UN(sh), MWUN(sh), u2, ub, 1)
+
+		switch (format) {
+		case SMW_ND:
+		    i = 2 ** (SMW_PAXIS(smw,1) - 1)
+		    ct = smw_sctran (smw, "world", "physical", i)
+		    wa = smw_c1trand (ct, wa)
+		    wb = smw_c1trand (ct, wb)
+		case SMW_ES, SMW_MS:
+		    ct = smw_sctran (smw, "world", "physical", 3)
+		    call smw_c2trand (ct, wa, double (ap), wa, shift)
+		    call smw_c2trand (ct, wb, double (ap), wb, shift)
+		}
+		call smw_ctfree (ct)
+
+		dw = (ub - ua) / (wb - wa)
+		w0 = ua - (wa - 1) * dw
+		dtype = 0
+		if (UNITS(sh) == EOS) {
+		    call mw_swattrs (mw, SMW_PAXIS(smw,1),
+			"label", "Wavelength")
+		    call mw_swattrs (mw, SMW_PAXIS(smw,1),
+			"units", "angstroms")
+		}
+	    default:
+		call error (1, "Unknown correction")
+	    }
+
+	    call smw_swattrs (smw, LINDEX(sh,1), 1, ap, beam, dtype, w0,
+		dw, nw, z, aplow, aphigh, Memc[coeff])
+	    if (smw != MW(sh)) {
+		CTLW1(sh) = NULL
+		CTWL1(sh) = NULL
+		MW(sh) = smw
+	    }
+
+	    DC(sh) = dtype
+	    call shdr_system (sh, "world")
+	    if (UN_CLASS(UN(sh)) == UN_UNKNOWN)
+		call un_copy (MWUN(sh), UN(sh))
+	} then
+	    call erract (EA_WARN)
+
+	call mfree (coeff, TY_CHAR)
+end
+
+
+# SSHIFT -- Shift coordinate zero point of selected aperture in
+# MULTISPEC and EQUISPEC images.
+
+procedure sshift (im, mw, image, aps, shift, verbose)
+
+pointer im                      # IMIO pointer
+pointer mw                      # MWCS pointer
+char    image[ARB]              # Image name
+pointer aps                     # Aperture range list
+double  shift                   # Shift to add
+bool    verbose                 # Verbose?
+
+int     i, ap, beam, dtype, nw, naps
+double  w1, dw, z
+real    aplow[2], aphigh[2]
+pointer coeff, coeffs
+bool    rng_elementi()
+errchk  sshift1
+
+begin
+        coeff = NULL
+        coeffs = NULL
+ 
+        # Go through each spectrum and change the selected apertures.
+        naps = 0
+        do i = 1, SMW_NSPEC(mw) {
+            # Get aperture info
+            iferr (call smw_gwattrs (mw, i, 1, ap, beam, dtype, w1, dw, nw, z,
+                aplow, aphigh, coeff))
+                break
+
+            # Check if aperture is to be changed
+            if (!rng_elementi (aps, ap))
+                next
+
+            # Apply shift
+            w1 = w1 + shift
+            if (dtype == 2)
+                call sshift1 (shift, coeff)
+
+            call smw_swattrs (mw, i, 1, ap, beam, dtype, w1, dw, nw, z,
+                aplow, aphigh, Memc[coeff])
+
+            # Make record
+            if (verbose) {
+                if (naps == 1) {
+                    call printf ("%s: shift = %g\n")
+                        call pargstr (image)
+                        call pargd (shift)
+                }
+                call printf ("  Aperture %d:  %g --> %g\n")
+                    call pargi (ap)
+                    call pargd (w1 - shift)
+                    call pargd (w1)
+            }
+        }
+
+        call mfree (coeff, TY_CHAR)
+        call mfree (coeffs, TY_DOUBLE)
+end
+
+
+
+# ID_SECTION -- Parse an image section into its elements.
+# 1. The default values must be set by the caller.
+# 2. A null image section is OK.
+# 3. The first nonwhitespace character must be '['.
+# 4. The last interpreted character must be ']'.
+#
+# This procedure should be replaced with an IMIO procedure at some
+# point.
+
+procedure id_section (section, x1, x2, xs, ndim)
+
+char    section[ARB]            # Image section
+int     x1[ndim]                # Starting pixel
+int     x2[ndim]                # Ending pixel
+int     xs[ndim]                # Step
+int     ndim                    # Number of dimensions
+
+int     i, ip, a, b, c, temp, ctoi()
+define  error_  99
+
+begin
+        # Decode the section string.
+        ip = 1
+        while (IS_WHITE(section[ip]))
+            ip = ip + 1
+        if (section[ip] == '[')
+            ip = ip + 1
+        else if (section[ip] == EOS)
+            return
+        else
+            goto error_
+
+        do i = 1, ndim {
+            while (IS_WHITE(section[ip]))
+                ip = ip + 1
+            if (section[ip] == ']')
+                break
+
+            # Default values
+            a = x1[i]
+            b = x2[i]
+            c = xs[i]
+
+            # Get a:b:c.  Allow notation such as "-*:c"
+            # (or even "-:c") where the step is obviously negative.
+
+            if (ctoi (section, ip, temp) > 0) {                 # a
+                a = temp
+                if (section[ip] == ':') {
+                    ip = ip + 1
+                    if (ctoi (section, ip, b) == 0)             # a:b
+                        goto error_
+                } else
+                    b = a
+            } else if (section[ip] == '-') {                    # -*
+                temp = a
+                a = b
+                b = temp
+                ip = ip + 1
+                if (section[ip] == '*')
+                    ip = ip + 1
+            } else if (section[ip] == '*')                      # *
+                ip = ip + 1
+            if (section[ip] == ':') {                           # ..:step
+                ip = ip + 1
+                if (ctoi (section, ip, c) == 0)
+                    goto error_
+                else if (c == 0)
+                    goto error_
+            }
+            if (a > b && c > 0)
+                c = -c
+
+            x1[i] = a
+            x2[i] = b
+            xs[i] = c
+
+            while (IS_WHITE(section[ip]))
+                ip = ip + 1
+            if (section[ip] == ',')
+                ip = ip + 1
+        }
+
+        if (section[ip] != ']')
+            goto error_
+
+        return
+error_
+        call error (0, "Error in image section specification")
+end
+
+
+
+# SSHIFT1 -- Shift coordinate zero point of nonlinear functions.
+
+procedure sshift1 (shift, coeff)
+
+double  shift                   # Shift to add
+pointer coeff                   # Attribute function coefficients
+
+int     i, j, ip, nalloc, ncoeff, type, order, fd
+double  dval
+pointer coeffs
+int     ctod(), stropen()
+errchk  stropen
+begin
+        if (coeff == NULL)
+            return
+        if (Memc[coeff] == EOS)
+            return
+
+        coeffs = NULL
+        ncoeff = 0
+        ip = 1
+        while (ctod (Memc[coeff], ip, dval) > 0) {
+            if (coeffs == NULL) {
+                nalloc = 10
+                call malloc (coeffs, nalloc, TY_DOUBLE)
+            } else if (ncoeff == nalloc) {
+                nalloc = nalloc + 10
+                call realloc (coeffs, nalloc, TY_DOUBLE)
+            }
+            Memd[coeffs+ncoeff] = dval
+            ncoeff = ncoeff + 1
+        }
+        ip = ip + SZ_LINE
+        call realloc (coeff, ip, TY_CHAR)
+        call aclrc (Memc[coeff], ip)
+        fd = stropen (Memc[coeff], ip, NEW_FILE)
+
+        ip = 0
+        while (ip < ncoeff) {
+            if (ip > 0)
+                call fprintf (fd, " ")
+            Memd[coeffs+ip+1] = Memd[coeffs+ip+1] + shift
+            type = nint (Memd[coeffs+ip+2])
+            order = nint (Memd[coeffs+ip+3])
+            call fprintf (fd, "%.3g %g %d %d")
+                call pargd (Memd[coeffs+ip])
+                call pargd (Memd[coeffs+ip+1])
+                call pargi (type)
+                call pargi (order)
+            switch (type) {
+            case CHEBYSHEV, LEGENDRE:
+                j = 6 + order
+            case SPLINE3:
+                j = 9 + order
+            case SPLINE1:
+                j = 7 + order
+            case PIXEL:
+                j = 4 + order
+            case SAMPLE:
+                j = 5 + order
+            }
+            do i = 4, j-1 {
+                call fprintf (fd, " %g")
+                    call pargd (Memd[coeffs+ip+i])
+            }
+            ip = ip + j
+        }
+        call strclose (fd)
+
+        call mfree (coeffs, TY_DOUBLE)
+end

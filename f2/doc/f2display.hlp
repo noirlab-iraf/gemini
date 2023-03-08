@@ -1,0 +1,48 @@
+.help f2display October2013 gemini.f2
+.ih
+NAME
+f2display -- Display cut FLAMINGOS-2 MOS data
+.ih
+USAGE
+f2display inimage
+.ih
+PARAMETERS
+.ls inimage
+File name of cut FLAMINGOS-2 MOS data to display. Only one input image allowed
+at a time.
+.le 
+.ls frame = 1
+Frame to display image to
+.le
+.ls extname = "SCI"
+Extension type to display
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error. This 
+parameter is always set by F2DISPLAY and should not be modified by the user.
+.le
+.ih
+DESCRIPTION
+
+The F2DISPLAY task is used to display cut FLAMINGOS-2 MOS data. It will display
+all MOS slits in the input image with an extension name equal to that of
+\fIextname\fR in the same frame.
+.ih
+EXAMPLES
+
+1. Display a flat image using itself to detect the slit edges:
+.sp
+.nf
+    cl> f2display cut_flat.fits
+.fi
+.ih
+BUGS AND LIMITATIONS
+
+The task F2DISPLAY will not run on data from instruments other than FLAMINGOS-2.
+F2DISPLAY will not run on simple FITS files. FLAMINGOS-2 data must be processed
+with f2prepare prior to running F2DISPLAY.
+.ih
+SEE ALSO
+
+F2PREPARE and F2CUT
+.endhelp

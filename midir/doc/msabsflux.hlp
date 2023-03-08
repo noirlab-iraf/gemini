@@ -1,0 +1,313 @@
+.help msabsflux December2011 gemini.midir
+.ih
+NAME
+.sp
+msabsflux -- a routine to correct T-ReCS or Michelle spectra for telluric
+absorption, and optionally to produce an absolutely calibrated output spectrum
+.ih
+USAGE
+.sp
+msabsflux inimages cal stdname
+.ih
+PARAMETERS
+.ls inimages 
+Input, wavelength calibrated, extracted raw spectrum files for some object.
+.le
+.ls cal
+The name of a single, wavelength calibrated, extracted raw spectrum file
+for a calibration standard, to be used for telluric corrections and 
+possibly absolute calibration.
+.le
+.ls stdname
+The name of the standard star, so that its absolute energy distribution
+can be used to calibrate the object spectrum.  If this parameter includes
+the string "list" anywhere, the full list of standards will be printed 
+back to the terminal and no processing will be done.  There are 490
+"standards" in the list, primarily from the series of papers by Martin
+Cohen and his associates.  Note that the quality of template data for different
+objects in the list varies significantly. If \fIfl_bbody\fR is "yes" 
+then the name is ignored but something still needs to be entered.  If the 
+standard name is "asteroid" a blackbody spectral fit for an asteroid of 
+diameter 100 km at a distance of 1.0 astronomical units will be used.  This 
+has to be scaled to allow for the actual radius and distance of any particular 
+asteroid.
+.le
+.ls outimages = ""
+Final reduced output spectra.  If various of the 
+\fIfl_view\fR, \fIfl_mask\fR, etc. options are chosen, the task will 
+also generate other output files in the processing.
+.le
+.ls outpref = "a"
+A prefix string, which is prefixed to the input image name(s) to make
+the corresponding output image name(s) if the output file name(s) is 
+not specified via the \fIoutimage\fR parameter.
+.le
+.ls outtype = "fnu"
+Key for what type of flux units one wants in the output spectrum: one can 
+specify "fnu" to get frequency flux density values in Jy, "flambda" to get 
+wavelength flux density in Watts/meter squared per micron, or "lambdaFlambda" 
+to get values in Watts/meter-squared.  This is only used if \fIfl_bbody\fR 
+is "no".  In the blackbody case the output is wavelength flux density, but 
+the scaling is arbitrary, no matter what the \fIouttype\fR parameter value 
+is set to.
+.le
+.ls fl_bbody = no
+This is a flag for whether the standard spectrum is assumed to be a 
+blackbody or whether an absolute energy distribution function will be read 
+in and used for the spectral shape.  In the latter case the shape of the 
+spectrum will be correct (to the extent that the spectrum of the standard 
+is approximated by a blackbody function) but the information about the 
+absolute level will be lost.
+.le
+.ls bbody = 1.0
+A value for the blackbody temperature of the standard in K, used only if 
+\fIfl_bbody\fR is "yes".  For stars a value of 10000.0 is recommended. 
+For an asteroid a value near 215 K should be used.  No check is made of 
+the value, except that it must be something other than 1.0.
+.le
+.ls xcorr = no
+Cross-correlate   the  input  spectrum  with  the  calibration 
+spectrum to determine an shift  for  the  calibration  spectrum?
+Only  regions  specified by the sample regions parameter will be
+used in the cross-correlation.
+.le
+.ls lag = 10
+The cross-correlation lag to use when xcorr = yes.  The lag is
+given  in  pixels.  This is the distance to either side of the
+initial shift over which the cross-correlation profile is 
+computed.  If a value of zero is given then  the 
+cross-correlation step is not done.
+.le
+.ls shift = 0., dshift = 0.5
+The  initial  shift  and shift step in pixels.  This initializes
+the shift search parameters for the first spectrum.   If  dshift
+is  zero  then  there  will be no search for a new shift and the
+'x' interactive function is disabled.  These parameters  may  be
+changed  interactively.   After  the  first  spectrum subsequent
+spectra begin with the values from the last spectrum.
+.le
+.ls scale = 1., dscale = 0.1
+The  initial  scale  and scale step.  This initializes the scale
+search parameters for the first spectrum.   If  dscale  is  zero
+then  there  will  be  no  search  for  a  new scale and the 'y'
+interactive function  is  disabled.   These  parameters  may  be
+changed  interactively.   After  the  first  spectrum subsequent
+spectra begin with the values from the last spectrum.
+.le
+.ls threshold = 0.01
+Since  the  calibration  consists  of  division  by  the  scaled 
+calibration data it is possible for totally saturated  lines  to
+have  zero  or  negative  values.  The task will quit if detects
+negative or  zero  calibration  values.   The  threshold  allows
+applying  a  minimum  threshold to the calibration values so the
+task may continue.
+.le
+.ls fl_inter = no
+A boolean value to toggle on or off the interactive tweaking of the
+correction.
+.le
+.ls fl_plots = yes
+A boolean value to toggle whether some plots are displayed as the 
+reduction proceeds (these show the raw object and standard star spectra 
+and the output spectrum using splot) and whether an output calibrated 
+spectrum is written for the standard star.
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes the task use the logfile
+defined by midir.logfile.
+.le
+.ls verbose = yes
+Print actions to the terminal.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error. 
+This parameter is always set by the task, and should not be modified by 
+the user.
+.le
+.ih
+DESCRIPTION 
+This task carries out the calibration of an object spectrum, using a
+calibration spectrum for telluric correction and sensitivity
+corrections.  Depending on the options chosen the task will either
+carry out an absolute calibration using a spectral energy distribution
+function for the standard, or carry out a relative calibration
+assuming that the calibration standard has an intrinsic spectral shape
+given by the blackbody function. The file "standards.list" In the
+midir$data directory gives the names of all the standards for which
+the spectral energy distribution values are tabulated. The SEDs in the
+standard star templates extend from 7 to 30 microns, so values in the
+observed spectra outside that range are set to zero. The atmosphere is
+essentially opaque outside that range of wavelengths.
+.sp 
+In the blackbody case the 
+spectrum is normalized at either 11.7 microns (for a low resolution N-band
+spectrum), 20.5 microns (for a low resolution Q-band spectrum), or the 
+center wavelength of the spectrum (when the spectrum covers a wavelength 
+range of less than 3 microns); thus no absolute flux information is 
+retained.  The task corrects the calibration star spectrum for the 
+assumed continuum shape, then uses the result to divide out the telluric 
+atmospheric absorption features in the science spectrum.  The telluric 
+correction is done using a call to the NOAO onedspec task \fITELLURIC\fR. 
+.sp
+One output file per input image is produced.  One can have automatically 
+generated output file names by specifying the \fIoutpref\fR parameter and NOT 
+specifying the \fIoutimage\fR parameter.  If neither of these is specified, 
+the \fIoutpref\fR parameter is set to be "a".  One cannot overwrite the 
+input file by the output file.
+.sp
+Only one target can be handled at a time by this routine, because 
+the standard star name has to be specified when the \fIfl_bbody\fR 
+flag is set to "no".  While it would be possible to have a list of standard 
+stars as well as list of input and output spectra, that has not been done. 
+Normally there is a separate standard star spectrum for each science 
+spectrum when Gemini observations are carried out, and that has been 
+assumed to be the case here.
+.sp
+The routine writes to a logfile.  If the task logfile name is not specified 
+then the routine looks for the MIDIR logfile name.   If the logfile 
+exists, any messages are appended to it.  The \fIverbose\fR parameter 
+does not effect the logfile, but does change how much information is 
+written to the terminal.
+.sp
+As well as using the standard star spectral templates, it is possible to 
+use an "asteroid" template spectrum.  That spectrum is based upon 
+observations of Ceres with the Infrared Space Observatory.  A single 
+temperature blackbody fit was used.  The resulting best fit temperature 
+was 217.05 K assuming an emissivity of of 1.0.  The spectrum was scaled 
+to the expected flux for a 100 km radius asteroid at a distance of 1 A.U..  
+This template can be used if the calibration spectrum is from an asteroid, 
+as may be the case for higher resolution spectral observations, particularly 
+from the echelle mode of Michelle.  It should be noted that this single 
+temperature fit is not nearly as good as using a physical model of the 
+shape and surface properties of individual asteroids (see for example 
+T. G. Muller and J. S. V. Lagerros, Astronomy and Astrophysics, 
+volume 338, 340-352, 1998).  The application of such a model is 
+beyond the scope of the midir package.
+.sp
+The \fIfl_bbody\fR option can be used with a \fIbbody\fR value of around 
+210 to 220 K if the calibration target is an asteroid.  This may be important 
+at short wavelengths (less than 8 microns in particular) where the shape of 
+the blackbody function is a strong function of temperature at around these 
+values.
+.sp
+While this task can be called on its own, it is intended to be called 
+as part of the \fImsreduce\fR and \fImsslice\fR tasks.
+.ih
+USE of the TELLURIC task
+The ratioing and scaling of the two input spectra to produce the output 
+calibrated spectrum is carried out using the \fItelluric\fR routine.  That 
+routine applies a shift to the calibration spectrum to best match the object 
+spectrum, and also applies a scaling as a form of airmass correction.  The 
+automatic usage of \fItelluric\rR does not generally produce the best possible 
+result for Gemini mid-infrared spectra.  It is advisable to run the task 
+interactively and search for a better set of parameters than those found 
+automatically.
+.sp
+Experience with mid-infrared spectra in the N-band and the Q-band from Gemini 
+suggests that the best way to proceed within the \fItelluric\rfR task is to 
+set the SCALE parameter to 1.0 and then look for a (small) shift which 
+produces a smooth output spectrum across the telluric features, such as the 
+ozone band in the N-band window and the many strong water bands in the 
+Q-band window.  These spectra include regions of extremely strong 
+atmospheric absorption, where no signal is detected  It is these regions 
+which make it difficult for the \fItelluric\fR task to find the best shift and 
+scaling as they produce large positive and negative values which are not 
+actually meaningful.  The task tends to choose a shift which minimizes the 
+large positive and negative values in the regions where the spectrum has no 
+information at the expense of producing a bad result in the regions of the 
+spectrum where there is actual signal.  Shifts of more than 1 pixel positive 
+or negative are not needed, unless there was a problem with the grating 
+positioning during an observation.  It is also observed that the airmass 
+scaling is usually close to 1.0 unless the difference in airmass between the 
+science target observation and the standard star observation is quite large. 
+Variations in the atmosphere (water vapour column, or ozone column) turn out 
+to often have a much bigger affect on the spectral shape than airmass usually 
+does.
+.sp
+In general it may take a number of attempts to get the best shift and scaling 
+for a particular spectral observation.  On both N-band and Q-band the strength 
+of the molecular absorption bands is sometimes observed to change noticeably 
+on short times scales (30 minutes or less).  In some cases this may prevent 
+the telluric correction from working at all.  More usually it has been found 
+that shifts of up to + or - 0.3 pixels serve to cancel out the bands as well 
+as is possible.
+.ih 
+EXAMPLES
+1. The basic usage is
+.sp
+.nf
+     cl> msabsflux xtrS20031228S0175 xtrS20031228S0176 HD29291
+.fi
+.sp
+which will produce an output file named "axtrS20031228S0175.fits". (This is 
+assuming that there are no errors.)  In this case the original files must 
+be in the current directory, and that is where the output file is created.
+.sp
+2. Using MSABSFLUX for spectra in another directory is done as with 
+.sp
+.nf
+    cl> msabsflux xtrS20031228S0175 xtrS20031228S0176 HD29291 \
+    >>> rawpath=/home/user/trecs
+.fi
+.sp
+which would read "/home/user/trecs/xtrS20031228S0175.fits", and produce an 
+output file named "axtrS20031228S0175.fits" in the current directory if 
+all goes well.  The calibration spectrum would be read from 
+"/home/user/trecs/xtrS20031228S0176.fits".
+.sp
+3. Defining the output file name works the following way:
+.sp
+.nf
+    cl> msabsflux xtrS20031228S0175 xtrS20031228S0176 HD29291 \
+    >>> outim=frame175
+.fi
+.sp
+which should produce "frame75.fits" from "xtrS20031228S0175", 
+both files being in the current directory.
+.sp
+4. If one wants to define the prefix explicitly and apply it to  
+the original spectrum file name it is done by
+.sp
+.nf
+    cl> msabsflux xtrS20031228S0175 xtrS20031228S0176 HD29291 \
+    >>> outpref="new" logfile="test.log" verbose=no
+.fi
+.sp
+which produces an output file named "newxtrS20031228S0175.fits" for an 
+input file named "xtrS20031228S0175".  In this example the logfile name 
+is set to "test.log" and the messages to the terminal are kept to a 
+minimum by setting verbose to "no".
+.sp
+5. To run the routine using a cross correlation in the call to the 
+\fItelluric\fR task:
+.sp
+.nf
+    cl> msabsflux xtrS20031228S0175 xtrS20031228S0176 HD29291 \
+    >>> fl_xcorr+
+.fi
+.sp
+which will do a cross correlation of the science target and the telluric 
+standard, and determine, and then apply, a shift to the data before the 
+division is done.
+.sp
+6. To do only a telluric correction and relative flux calibration assuming 
+a blackbody shape for the calibration spectrum:
+.sp
+.nf
+    cl> msabsflux xtrS20031228S0175 xtrS20031228S0176 " " \
+    >>> fl_bbody+ bbody=10000.
+.fi
+.sp
+which then produces a spectrum with arbitrary scaling in intensity.
+.ih
+BUGS AND LIMITATIONS
+At the present time, the best automatically processed output spectrum is 
+obtained when MSABSFLUX is run with the xcorr keyword set to "no".  
+However, much better cross correlation correction of the telluric features 
+can usually be obtained if the task is run interactively with the cross 
+correlation option on (i.e., with xcorr+ and fl_inter+).
+.ih
+SEE ALSO
+.sp
+telluric, midir, mireduce, msreduce, msslice
+.endhelp

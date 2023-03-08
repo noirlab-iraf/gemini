@@ -1,0 +1,83 @@
+.help growdq September2014 gemini.gemtools
+.ih
+NAME
+growdq -- Expand non-zero DQ bits into neighbouring pixels
+.ih
+USAGE
+growdq inimages outimages
+.ih
+PARAMETERS
+.ls inimages
+Input multi-extension FITS image, or list of images, to process. Each input
+image must already contain a DQ extension matching every SCI extension,
+identifying any regions of bad pixels to be grown.
+.le
+.ls outimages
+Output image or list of images (matching \fIinimages\fR) to be produced
+with updated DQ extensions.
+.le
+.ls radius = 1.5
+Radius in pixels by which to grow regions matching the DQ \fIbitmask\fR.
+A radius of 1.0 will extend each bad pixel identification to an extra pixel
+in each of the 4 cardinal directions (if not already affected), while 1.5
+will also affect each of the 4 diagonally-nearest points (and so on). Only
+DQ planes matching \fIbitmask\fR are expanded, leaving regions flagged in
+any other non-zero DQ planes unaffected.
+.le
+.ls bitmask = 65535
+The bitwise OR of DQ bits to be grown. The default value of 65535 causes
+growth of all pixels with DQ>0 in the input, while \fIbitmask\fR=0 would
+copy the input unchanged. Specific bits or combinations thereof can be used
+to affect only certain defects, eg. (just as an example) 9 to grow cosmic
+rays (DQ=8) and detector defects (DQ=1), without affecting chip gaps (DQ=16).
+.le
+.ls logfile = ""
+Name of the output logfile. When this is blank (as by default), the value of
+\fIgemtools.log\fR is used. If the package log parameter is also blank, the
+name will be "gemtools.log".
+.le
+.ls verbose = yes
+Print messages to the screen as well as the log? Errors will be printed
+regardless.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error. This
+parameter is set by the task and should not be modified by the user.
+.le
+
+.ih
+DESCRIPTION
+
+GROWDQ copies each input image to its output, expanding any regions marked
+as bad in data quality planes matching the \fIbitmask\fR. This is typically
+useful to allow identifying contaminated pixels based on conservative
+criteria in the first instance and then deal here with any remaining
+lower-level contamination in neighbouring pixels, or to suppress edge
+effects following interpolation. Any DQ bits that are not selected by the 
+\fIbitmask\fR remain unaffected, so it is possible to expand some types
+of defective regions but not others.
+
+.ih
+EXAMPLES
+1. Grow cosmic ray identifications in the DQ for a single image:
+
+.nf
+  cl> growdq xbrgN20060822S0125 gxbrgN20060822S0125 bitmask=8
+.fi
+
+2. Grow chip gaps & bad columns for a list of part-processed GMOS IFU spectra:
+
+.nf
+  cl> growdq exbrg@sci.lis gexbrg@sci.lis bitmask=17
+.fi
+
+.ih
+BUGS AND LIMITATIONS
+There is no option to generate the output filename using a prefix.
+This task has undergone limited testing after inclusion from the
+experimental gmosifudr version on the Gemini Data Reduction User Forum;
+it may crash under relatively obscure error conditions.
+.ih
+SEE ALSO
+addbpm, gemfix, gemcrspec, gscrrej
+.endhelp

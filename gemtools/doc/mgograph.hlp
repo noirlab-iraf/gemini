@@ -1,0 +1,303 @@
+.help mgograph December2011 gemini.gemtools
+.ih
+NAME
+mgograph -- MONGO-like graphs using stsdas.stplot.igi
+.ih
+USAGE
+mgograph intab xcolumn ycolumn
+.ih
+PARAMETERS
+.ls intab
+Input table containing the data. The table may be STSDAS, FITS or
+ASCII.  A table included in a Multi-Extension FITS (MEF) file can also be
+used (e.g. imagename.fits[MDF]).
+.le
+.ls xcolumn
+Column name for X data. If plotting from an ASCII table, 
+the column name should be given as an integer column number.
+.le
+.ls ycolumn
+Column name for Y data. If plotting from an ASCII table, 
+the column name should be given as an integer column number.
+.le
+.ls rows = "-"
+Rows to be plotted.
+.le
+.ls wx1 = 0.
+Lower limit on X-axis if not autoscaling. Autoscaling in X takes
+place if wx1=0. and wx2=0.
+.le
+.ls wx2 = 0.
+Upper limit on X-axis if not autoscaling.
+.le
+.ls wy1 = 0.
+Lower limit on Y-axis if not autoscaling. Autoscaling in Y takes
+place if wy1=0. and wy2=0.
+.le
+.ls wy2 = 0.
+Upper limit on Y-axis if not autoscaling.
+.le
+.ls excolumn = ""
+Column name for uncertainties of X data. If plotting from an ASCII table, 
+the column name should be given as an integer column number.
+.le
+.ls eycolumn = ""
+Column name for uncertainties of Y data. If plotting from an ASCII table, 
+the column name should be given as an integer column number.
+.le
+.ls logx = no
+Take log10 of X values before plotting.
+.le
+.ls logy = no
+Take log10 of Y values before plotting.
+.le
+.ls labelexp = 2.
+Expand factor for labels. Use this parameter to change the size
+of the labels.
+.le
+.ls boxexp = 2.
+Expand factor for box. Use this parameter to change the size of
+the tick marks and numbers associated with the axes.
+.le
+.ls xlabel = ""
+Label on X axis.
+.le
+.ls ylabel = ""
+Label on Y axis.
+.le
+.ls title = ""
+Title to be printed on the plot.
+.le
+.ls postitle = "topleft"
+Position of the title. topleft and topcenter make the title appear above
+the box and at the left or center, respectively. tl, tr, bl and br make
+the title appear inside the box at the top left, top right, bottom
+left or bottom right, respectively.
+.le
+.ls append = no
+Append to an existing plot in the graphics buffer.
+.le
+.ls awx1 = 0.
+Saved value of wx1 from previous plot. The parameter is used for 
+appending to an existing plot and should in general not be changed
+by the user.
+.le
+.ls awx2 = 0.
+Saved value of wx2 from previous plot. The parameter is used for 
+appending to an existing plot and should in general not be changed
+by the user.
+.le
+.ls awy1 = 0.
+Saved value of wy1 from previous plot. The parameter is used for 
+appending to an existing plot and should in general not be changed
+by the user.
+.le
+.ls awy2 = 0.
+Saved value of wy2 from previous plot. The parameter is used for 
+appending to an existing plot and should in general not be changed
+by the user.
+.le
+.ls pointmode = yes
+If set to "no", the task will plot connected curves.
+.le
+.ls marker = "box"
+Marker to use for the points. Allowed values: box | fillbox | cross | plus |
+star | triangle | filltriangle | circle | fillcircle | skelbox | skeltriangle |
+none.  
+.le
+.ls pointexp = 0.5
+Expand factor for points. Use this parameter to change the size of
+the points.
+.le
+.ls pcolumn = ""
+Column for point sizes if using variable point sizes.
+The point sizes for the individual points are scaled according to the 
+values in this column.
+The point sizes are between 5 percent and 100 percent of the size 
+defined by \fIpointexp\fR.
+.le
+.ls pattern = "solid"
+Line type. Allowed values: solid | dashed | dotted | dot-dash.
+.le
+.ls crvstyle = "straight"
+Curve style. Allowed values: straight | fullhist |
+pseudohist (an open histogram).
+.le
+.ls lweight = 1
+Line weight. Larger weights make thicker lines.
+.le
+.ls color = 1
+Color of plot. For the PSIKERN devices (PostScript devices) the
+following gives the coding between numbers and colors
+1=black, 2=red, 3=green, 4=blue, 5=light blue, 
+6=yellow, 7=violet, 8=purple, 9=dark green, 10=orange.
+.le
+.ls mkzeroline = no
+Make a zero line at y=0.
+.le
+.ls device = "stdgraph"
+Output device for the plot.
+.le
+.ls gkifile = "mgo.gki"
+IRAF metacode file to create/append to if device=gkifile. 
+The plots can also be appended to an IRAF metacode file by the usual
+redirection of graphics output.
+.le
+.ih
+DESCRIPTION
+.le
+MGOGRAPH is used for making publication quality plots similar
+to MONGO plots with very little interaction from the user.
+MGOGRAPH makes a command script for IGI based on the user input.
+IGI is then used for making the plot.
+If MGOGRAPH crashes there may be temporary files tmp* left over
+from this process in the current directory.
+
+The input table \fIintab\fR may be an STSDAS binary table, a FITS
+table or an ASCII file.
+If \fIintab\fR is an STSDAS binary table or a FITS table then 
+\fIxcolumn\fR and \fIycolumn\fR refer to the column names in the table.
+If \fIintab\fR is an ASCII file then
+\fIxcolumn\fR and \fIycolumn\fR refer to the column numbers and they 
+should be given as integers. Lines in ASCII files starting with #
+are ignored.
+
+MGOGRAPH uses the graphics buffer just like other IRAF graphics tasks. 
+Appending to a plot already in the buffer is only complicated by the 
+fact that MGOGRAPH has to save the scaling of the previous plot in 
+the parameters \fIawx1\fR, \fIawx2\fR, \fIawy1\fR and \fIawy2\fR. 
+In general, the user should not set those parameters. 
+Because MGOGRAPH uses the graphics buffer any method used to handle
+graphics output from other IRAF tasks can also be used to handle output
+from MGOGRAPH. This includes redirection to a metacode file and the
+use of PostScript devices. 
+Colors are only supported for devices that support color graphics, 
+e.g. xgterm and PostScript devices.
+
+The parameters \fIxlabel\fR, \fIylabel\fR and \fItitle\fR may contain 
+any formatting that is understood by IGI.
+This includes Roman characters (default), Greek characters, Script 
+and Typeset Characters.
+
+The following special formatting gives access to the
+non-Roman fonts and enables sub-scripts and super-scripts: 
+  
+.nf
+   \g  The following one character is Greek
+   \s  The following one character is Script
+   \t  The following one character is Type
+   \d  The following one character is down
+       (sub-script) to the previous character
+   \u  The following one character is up
+       (super-script) to the previous character
+.fi
+
+In order to have several characters be Greek, "down" or "up", 
+use \\\g, \\\d, or \\\u, respectively. After \\\g has been used, 
+\\\r can be used to reset the font to Roman. After \\\d or \\\u has 
+been used, \\\u or \\\d can be used to have the following be "up" 
+and "down" relative to the previous sub-script or super-script. 
+You can also make sub-scripts to sub-scripts; e.g. "M\dr\dT" will
+produce M with sub-script r with sub-script T. 
+
+Note for veteran IGI users: Three backslashes are needed by MGOGRAPH, 
+while only two backslashes are needed by IGI. 
+The script processing strips one of the backslashes.
+
+MGOGRAPH can plot from STDIN ASCII input, see the examples below.
+
+.le
+.ih
+EXAMPLES
+
+1. Plot column 1 and 2 from an ASCII file, using autoscaling 
+
+.nf
+   cl> mgograph inputfile 1 2 
+.fi
+
+If "inputfile" contains any lines starting with #, these lines will 
+be ignored. MGOGRAPH does a reasonable job of autoscaling the plots - 
+good enough for you to choose the best scaling to use. 
+
+2. Plot column 1 and 2 from an ASCII file, giving the scales on 
+both axes and the labels on both axes
+
+.nf
+  cl> mgograph inputfile 1 2 wx1=0 wx2=10 wy1=4 wy2=40 \
+      xlab="some label for the X-axis" \
+      ylab="some label for the Y axis" 
+.fi
+
+3. An example that contains Greek a character and a subscript
+
+.nf
+  cl> mgograph inputfile 1 2 wx1=0 wx2=0.4 wy1=0 wy2=2 \
+      xlab="Mg\d2" ylab="H\gb"
+.fi
+
+4. Plot column 1 and 2 from an ascii file, connecting the points with a line
+.nf
+  cl> mgograph inputfile 1 2 pointmode- 
+.fi
+
+5. Plot column Mg2 and Hbeta from the STSDAS binary table lines.tab
+
+.nf
+  cl> mgograph lines Mg2 Hbeta
+.fi
+
+For this to work correctly, you should not have a file called lines 
+in the same directory. In that case you can give the command as 
+
+.nf
+  cl> mgograph lines.tab Mg2 Hbeta 
+.fi
+
+6. Make a plot and append to it. The plot is also given a title.
+
+.nf
+  cl> mgograph cluster1.tab Mg2 Hbeta wx1=0 wx2=0.4 wy1=0 wy2=3 \
+      xlab="Mg\d2" ylab="H\gb" title="Cluster data" marker=box 
+  cl> mgograph cluster2.tab Mg2 Hbeta append+ marker=circle 
+.fi
+
+7. Make a plot of data from a table, overplot a line for which two
+points are known
+
+.nf 
+  cl> mgograph cluster1.tab Mg2 Hbeta wx1=0 wx2=0.4 wy1=0 wy2=3 \
+      xlab="Mg\d2" ylab="H\gb" 
+  cl> printf("0 0\n 0.35 2.5\n") | mgograph STDIN append+ pointmode- 
+.fi
+
+8. Make a histogram of the values in column mag in the table cluster.tab
+
+.nf
+  cl> thist cluster.tab STDOUT mag nbins=20 lowval=10 highval=20 | \ 
+      mgograph STDIN 1 2 pointmode- crv=ps wx1=10 wx2=20 wy1=0 wy2=40 \
+      xlab="mag" ylab="N" 
+.fi
+
+In this example the combination of pointmode- and crv=ps gives an 
+open histogram.
+
+9. Store the output from mgograph in an IRAF metacode file
+
+.nf
+  cl> mgograph cluster1.tab Mg2 Hbeta wx1=0 wx2=0.4 wy1=0 wy2=3 \ 
+      xlab="Mg\d2" ylab="H\gb" >G  mgoplot.gki 
+.fi
+
+The file mgoplot.gki can be accessed with the plot.gkimos, plot.gkidir
+and plot.gkiextract.
+.ih
+BUGS AND LIMITATIONS
+When \fIlogx\fR=yes or \fIlogy\fR=yes the relevant limits should be 
+given as log-limits. Error bars are not supported for log-plots.
+
+MGOGRAPH cannot plot image sections.
+.ih
+SEE ALSO
+igi, ttools, gkimos, gkidir, gkiextract 
+.endhelp

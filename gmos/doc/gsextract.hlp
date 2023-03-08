@@ -1,0 +1,283 @@
+.help gsextract November2015 gemini.gmos
+.ih
+NAME
+gsextract -- Extract GMOS MOS or longslit spectra to 1D 
+.ih
+USAGE
+gsextract inimages
+.ih
+PARAMETERS
+.ls inimages
+Input GMOS spectra. Lists and wildcards are supported.
+It is assumed that the spectra should have been processed through 
+\fIgsskysub\fR. It is mandatory that the MOS spectra are cut out and exist 
+within separate image extensions. This is the form of the output from 
+\fIgstransform\fR.Directory names should not be included as part of the image 
+names.
+.le
+.ls outimages = ""
+The names for the output images, containing extracted spectra.  
+If given, the number of \fIoutimages\fR must be equal to the number of 
+\fIinimages\fR. 
+.le
+.ls outprefix = "e"
+Prefix for output images.  Names of output images will be \fIinimages\fR with 
+the prefix attached. \fIoutprefix\fR is only used if \fIoutimages\fR="".
+.le
+.ls refimages = ""
+The names of some optional reference image(s), which have already been
+processed with \fIgsextract\fR. If reference images are specified, their
+traces are read from \fIdatabase\fR and applied to the \fIinimages\fR for
+extraction, rather than tracing the \fIinimages\fR themselves.
+.le
+.ls apwidth = 1. 
+Aperture width for extraction, in arcsec. This parameter defines the
+aperture limits and centring width used by \fIapall\fR, as well as the
+central region excluded from MOS background samples. The value is converted
+to pixels using the on-chip binning and image scale from the image header. 
+.le
+.ls fl_inter = no 
+Run the aperture extraction interactively?
+.le
+.ls database = "database"
+Directory for files containing identifications and fits.
+.le
+.ls find = yes 
+Find the spectra and define the apertures automatically?
+If \fIinteractive\fR=yes, the user will have the opportunity to edit the
+apertures. 
+.le
+.ls recenter = yes
+Recenter the apertures?
+.le
+.ls trace = yes 
+Trace the apertures?
+.le
+.ls coloffset = 0
+Adjustment to the column at which the peak (or, interactively, peaks)
+corresponding to the target spectrum is identified and the object trace as a
+function of wavelength is started. Specifying a non-zero value here causes the
+starting position (the APALL \fIline\fR parameter) to be offset one way or the
+other from the default middle column of each slit spectrum. This parameter can
+be used to help avoid mistaking artifacts such as cosmic ray residuals for the
+target or to select one of multiple objects by choosing a column at which it
+is the brightest.
+.le
+.ls tfunction = "chebyshev" (chebyshev|legendre|spline1|spline3)
+Trace fitting function. 
+.le
+.ls torder = 5
+Trace function order. The order refers to the number of terms in the 
+polynomial functions or the number of spline pieces in the spline functions. 
+.le
+.ls tnsum = 20
+Number of dispersion lines to be summed at each step along the dispersion
+when tracing spectra.
+.le
+.ls tstep = 50
+Step along the dispersion axis between determination of the spectrum
+positions when tracing spectra.
+.le
+.ls weights = "none" (none|variance)
+Type of extraction weighting. The choices are: 
+.ls "none"
+The pixels are summed without weights except for partial pixels at the end.
+.le
+.ls "variance"
+The extraction is weighted by the variance based on the data values and a
+poisson/ccd model using the header values of the \fIkey_gain\fR and
+\fIkey_ron\fR keywords or the \fIgain\fR and \fIron\fR parameters if the
+keywords are not found.
+.le
+
+(Also see "bugs and limitations".)
+.le
+.ls clean = no
+Detect and replace deviant pixels?
+.le
+.ls lsigma = 3.0, usigma = 3.0
+Lower and upper rejection thresholds, given as a number of times
+the estimated sigma of a pixel, for cleaning.
+.le
+.ls background = "none" (none|average|median|minimum|fit)
+Type of  background subtraction. See \fIapall\fR help pages for
+a more detailed description.
+.le
+.ls bfunction = "chebyshev" (chebyshev|legendre|spline1|spline3)
+Default background fitting function.
+.le
+.ls border = 1
+Default background function order.
+.le
+.ls long_bsample = "*"
+Sample to be used in fitting the background for longslit spectra.
+The sample is given by a set of colon separated ranges, each separated by
+either whitespace or commas. The string "*" refers to all points. Note
+that co-ordinates are defined relative to the aperture centre, as for
+\fIapall\fR, which is different from the convention used by \fIgsskysub\fR.
+.le
+.ls mos_bsample = 0.9
+Maximum fraction of the MOS slit length to be included when determining the
+background sample; the background excludes the remaining pixels at the
+ends of the slit, in addition to the width of the object aperture itself.
+.le
+.ls bnaverage = 1
+Default number of samples to average over.
+.le
+.ls bniterate = 2
+Default number of rejection iterations.
+.le
+.ls blow_reject = 2.5, bhigh_reject = 2.5
+Default lower and upper rejection thresholds for the background, in
+standard deviations.
+.le
+.ls bgrow = 0.0
+Default growing radius for background pixel rejection.
+.le
+.ls fl_vardq = no
+Propagate the data quality and variance extensions?
+.le
+.ls sci_ext = "SCI"
+The name of the science extension in the MEF.
+.le
+.ls var_ext = "VAR"
+The name of the variance extension in the MEF. 
+.le
+.ls dq_ext = "DQ"
+The name of the data-quality extension in the MEF. 
+.le
+.ls key_ron = "RDNOISE" , key_gain = "GAIN" 
+Header Keywords for detector read noise and gain.  These values have precedence
+over \fIron\fR and \fIgain\fR if the keywords exist. Set to "INDEF" to use 
+values below. The value of the read noise and gain is only used when doing an 
+optimal extraction, \fIweights\fR="variance". 
+.le
+.ls ron = 3.5, gain = 2.2 
+Read noise and gain to use if not found from the specified header keywords. 
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes the task use the logfile
+defined by gmos.logfile.
+.le
+.ls verbose = yes
+Print actions to the screen?
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error. 
+This parameter is always set by the task, and should not be modified by 
+the user.
+.le
+.ih
+DESCRIPTION
+
+\fIGsextract\fR extracts GMOS longslit or MOS spectra to one dimension,
+optionally performing sky subtraction. The input spectra should have been
+processed with \fIgsreduce\fR and rectified and wavelength calibrated with
+\fIgstransform\fR. If sky subtraction is not being performed here, it
+should first have been done using \fIgsskysub\fR. The format of MOS spectra
+at this stage is that each slitlet will exist in a separate science extension
+of the multi-extension FITS file (MEF), possibly with an associated
+variance and data-quality plane, if requested earlier in the reductions.
+The input MEF should also have an attached MDF in the form of a binary
+FITS table.
+
+The output spectra will also be in the form of a MEF with the 1D spectra
+located in separate science extensions.  Variance spectra are also written,
+if requested, to a separate extension. The MDF is copied from the input to
+output file.
+
+\fIGsextract\fR can be run completely in batch mode for
+\fIinteractive\fR=no and all apertures will be found automatically. If run
+interactively the user will be able to edit and define all of the apertures
+individually. Currently, multiple apertures within a single slitlet are not
+supported.
+
+Note that once an image has been processed with gsextract, it is
+necessary to delete the corresponding database files in the \fIdatabase\fR
+directory before re-reducing the image with different background subtraction
+parameters. Otherwise, the old parameter values in the database will
+silently override the user-specified values.
+
+.ih
+EXAMPLES
+1. Work through several MEF images in the current directory, which have
+previously been processed with GPREPARE, GSREDUCE, \fIgstransform\fR and 
+\fIgsskysub\fR. Extract a 1D spectrum from each science extension 
+(corresponding to a slitlet) and place it in a corresponding output image 
+extension. Name the output images automatically, according to \fIoutprefix\fR:
+
+.nf
+  cl> gsextract stgsgN*.fits
+.fi
+.ih
+TIME REQUIREMENTS
+.ih
+BUGS AND LIMITATIONS
+Improvements to the (previously semi-functional) variance and
+data quality propagation in the GMOS package have undergone limited
+testing; the accuracy of the results should still be verified at
+each step by the scientist, particularly for spectroscopic data
+reduction tasks.
+
+When asked to identify a single spectrum in an image (slitlet), apall will
+begin with the brightest peak at its starting column. Hence if it begins
+tracing at a column where a large cosmic ray is present, it may identify
+the cosmic ray, rather than the spectrum cross-section, as the feature to
+be traced. Depending on the values of the centring parameters and the
+separation of the cosmic ray from the spectrum centre, the aperture may
+subsequently be re-centred at the correct position. Otherwise, the task
+can appear to run normally, but produce an incorrect spectrum. In order
+to identify the real spectrum, gsextract may have to be run interactively,
+deleting the aperture at the cosmic ray and marking a new aperture in the
+correct place. The \fIcoloffset\fR parameter can also be used to avoid
+starting at the problematic column(s).
+
+When a spectrum is too faint or otherwise difficult to trace, apall can fail
+in one of several ways, including a crash. Sometimes (e.g., due to a cosmic
+ray) the trace is silently performed along a bad path, creating an incorrect
+output spectrum. When apall detects a problem, it may write a warning to the
+log file and the corresponding output spectrum may be blank or
+missing. With the \fIweights\fR="variance" option, the behaviour can be
+less stable; it seems that problematic data can cause apall to consume a
+large amount of memory, causing the computer to slow down and start
+swapping, and in some cases, to crash with an "out of memory" error. Note
+that the \fIclean\fR option enables \fIweights\fR="variance" automatically.
+
+If \fIfl_vardq\fR is enabled and \fIweights\fR is set equal to "variance", the 
+output variance plane is derived using APALL rather than from the input 
+variance plane. If \fIfl_vardq\fR is enabled and \fIweights\fR is set equal to 
+"none", \fIfl_vardq\fR will be switched off.
+
+Finally, if \fIfl_vardq\fR is enabled, the input DQ plane is used to determine
+the output DQ plane by extracting the same aperture used for the science
+frame. If more than 50% of the pixels in the aperture are bad, the output pixel
+in the 1D DQ plane is marked as bad.
+
+Only basic error checking is done in GSEXTRACT to make sure that the input 
+and reference images are compatible.
+
+The task may crash if GMOS header keywords are corrupted.
+
+The task will silently ignore any words following @listfile in filename
+parameters.
+
+Multiple apertures within a single slitlet are not supported.
+
+SPECRED package parameters are changed without restoring at the end.
+
+Background parameter values in the apall database will silently override
+the values specified on the command line or with \fIeparam\fR.
+
+Database files created with Gemini v1.6, or earlier, and IRAF 2.12.2, or 
+earlier, might not work anymore due to changes in the way APALL reads those
+files.  Specifically, database files with '.fits' in their name, and with
+'.fits' in the 'aperture' and 'image' identifiers will not work unless 
+modified. To update an old database file do, from the shell:
+.nf
+
+    sed s/\.fits// apIMAGENAME.fits_SCI_?_ > apIMAGENAME_SCI_?_
+.fi
+.ih
+SEE ALSO
+gmosinfo, gmosinfospec, apall, gstransform, gsskysub 
+.endhelp

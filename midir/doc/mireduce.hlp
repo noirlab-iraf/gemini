@@ -1,0 +1,325 @@
+.help mireduce December2011 gemini.midir
+.ih
+NAME
+mireduce -- Reduce images from MID-IR Instruments (Bad pix correction, 
+combining, flat field)
+.ih
+USAGE
+mireduce inimages 
+.ih
+PARAMETERS
+.ls inimages
+The input image(s) to be processed by the task. It can be an image name, 
+a list of image names, a wild-card image name, or the "@" syntax can be 
+used to direct the task to read a list of file names.  These all must be 
+either "raw" T-ReCS or Michelle files or names of files that have been 
+made by the TPREPARE or MPREPARE tasks.
+.le
+.ls outimages = ""
+The output image name(s) for the reduced files.  If this field is left 
+blank the \fIoutpref\fR string is used to create new file names from the 
+input file names.  Otherwise the number of output file names must match 
+the number of input file names or an error condition occurs.  The field 
+must contain either a list of output file names or use the "@" syntax to 
+direct the task to read a list of file names.  The task tests for whether 
+the output images exist and exits with an error condition if any of them 
+do exist.
+.sp
+These file names are for the final reduced images.  If various of the 
+\fIfl_view\fR, \fIfl_mask\fR, etc. options are chosen, the task will 
+also generate other output files in the processing.
+.le
+.ls outpref = "r"
+A prefix string which is prefixed to each input image name to make
+the corresponding output image name if the output file name(s) are 
+not specified via the \fIoutimages\fR parameter.
+.le
+.ls rawpath = ""
+The path to the directory containing the T-ReCS or Michelle image files.  
+If the value is "" (empty string) the current directory is used.
+.le
+.ls fl_background = no
+A boolean value which determines whether the input images are sent to the 
+TBACKGROUND task for processing.  This option is currently supported only
+for T-ReCS data.
+.le
+.ls fl_view = no
+A boolean value which determines whether the input images are sent to the
+TVIEW, MVIEW, or MIVIEW tasks in the processing.
+.le
+.ls fl_mask = no
+A boolean value which determines whether the input images have a bad pixel
+mask applied to them.  The bad pixel mask to use is specified by the 
+\fIbpm\fR parameter.  Such mask files will be produced by the MIBPM 
+task (although that task does not currently exist in the package).
+.le
+.ls bpm = ""
+The name of a bad pixel mask file.  If not specified, the package default
+bad pixel mask file appropriate to the instrument is used.
+.le
+.ls fl_flat = no
+A boolean value which determines whether the input images are flat-fielded 
+using the file specified by the \fIflatfieldfile\fR parameter.  Such a 
+flat field frame can be produced by the MIFLAT task.  If this value 
+is "yes" then the flat field frame will be applied to all the individual 
+frames of the input images.
+.le
+.ls flatfieldfile = ""
+The name of a flat field file produced by the MIFLAT task.
+.le
+.ls stackoption = "stack"
+A parameter for how the individual frames are to be combined.  The value 
+can be either "stack" or "register".  In the former case the individual 
+frames are combined by simple averaging/summing depending on the \fIcombine\fR
+parameter value.  In the latter case the individual frames are shifted using 
+the XREGISTER task so that any small shifts between frames are allowed 
+for, and then combined.  One should only register the frames if there 
+is a reasonably bright source in the field of view.  If the source is 
+bright enough the entire image can be used for registration, but there is
+an option to restrict the region so used by changing the \fIregion\fR 
+parameter.
+.sp
+If a T-ReCS input file is "prepared" then the option to register the frames 
+is also applied in that step.  One cannot currently stack the frames in 
+TPREPARE and then register them in MIREGISTER in a single call to this task. 
+One would have to run this task twice with different options to do this.  
+The same is true for registering the frames in TPREPARE followed by 
+stacking the resulting frames to produce the final image.  One would 
+normally run TPREPARE separately if either of these was what one wanted to 
+do.  No such considerations apply to Michelle files because they can be 
+registered only when creating the final output image.
+.sp
+The choice of stacking or registering frames determines whether MISTACK
+or MIREGISTER is used to combine the images.  This choice determines 
+whether the flat fielding and bad pixel masking options (if requested) are 
+carried out before the TPREPARE and MIREGISTER routines are 
+run (registering option) or whether these options are carried out as the 
+last steps in the processing (stacking option).
+.le
+.ls frametype = "dif"
+This is a character string that can take the values "dif", "src" or "ref". 
+It determines which image is combined by the MISTACK routine: the 
+default is the difference images, for "dif"; one can also choose 
+to combine the on-source images, for "src", or the reference images, for "ref".
+These are respectively images "[*,*,3]", "[*,*,1]", and "[*,*,2]" in each 
+extension of the prepared files produced by TPREPARE or MPREPARE. 
+The default output prefixes are "r", "c", and "a" for these three options, 
+which one gets if \fIoutpref\fR and \fIoutimages\fR are empty strings.  This 
+option works only with \fIstackoption\fR = stack and so if \fIframetype\fR is 
+something beside "dif" then the \fIstackoption\fR value is forced to "stack".
+.le
+.ls combine = "average"
+This string parameter can take values of "average" or "sum".  It is passed 
+to IMCOMBINE to determine whether the images are combined by averaging 
+(with equal weights) or by summation.  The default is to average.
+.le
+.ls fl_display = no
+A boolean value which determines whether the final output images are displayed 
+on the stdimage display.
+.le
+.ls frame = 1
+Display frame to be loaded.
+.le
+.ls fl_check = yes
+A boolean value which determines whether the input image is checked during 
+the processing.  This currently is implemented only for T-ReCS files.  If 
+the value is "no" then various file structure checks are disabled and 
+the task tries to process the file(s) even if they are incomplete.
+.le
+.ls fl_rescue = no
+A boolean value which determines whether the MPREPARE task will 
+attempt to process data files from observations that did not finish
+normally.  This only applies to Michelle raw data files.
+.le
+.ls region = [*,*]
+When \fIstackoption\fR is "register", and thus MIREGISTER is 
+called, this region of the images is used for registration.  The 
+default is to use the full image for registration.
+.le
+.ls fl_variance = no
+A boolean flag passed to MISTACK or MIREGISTER which 
+determines whether the variance image will be written out to the 
+final output file.
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes the task use the logfile
+defined by \fImidir.logfile\fR.
+.le
+.ls verbose = yes
+Print actions to the screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error. 
+This parameter is always set by the task, and should not be modified by 
+the user.
+.le
+.ih
+DESCRIPTION
+This routine takes T-ReCS or Michelle image files (either the raw images,
+or files created by the TPREPARE or MPREPARE tasks) and carries 
+out the standard pipeline reduction on them.  There are various boolean 
+parameters which determine which of the pipeline tasks are applied to the 
+images.  The output images are MEF files which have a single data extension 
+within which is a [320,240] reduced image.
+.sp
+The task takes each input file and carries out some of the following steps 
+depending upon what parameter values are set:
+.sp
+(1) the file is checked for bad frames using the task TBACKGROUND (for T-ReCS
+data only);
+.sp
+(2) the file is then checked interactively for bad frames using one of the 
+tasks MIVIEW, TVIEW, or MVIEW as appropriate;
+.sp
+(3) a flat field frame is applied to each frame of the image;
+.sp
+(4) a bad pixel mask is applied to each frame of the image;
+.sp
+(5) the file is then "prepared" using TPREPARE or MPREPARE 
+if this is required;
+.sp
+(6) the difference (or source, or reference, depending on the \fIframetype\fR
+parameter) frames from the prepared file are then averaged--or 
+summed depending on the \fIcombine\fR parameter value--either by stacking 
+or by registering, to produce a single frame in the output file; and finally
+.sp
+(7) if requested, the resulting frame is displayed in the stdimage using 
+the DISPLAY task.
+.sp
+The output MEF file has a primary header extension, [0], followed by 
+one image MEF extension containing an image of size [320,240] of type 
+DOUBLE.
+.sp
+One output file is produced for each input file.  If the number of input 
+and output files listed do not match the task exits with an error condition. 
+One can have automatically generated output file names by specifying the 
+\fIoutpref\fR parameter and NOT specifying the \fIoutimages\fR parameter. 
+If neither of these is specified, the \fIoutpref\fR parameter is set to be 
+"r" for difference frames, "c" for source frames, or "a" for reference frames
+depending on the \fIframetype\fR parameter.  One cannot overwrite the input 
+file by the output file.
+.sp
+In case the input images are in a different directory than the current
+one, the user can specify the \fIrawpath\fR parameter which is then prefixed 
+to the input file name(s).
+.sp
+The \fIstackoption\fR determines the order in which the above steps are 
+carried out.  If the option is "register" then steps (1) to (7) above are done 
+as indicated.  If the option is "stack" then steps (5) and (6) are done 
+before steps (3) and (4).  This saves time in the latter two steps because 
+they are applied to the final images which have only one frame.
+.sp
+The routine writes to a logfile.  If the task logfile name is not specified 
+then the routine looks for the MIDIR logfile name.  If that is also 
+not specified, the logfile name is set to "mireduce.log".  If the logfile 
+exists, any messages are appended to it.  The \fIverbose\fR parameter 
+does not effect the logfile, but does change how much information is 
+written to the terminal.
+.sp
+If the \fIfl_check\fR parameter is set to "no" then the checks for 
+observation completion and for file integrity which are normally done in 
+the TPREPARE task are carried out but do not stop the processing 
+if an error is detected, as would usually be the case.  The tasks then 
+do their best to carry out a minimum processing of the incomplete or 
+failed observation.  Note that the processing may still fail depending on 
+the exact nature of the problem with any given T-ReCS raw data file.
+.sp
+When \fIfl_check\fR is set to "no" this causes an override of the 
+\fIfl_flat\fR, \fIfl_background\fR, and \fIfl_mask\fR flags, all of which are 
+set to "no".  Only the minimum processing is done.  This is due to the 
+difficultly of coding these other tasks to handle all possible types of 
+incomplete or failed T-ReCS observations.
+.sp
+The \fIfl_check\fR flag currently only affects the processing of raw T-ReCS 
+data files (aside from resetting flags as described in the last paragraph). 
+No equivalent functionality is currently available for Michelle raw data 
+files.
+.ih 
+EXAMPLES
+1. The basic usage is
+.sp
+.nf
+     cl> mireduce S2003B0909S0012
+.fi
+.sp
+which will produce an output file named "rS2003B0909S0012.fits". (This is 
+assuming that there are no errors.)  In this case the original file must be in 
+the current directory, and that is where the output file is created.
+.sp
+2. Using MIREDUCE for images in another directory is done as with 
+.sp
+.nf
+    cl> mireduce S2003B0909S0012 rawpath="/home/user/trecs"
+.fi
+.sp
+which would read "/home/user/trecs/S2003B0909S0012.fits" and produce an 
+output file named "rS2003B0909S0012.fits" in the current directory if 
+all goes well.
+.sp
+3. Defining the output file name works the following way:
+.sp
+.nf
+    cl> mireduce S2003B0909S0012 outimages=frame12
+.fi
+.sp
+which should produce "frame12.fits" from "S2003B0909S0012.fits", 
+both files being in the current directory.
+.sp
+4. If one wants to define the prefix explicitly and apply it to all 
+the images in a list it is done by
+.sp
+.nf
+    cl> mireduce @file.list outpref="new" logfile="test.log" \
+    >>> verbose=no
+.fi
+.sp
+which produces an output file named "newS2003B0909S0012.fits" for an 
+input file named "S2003B0909S0012" listed in file "files.list".  In this 
+example the logfile name is set to "test.log" and the messages to the 
+terminal are kept to a minimum by setting verbose to "no".
+.sp
+5. One can specify which steps to apply explicitly as in 
+.sp
+.nf
+    cl> mireduce @file.list stackoption="register" fl_prepare=no \
+    >>> fl_flat=no fl_mask=yes
+.fi
+.sp
+which would apply the processing to the files listed in file "file.list" 
+which must be output files from TPREPRARE or MPREPARE since 
+the \fIfl_prepare\fR parameter is set to "no".  In this case the pipeline 
+would apply a bad pixel mask but not a flat field frame, and when combining 
+frames it would use registration.  It is assumed that the "preparing" of 
+the files did not use any registration.  For Michelle files this would be 
+the way to combine the images from each nod with registration, since the 
+original raw Michelle files have one image per nod position created by 
+stacking the individual short exposures done while chopping.
+.sp
+6. To obtain the total summed frame rather than an average frame 
+.sp
+.nf
+    cl> mireduce S2003B0909S0012 outimages=frame12 combine="sum"
+.fi
+.sp
+for which the output image for a Michelle file would multiplied by 2 
+times the number of nods in the image compared to the 'combine="average"' 
+case, and the output image for a T-ReCS file would be multiplied by 2 times 
+the number of nods times the number of savesets per nod cycle compared to 
+the 'combine"average"' case.
+.sp
+7. To produce an output image of the total on-source frames, atmosphere and 
+source, one can use
+.sp
+.nf
+ cl> mireduce S2003B0909S0012 frametype="src"
+.fi
+.sp
+which produces file cS2003B0909S0012.fits along with the "prepared" file 
+tS2003B0909S0012.fits in this case since the file is a T-ReCS raw data file.
+.ih
+BUGS AND LIMITATIONS
+.ih
+SEE ALSO
+tbackground, tview, tprepare, mview, mprepare, midir, miregister, 
+miflat, miview, imcombine, images.immatch.xregister
+.endhelp

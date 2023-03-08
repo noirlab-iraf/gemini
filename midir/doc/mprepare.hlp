@@ -1,0 +1,193 @@
+.help mprepare December2011 gemini.midir
+.ih
+NAME
+mprepare -- Prepare Michelle data for further reduction with the MID-IR tasks
+.ih
+USAGE
+mprepare inimages
+.ih
+PARAMETERS
+.ls inimages
+The input image(s) to be converted from raw Michelle format to the standard 
+MIDIR image format.  It can be an image name, a list of image names, 
+a wild-card image name, or the "@" syntax can be used to direct the 
+task to read a list of file names.
+.le
+.ls outimages = ""
+The output image name(s) for the "prepared" files.  If this field is left 
+blank the \fIoutprefix\fR string is used to create new file names from the 
+input file names.  Otherwise the number of output file names must match 
+the number of input file names or an error condition occurs.  The field 
+must contain either a list of output file names or use the "@" syntax to 
+direct the task to read a list of file names.  The task tests for whether 
+the output images exist and exits with an error condition if any of them 
+do exist.
+.le
+.ls outprefix = "m"
+A prefix string which is prefixed to each input image name to make
+the corresponding output image name if the output file name(s) are 
+not specified via the \fIoutputimages\fR parameter.
+.le
+.ls rawpath = ""
+The path to the directory containing the Michelle images files.  If the 
+value is "" (empty string) the current directory is used.
+.le
+.ls fl_rescue = no
+A flag for whether the task should attempt to prepare a file from an 
+incomplete observation.  This may not work depending on exactly why a 
+Michelle data file is incomplete.  However the task may be able to 
+salvage most of the data in a file that was not completed normally.
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes the task use the logfile
+defined by \fImidir.logfile\fR.
+.le
+.ls verbose = yes
+Print actions to the screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error. 
+This parameter is always set by the task, and should not be modified by 
+the user.
+.le
+.ih
+DESCRIPTION
+This routine takes raw Michelle image files and averages the images at 
+each NOD position to make standard MIDIR package image files.
+.sp
+Given a list of input images, or the name of a file containing a set of 
+input file names, the MPREPARE task takes each raw Michelle image 
+and reorders the dimensions of the image within each extension so that
+they correspond to the same format as T-ReCS images.  This is done so that
+all subsequent reductions for Gemini mid IR data will be the same for
+T-ReCS and Michelle data.
+.sp
+The output MEF file has a primary header extension, [0], followed by 
+one or more image MEF extensions starting from [1].  For CHOP or CHOP-NOD 
+observations each extension contains an image of dimension [320,240,3] with 
+image section [*,*,1] being the on-source frame, image section [320,240,2] 
+being the off-source frame, and image section [320,240,3] being the 
+difference image.  For STARE or NOD observations the image dimensions are 
+[320,240].  All these images are of type DOUBLE.  The output file has the 
+same number of extensions as does the original file (unless the input 
+file is from an incomplete observation; see below).
+.sp
+One output file is produced for each input file.  If the number of input 
+and output files listed do not match the task exits with an error. 
+One can have automatically generated output file names by specifying the 
+\fIoutprefix\fR parameter and NOT specifying the \fIoutimages\fR parameter. 
+In case the raw Michelle images are in a different directory than the current
+one, the user can specify the \fIrawpath\fR parameter which is then prefixed 
+to the input file name(s).
+.sp
+The routine writes to a \fIlogfile\fR.  If the task logfile name is not 
+specified then the routine looks for the MIDIR logfile name.  If that is also 
+not specified, the logfile name is set to "midir.log".  If the logfile 
+exists, any messages are appended to it.  The \fIverbose\fR parameter 
+does not effect the logfile, but does change how much information is 
+written to the terminal.
+.sp
+The internal format of frames within the image sections differ between 
+T-ReCS and Michelle.
+.sp
+The tasks TPREPARE and MPREPARE are designed to transform the 
+individual image formats of the two instruments into a common format, as 
+well as harmonizing the FITS header keywords.
+.ih
+THE "MIDIR" DATA FORMAT
+In order to have a common format for files from the T-ReCS and Michelle 
+instruments, the format of the "prepared" files was defined as follows:
+.sp
+Chopping Observations: (CHOP or CHOP-NOD mode)
+.sp
+For each NOD position, the output file from TPREPARE or MPREPARE 
+has an image extension with size [320,240,3] of type DOUBLE.  The three 
+"planes" of this three-dimensional image are the on-source average image, 
+in image section [*,*,1], the off-source average image, in image section 
+[*,*,2,], and the difference image [*,*,1] - [*,*,2] image section [*,*,3].
+.sp
+Non-chopping Observations: (STARE or NOD mode)
+.sp
+For each NOD position (only one for STARE mode, presumably an even number 
+for NOD mode) the output file from TPREPARE or MPREPARE 
+has an image extension with size [320,240] of type DOUBLE containing the 
+average of frames taken on the target field.
+.sp
+At the present time, if data is obtained in CHOP-NOD or NOD mode, the 
+MIDIR data reduction tasks require that there are an even number of 
+extensions (i.e. that there are equal numbers of A and B nod positions.)
+.ih
+DEALING WITH INCOMPLETE DATA FILES
+If a Michelle observation does not finish properly, it may be that the 
+regular usage of this task will not be able to produce an output file.  It 
+can fail because an extension is incomplete, or because the expected header 
+keyword giving the number of extensions in the file is missing.
+.sp
+To attempt to work around this, the \fIfl_rescue\fR flag can be set to "yes". 
+If this is done, MPREPARE will count the number of extensions in each 
+input file and assign a suitable value such that the regular processing 
+can be done.  For chop-nod mode data which is taken in the ABBA nod pattern 
+this means truncating the number of extensions to a multiple of 4.  In the 
+subsequent processing, only this number of extensions are used and the 
+remaining 1 to 3 extensions are ignored.  The number of extensions in the 
+output file will be a multiple of 4.
+.sp
+For the other observation modes the number of extensions present is determined 
+and this is then used in the rest of the processing.  For NOD mode files this 
+may mean that the last extension is ignored since in this case the number of 
+extensions must be an even number.
+.ih
+POLARIMETRY FILES
+.sp
+Michelle has imaging polarimetry capability.  Polarimetry observations are 
+only carried out in chop/nod mode at present.  The polarimetry mode uses 
+eight positions of the internal half-wave plate per nod position, so there 
+are 8 times as many image extensions in the raw data file than there are in 
+regular mode.  The task will recognize polarimetry observations and process
+them accordingly.
+.ih
+EXAMPLES
+1. The basic usage is
+.sp
+.nf
+    cl> mprepare N2003B0909S0012
+.fi
+.sp
+which will produce an output file named "tN2003B0909S0012.fits". (Assuming 
+that there are no errors.)
+.sp
+2. Using MPREPARE for images in another directory is done as with 
+.sp
+.nf
+    cl> mprepare N2003B0909S0012 rawpath="/home/user/michelle"
+.fi
+.sp
+which would read "/home/user/michelle/N2003B0909S0012.fits" and produce an 
+output file named "tNS2003B0909S0012.fits" if all goes well.
+.sp
+3. Defining the output file name works the following way:
+.sp
+.nf
+    cl> mprepare NS2003B0909S0012 frame12
+.fi
+.sp
+which should produce "frame12.fits" in the current directory
+.sp
+4. If one wants to define the prefix explicitly and apply it to all 
+the images in a list it is done by
+.sp
+.nf
+   cl> mprepare @file.list prefix="new" logfile="test.log" \
+   >>> verbose=no
+.fi
+.sp
+which produces an output file named "newN2003B0909S0012.fits" for an 
+input file name "N2003B0909S0012" listed in file "files.list".  In this 
+example the logfile name is set to "test.log" and the messages to the 
+terminal are kept to a minimum by setting verbose to "no".
+.ih
+BUGS AND LIMITATIONS
+.ih
+SEE ALSO
+mview, tprepare, midir, imcombine
+.endhelp

@@ -1,0 +1,273 @@
+.help gsaoiinfo October2013 gemini.gsaoi
+.ih
+NAME
+gsaoiinfo -- General information of GSAOI, GSAOI data and GSAOI
+             reduction tasks
+.ih
+USAGE
+gsaoiinfo
+.ih
+DESCRIPTION
+
+The GSAOI package contains tasks for processing GSAOI imaging data. The
+specifics of the individual tasks can be found in their help files. This
+document describes the common features of the tasks and gives a
+description of GSAOI and GSAOI data format. GSAOIEXAMPLES provides a sample
+processing script.
+
+The tasks are designed to provide a fairly complete and flexible
+reduction for the purpose of assessing data quality at the time
+of observation. Real-time reductions may not be optimal for a
+particular science application. The GSAOI package scripts can be
+optimized for a particular application using the hidden parameters to
+achieve the best possible results.
+
+The tasks produce log files for the performed processing steps. The name of the
+logfile may be set in each individual task or at the package level by setting
+\fIgsaoi.logfile\fR.
+
+The tasks add header keywords to the output images. These header keywords
+contain information about the performed processing steps and the values of the
+critical parameters that were used.
+
+The GSAOI detector plane is composed of a 2x2 mosaic of Rockwell Hawaii-2RG
+arrays, 2048x2048 pixels each, with a ~2.8 arcsec pixel gap between the
+arrays. The pixel scale is 0.02 arcsec/pixel for a field-of-view of
+85x85 arcsec^2. Four pixels around each array are not illuminated, so the final
+usable dimension is a 4080 x 4080 pixel detector (the mosaiced image itself is
+larger, given the gaps).
+
+The gaps are not uniform, since the arrays are not mounted strictly parallel to
+each other. A minimum offset of 4 arcsec is required to cover the gaps.
+
+All GSAOI data frames are in MEF (multi-extension file) format, where the
+primary header unit (PHU, [0]) contains all the information from telescope,
+instrument component positions, instrument detector configuration, Observing
+Database, weather tower, GeMS (guide stars, loop status, laser status). The
+extensions ([1] to [4]) contain the actual pixel information and also have
+smaller headers, which contain the information particular to each array (ROI,
+WCS, gain, readout noise). Note the distinction between detector and array:
+exposure time, coadds, LNRS are in the PHU, since they are the same for all the
+four arrays; the WCS is in each extension, since each array has an individually
+defined CD matrix.
+
+The array layout is [1] to [4] clockwise, starting from the lower right corner.
+This means that, when a mosaic is constructed, pixel (1,1) in the mosaic
+corresponds to pixel (1,1) in array [2] (lower left corner).
+
+The arrays can be read in three modes: bright, faint and very faint,
+corresponding to 1 Fowler sample (FS; 1 read at the start of each coadd, one at
+the end), 4 FS and 8 FS, respectively. The larger the number of FS, the lower
+the readout noise, but the larger the overheads. The number of FS also define
+the minimum exposure time possible: when reading the full-frame in bright mode,
+the shortest exposure is 5.3 sec, increasing to 43 sec with 8 FS. Note:
+the keyword LNRS in the PHU of a GSAOI image reflects the number of
+non-destructive reads and is described as such. Therefore, it can take values
+of 2, 8 and 16. This is NOT the same as the other near-IR instruments in
+Gemini, for which the LNRS keyword refers to the number of FS instead.
+
+There are three different regions of interest (ROI) that can be used to read
+the GSAOI arrays: full-frame (2048x2048), Detector and Array. Detector is
+defined as a square region of side X pixels centred in the detector (i.e.,
+where the gaps cross). The "X" value does not include the gaps and can be 64,
+128, 256, 512, 1024 and 2048 pixels. Array mode is defined as a square region
+of side X pixels, centred on each array; X can take the same values as for
+Detector, with Array 2048 being the same as full-frame. Detector and Array ROIs
+have not been commissioned and may not be handled properly by the GSAOI
+reduction package.
+
+In addition, there is the option to use On-Detector Guide Windows (ODGW) during
+an observation. These are small square regions in each array (up to 128x128
+pixels) that can be read at a much faster rate while exposing, to act as
+natural guide stars for the AO system. Up to three can be used at any time,
+only one per array. The use of ODGWs will result in a square area of the array
+containing no information about that area on the sky. These areas will be
+flagged as bad pixels in data quality extensions if they are created (it is
+recommended to create DQ extensions for this reason). Note that
+the ODGW follows the star it will be guiding on and therefore will move around
+when dithering. However, for sky frames where the guiding is frozen, the ODGW
+does not move and will leave a "hole" in the sky frame.
+
+The ODGWs can be read at different rates (different exposure times) but even if
+only one is being used to guide, the other three will be also be
+reading out. ODGWs that are not in use are parked in the external corner of the
+corresponding array. The information about the size and position of actively
+guiding ODGWs in use are contained in the PHU, under the "GWFS?SIZ", "GWFS?X"
+and "GWFS?Y" keywords, respectively. For which, the "?" is a value of 1-4 given
+by the "GWFS?CFG" keyword that contains a value of "ODGWa" where a
+designating the array number. "?" and "a" may not be the same but "a" always
+refers to the array for which the ODGW was guiding. The positions stored in the
+"GWFS?X" and "GWFS?Y" keywords refer to the center of the ODGW for that array.
+
+There is a static BPM that is supplied with the package, which masks out hot
+pixels and "depedded" diodes that create perfectly round dark regions 10 or so
+pixel across.
+
+Since the dark current in itself is very low, subtracting darks with the
+same exposure time as the data is not really necessary - "warm" pixels are
+handled well by the normal sky subtraction.
+.ih
+ABBREVIATIONS USED IN THE GSAOI HELP FILES
+
+.nf
+  Abbreviation  Explanations
+  ---------------------------------------------------------------
+  GSAOI       Gemini South Adaptive Optics Imager
+  MEF         Multi-extension FITS
+  BPM         A MEF bad pixel mask
+  PHU         Primary header unit (extension [0] of a MEF file)
+  CCDSEC      Section of an array relative to the origin of
+              that array.
+  DETSEC      Section of an array relative to the origin of
+              the entire detector
+  METACONF    PHU keyword that stores reduction information
+  ODGW        On-detector guide window
+  ROI         Region of interest
+  SCI         Science data pixel extension
+  VAR         Variance pixel extension
+  DQ          Data quality extension
+  ---------------------------------------------------------------
+.fi
+
+All raw GSAOI data must be processed with GAPREPARE before any further
+processing. The GSAOI tasks rely heavily on the METACONF keyword stored in the
+PHU of a prepared image. For all tasks that create an output file, the METACONF
+keyword will be updated in the output file. The updated METACONF value will be
+expected by tasks that use the outputs from the task that created that file.
+.ih
+SHORT DESCRIPTIONS OF THE AVAILABLE REDUCTION TASKS
+.ls GAPREPARE - Prepare raw GSAOI data for reduction
+
+All raw GSAOI data must be processed with GAPREPARE before any further
+processing. GAPREPARE updates certain keywords used in further reduction. In
+addition, GAPREPARE can correct non-linear pixels and add variance and data
+quality extensions. GAPREPARE can flag non-linear and saturated pixels in the
+DQ extensions, if requested by the user. If a BPM is supplied the bad pixels
+will also be flagged in the output DQ planes. Finally, GAPREPARE will trim the
+data too.
+
+Note: GAPREPARE can be called from within other reduction tasks.
+.le
+.ls GADARK - Process and combine GSAOI dark images
+
+GADARK creates a master dark frame that can be used to dark subtract science
+and other calibration data. Currently it is not expected that GSAOI data need
+be dark subtracted due to it's low dark current, meaning warm pixels should be
+handled well during sky subtraction.
+.le
+.ls GAFLAT - Derive flat field for GSAOI images
+
+GAFLAT is used to construct flat field images using either GCAL, DOME or
+Twilight  flats. For GCAL data, a set of exposures with the shutter closed is
+combined and subtracted from a set with the shutter open. Note: GCAL flats do
+not use the same optical path as the science data - GCAL flats do not pass
+through the AO system.
+.le
+.ls GASKY - Derive sky image for GSAOI, includes masking of objects
+
+GASKY creates a sky frame for sky subtraction of science frames. It will
+perform a quick sky background subtraction of the input frames using the output
+from GAFASTSKY and flat field these images (a flat frame can be supplied
+otherwise a modified version of the GAFASTSKY output will be used) to perform
+object detection. The (unprocessed) input frames are then combined using the
+recently created object masks to mask out any objects in them.
+.le
+.ls GAFASTSKY - Derive sky image for GSAOI, median or min/max filtering
+
+GAFASTSKY is used for constructing sky images by median or
+min/max filtering. There is made no attempt to specifically
+flag objects in the sky images. This task is used primarily to create a
+quick sky frame to subtract from sky frames when about to perform object
+detection when reducing sky frames with GASKY.
+.le
+.ls GAREDUCE - Reduce images from GSAOI (trim, dark and flat correct)
+
+GAREDUCE will reduce science data to an state at which it can be analyzed. This
+includes preparing the data with GAPREPARE (trimming too), dark subtraction,
+flat division, sky subtraction and conversion to electrons. The user has the
+option to run one or more of these steps at a time. GAREDUCE can be called on a
+file that was created by GAREDUCE, assuming that the second call
+requests different reduction steps to that of the first. It is possible to use
+the input science images as sky frames in the call to GAREDUCE. In this case,
+for a given science frame, the appropriate science frames will be selected
+(based on input parameters) to be used to create a sky frame (via GASKY) for
+that science frame.
+.le
+.ls GAMOSAIC - Mosaic the 4 GSAOI arrays into one image
+
+GAMOSAIC will create a MEF file with a single pixel extension that contains the
+data from the four arrays corrected for their position on the sky, using the
+WCS of the second extension as the reference. NOTE: the geometric transform
+(i.e., when not just pasting) in GAMOSAIC is not performed well - the output
+WCS is currently not very good and it is possible that the static distortion of
+arrays may not be handled well.
+.le
+.ih
+SHORT DESCRIPTIONS OF HELPER TASKS
+.ls GADISPLAY - Display GSAOI images
+
+GADISPLAY displays GSAOI MEF images, images with four SCI extensions
+will be displayed as a single image. The user has the option to examine the
+image using imexam.
+.le
+.ls GACALFIND - Create a table of calibration information
+
+GACALFIND creates a table of information for calibration data within a given
+directory. This allows the automatic selection of processed calibrations from
+within that directory.
+.le
+.ls GACLTRIM - Trim calibration images to match science images
+
+GACLTRIM trims calibration images to match the dimensions of input science
+frames, if required, after comparing their dimensions using the CCDSEC of each
+science extension
+.le
+.ls GASTAT - Calculate statistics for a GSAOI image.
+
+GASTAT will calculate a requested pixel statistic on the input image. GASTAT
+can use DQ or input BPMs to mask pixels in the calculations. It is also
+possible to determine the requested statistic subsection of an individual
+array, each individual array, or the whole detector.
+.le
+.ls GADIMSCHK - Check supplied statistic section for an image and or
+.in 8
+the dimensions of two GSAOI images against each other
+.in -8
+
+GADIMSCHK has two functions. The first to check whether a supplied statistics
+region is valid and or to check the dimensions (and detector footprint) of two
+GSAOI images against one another. The latter allows calibrations taken with a
+different (larger) ROI be used to reduce science data. The checks can only be
+preformed on one extension at a time.
+.le
+.ls GAIMCHK - Check the obstype etc., of input GSAOI images
+
+GAIMCHK is the task that performs the majority of the smart sorting features
+available in some of the tasks. It also performs the general input and output
+checks.
+.le
+.ih
+BUGS AND LIMITATIONS
+
+The tasks in the GSAOI package are designed to operate on MEF
+images that have been processed using GAPREPARE. The task GAPREPARE will not
+run on data from instruments other than GSAOI and will not run on simple
+FITS files.
+
+Testing of how the package handles ROI data is ongoing and as such it is
+possible that the task outputs for ROI data may be incorrect.
+
+Finally, the registering and stacking of mosaiced images (e.g., by WCS) is not
+currently handled well by the IMCOADD task, which is partly due to the
+incorrect output from GAMOSAIC after a geometric transform. It is likely
+better, if the image has enough point sources to paste the images using
+GAMOSAIC then interactively run IMCOADD with alignment="user" and
+geofitgeom="rxyscale". This is not optimal and will likely give an incorrect
+WCS, at best. The user should inspect the output from this method
+thoroughly.
+.ih
+SEE ALSO
+
+gaprepare, gsaoiexamples
+
+.endhelp

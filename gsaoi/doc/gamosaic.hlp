@@ -1,0 +1,152 @@
+.help gamosaic October2013 gemini.gsaoi
+.ih
+NAME
+gamosaic -- Mosaic the 4 GSAOI arrays into one image
+.ih
+USAGE
+gamosaic inimages
+.ih
+PARAMETERS
+.ls inimages
+List of raw or prepared GSAOI images to reduce. \fIinimages\fR Can be a list of
+image names or numbers (comma separated or @ lists), or a range of images
+numbers - wild cards are supported. The image names may include the directory
+path. The images must be in multi-extension FITS (MEF) format. The file
+extension ".fits" may or may not be included. See help for GAIMCHK for examples
+of all syntax allowed. If a prepared version of raw input file already exists
+ta ht file will be used instead.
+.le
+.ls rawpath = ""
+Path to the directory where the images are located. One may
+set this parameter if the raw data are not located in the current
+working directory, or specify a path in the input image file names.
+If \fIrawpath\fR is supplied it will be prefixed to any path given as part of
+the input image names.
+.le
+.ls outpref = "m"
+Prefix for output images. The names of output images will be the names of
+the input images (without any paths included) with the prefix attached. If
+\fIoutpref\fR is used and does  not contain a directory path, the mosaiced
+images are written in the current working directory. \fIoutpref\fR may contain
+a directory path, in which case this defines where the mosaiced images are
+written relative to the current directory.
+.le
+.ls rootname = ""
+Root name of image(s) if supplying image number(s); blank for today's UT. For
+example, rootname="S20120101S".
+.le
+.ls fl_paste = no
+Only paste the extensions together, do not transform them?
+.le
+.ls fl_vardq = no
+Propagate variance and data quality extensions. Prepared inputs must already
+have variance and data quality planes present if \fIfl_vardq\fR=yes.
+.le
+.ls gapfile = ""
+Bad pixel file with information about the array gaps in
+.le
+.ls colgap = 153
+Average vertical gap between arrays (trimmed, tiling only)
+.le
+.ls linegap = 148
+Average horizontal gap between arrays (trimmed, tiling only)
+.le
+.ls geointer = "linear" (linear|nearest|poly3|poly5|spline3|sinc)
+Interpolation method to use with geotran
+.le
+.ls fl_fluxcon = no
+Preserve image flux in geotran?
+.le
+.ls key_datasec = "DATASEC"
+Header keyword for data section
+.le
+.ls key_ccdsec = "CCDSEC"
+Header keyword for array section
+.le
+
+GAPREARE PARAMETERS:
+.ls gaprep_pref = "g"
+Output prefix for GAPREPARE.
+.le
+.ls fl_trim = yes
+Trim the images? This will remove the non-illuminated regions of the
+arrays. The non-illuminated regions are a boarder of 4 pixels around the
+outside of each physical array. For some observing modes no trimming
+will take place.
+.le
+.ls fl_nlc = yes
+Apply non-linearity correction to each array?
+.le
+.ls fl_sat = no
+Flag non-linear and saturated pixels in data quality frames?
+.le
+.ls badpix = "gsaoi$data/gsaoibpm_high_full.fits"
+Static MEF bad pixel mask.
+.le
+.ls arraysdb = "gsaoi$data/gsaoiAMPS.dat"
+Database file containing characteristic information about the individual
+arrays. This file contains the readnoise, gain, saturation values and
+percentages of saturation where the counts depart >5% and >2% from linearity,
+before and after non-linearity correction, respectively.
+.le
+.ls non_lcdb = "gsaoi$data/gsaoiNLC.dat"
+Database file containing the coefficients for the 2nd order non-linearity
+correction
+.le
+
+GENERAL PARAMETERS:
+.ls sci_ext = "SCI"
+Name of the MEF extension containing the science data.
+.le
+.ls var_ext = "VAR"
+Name of the MEF extensions containing the calculated variance planes.
+.le
+.ls dq_ext = "DQ"
+Name of the MEF extensions containing the data quality information.
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes use of the logfile
+defined by gsaoi.logfile.
+.le
+.ls verbose = yes
+Print actions to screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted
+with an error. This parameter is set by the task and should not be
+modified by the user.
+.le
+.ih
+DESCRIPTION
+
+GAMOSAIC takes input images, calls GAPREPARE if they are not prepared, then
+mosaics the prepared files (either by geometrically transforming them or just
+by pasting) such that all of individual array information for that image is
+now in one extension.
+.ih
+EXAMPLES
+
+.nf
+   cl> gamosaic rg@science.list fl_vardq+
+.fi
+
+This will mosaic the files on disk that match those listed in science.list but
+prefixed with "rg", propagating variance and data quality extensions if they
+exist in the input images. The output images will be the file names listed in
+science.list but prefixed with "mrg".
+.ih
+BUGS AND LIMITATIONS
+
+Currently only full-frame data can be transformed using GAMOSAIC. All ROIs can
+be pasted though.
+
+The output from GAMOSAIC, after a geometric transformation, may not have been 
+corrected correctly for the static distortion between the arrays. The output
+WCS is incorrect too. This behaviour of the task is under investigation. It is
+likely that pasting the input files then stacking would currently be better
+than performing a geometric transformation. Though again this is not optimal
+and the WCS will be incorrect too.
+.ih
+SEE ALSO
+
+GAPREPARE, GEOTRAN

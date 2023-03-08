@@ -1,0 +1,436 @@
+.help giflat January2015 gemini.gmos
+.ih
+NAME
+giflat -- Derive flat field for GMOS images (IMAGING mode only)
+.ih
+USAGE
+giflat inflats outflat
+.ih
+PARAMETERS
+.ls inflats
+List of input GMOS imaging flat fields. These can be dome flats, twilight flats
+or GCAL flats. Images can be either raw or already processed with
+\fIgprepare\fR or
+\fIgireduce\fR. A comma-separated list or a list directed input can be used. 
+Directory names should not be included as part of the image names.
+All images must be in multi-extension FITS (MEF) format. 
+.le
+.ls outflat
+The output combined and normalized flat field image.
+.le
+.ls normsec = "default"
+The image section used in determining the normalization of the flat field 
+image. The MEF extension name and version and the image section must be
+identified. The format for this parameter is:
+[EXTNAME,EXTVER][x1:x2,y1:y2] if not using the default value, "default".
+
+The default \fInormsec\fR for full frame images 
+is the section: 
+
+[100/xbin:1800/xbin,100/ybin:4500/ybin] 
+
+of the data that form to make CCD2. The parameters xbin and ybin are the 
+binning values in the x and y direction, respectively. They are defined by the 
+CCDSUM keyword in each of the science extensions. For stamp images the section
+ is: 
+
+[28/xbin:280/xbin,28/ybin:280/ybin] 
+
+of the entire stamp image. 
+.le
+.ls fl_scale = yes
+The input flats will be scaled before combining if \fIfl_scale\fR=yes. 
+.le
+.ls sctype = "mean" (mean|mode|midpt)
+The type of statistics used in determining the relative scaling of the 
+input flats. When scaling images, a section in one of the CCDs will be 
+used to determine the value to which all input flats will be scaled. 
+This value is determined with the task \fIimstatistics\fR. The types 
+of statistics are mean, mode, and midpt (midpoint). 
+.le
+.ls statsec = "default"
+The image section used to determine the relative intensity scale.  The MEF 
+extension name and version and the image section must be identified. The 
+format for this parameter is: [EXTNAME,EXTVER][x1:x2,y1:y2] if not using the 
+default value, "default".
+
+The default \fIstatsec\fR for full frame images 
+is the section: 
+
+[100/xbin:1800/xbin,100/ybin:4500/ybin] 
+
+of the data that form to make CCD2. The parameters xbin and ybin are the 
+binning values in the x and y direction, respectively. They are defined by the 
+CCDSUM keyword in each of the science extensions. For stamp images the section
+is: 
+
+[28/xbin:280/xbin,28/ybin:280/ybin] 
+
+of the entire stamp image. 
+.le
+.ls key_gain = "GAIN"
+Header keywords for the gain in electrons per ADU.
+.le
+.ls fl_stamp = no
+Input is a stamp image
+.le
+.ls sci_ext = "SCI"
+Name of the MEF extension containing the science data.
+.le
+.ls var_ext = "VAR"
+Name of the MEF extensions containing the variance frame.
+.le
+.ls dq_ext = "DQ"
+Name of the MEF extensions containing the data quality array.
+.le
+.ls fl_vardq = no
+Create and propagate the data quality and variance extensions. A meaningful
+variance plane based on photon statistics can only be created if bias 
+subtracting.
+.le
+.ls sat = "default"
+Saturation level of raw images in ADU.
+The default value of \fIsat\fR for the EEV CCDs is 65000 ADU. For the GMOS-N
+e2vDD CCDs each individual amplifier has its own saturation value. For more
+information about the saturation levels used as the default please read the
+help file for the task GSAT, as this calculates the default saturation levels
+for the new e2vDD CCDs.
+This parameter is used in two instances. (1) If the images are raw,
+\fIsat\fR is used in \fIgprepare\fR. 
+(2) When computing the normalization value and the standard deviation 
+with \fIimstatistics\fR, the \fIupper\fR is set to \fIsat\fR.
+.le
+.ls verbose = yes
+Print informative messages and warnings to screen?
+.le
+.ls logfile = ""
+Name of the logfile containing error and warning messages. When
+\fIlogfile\fR="",  the name of the logfile is gmos.log. 
+.le
+.ls status = 0
+Exit status of the script. It will be non-zero if the task halted with an
+error. This parameter is set by the task and should not be modified by the
+user.
+.le
+
+.ih
+IMCOMBINE PARAMETERS
+.sp 1
+Please see the IMCOMBINE help pages for further details. 
+.le
+.ls combine = "average" (average|median)
+Type of combining operation. 
+.le
+.ls reject =  "avsigclip" (none|minmax|avsigclip|crreject)
+Type of rejection operation.  Note in general "avsigclip" works well even for
+a few images.
+.le
+.ls lthreshold = INDEF, hthreshold = INDEF
+Low and high thresholds to be applied to the input pixels.
+.le
+.ls nlow = 0,  nhigh = 1 (minmax)
+The number of low and high pixels to be rejected.
+.le
+.ls nkeep = 1 (avsigclip)
+The minimum number of pixels to retain (\fInkeep\fR > 0) or the maximum 
+number to reject (\fInkeep\fR < 0).
+.le
+.ls mclip = yes (avsigclip)
+Use the median rather than the average with high and low values excluded.
+.le
+.ls lsigma = 3., hsigma = 3. (avsigclip)
+Low and high sigma clipping factors.
+.le
+.ls sigscale = 0.1 (avsigclip)
+Poisson correction to sigma parameter.
+.le
+.ls grow = 0.
+Radius in pixels for additional pixels to be rejected by the rejection 
+algorithms.
+.le
+
+.ih
+GPREPARE PARAMETERS
+.sp 1
+Please see the GPREPARE help pages for further details. 
+.le
+.ls gp_outpref = "g"
+Prefix used to name the output images created with \fIgprepare\fR. 
+.le
+.ls rawpath = ""
+Path for the directory containing the raw GMOS images.
+.le
+.ls key_ron = "RDNOISE"
+Header keyword for the read out noise in electrons.
+.le
+.ls key_datasec = "DATASEC"
+Header keyword giving the section of the image with useful data (excludes 
+the overscan sections). 
+.le
+.ls gaindb = "default"
+Database file containing the GMOS gain data. The default value for \fIgaindb\fR
+is gmos$data/gmosamps.dat.
+.le
+.ls bpm = ""
+The bad pixel mask name is used only if \fIfl_vardq\fR=yes. It is recommended
+that \fIbpm\fR  be created using the GBPM task.
+.le
+.ih
+GIREDUCE PARAMETERS
+.sp 1
+Please see the GIREDUCE help pages for further details. 
+.le
+.ls gi_outpref = "r"
+Prefix used to name the output images created with \fIgireduce\fR. 
+.le
+.ls bias = ""
+Bias image to be subtracted.  This image must be in 
+MEF format with the same number of extensions as 
+the input \fIinflats\fR images.  If \fIfl_vardq\fR set to "yes", \fIbias\fR 
+should also contain variance and data quality extensions.  The bias 
+calibration image \fIbias\fR should be created using the GBIAS task. 
+.le
+.ls fl_over = yes
+Apply overscan correction by fitting and subtracting an average column
+bias.  If "yes", the parameter \fIkey_biassec\fR is used to query the overscan
+section parameters from the header. 
+.le
+.ls fl_trim = yes
+Trim the image. If "yes", the image is trimmed to keep only
+the sections defined by the parameter \fIkey_datasec\fR.
+.le
+.ls fl_bias = yes
+Subtract the bias image. If "yes", the bias image must be
+specified by the \fIbias\fR parameter.
+.le
+.ls fl_qecorr = no
+This parameter is only available for GMOS-S Hamamatsu imaging data.
+Quantum efficiency (QE) correct your input data? If "yes" and the input data is
+spectroscopic, a wavelength reference image (\fIqe_refim\fR) or QE correction
+image (\fIqe_corrimages\fR) must be supplied. For imaging data no reference or 
+correction images are required. Images must have been or about to be BIAS or
+DARK subtracted for them to be QE corrected. For more detailed information 
+please read the gmos example for your given observation mode (type 
+'gmosexamples' at the IRAF or PyRAF prompt).
+.le
+.ls fl_inter = no
+Fit the overscan region interactively? 
+.le
+.ls nbiascontam = "default"
+Number of columns removed from the overscan region before subtracting.
+The default value of \fInbiascontam\fR for the EEV CCDs is 4. Whereas, a
+default value of 5 is used for the GMOS-N e2vDD CCDs. \fInbiascontam\fR is
+used when \fIfl_over\fR=yes. The overscan regions of GMOS CCDs have some
+photon bleeding from the science frame. \fInbiascontam\fR is the number of
+columns next to the data section that are not used when calculating the
+overscan to subtract.
+.le
+.ls biasrows = "default"
+Rows to use in bias region. If \fIbiasrows\fR = "default", the entire
+length of overscan region is used. Value must be of the form "x1:x2" where 
+x1 is the starting pixel row and x2 is the final pixel row, e.g. "3:64".  
+.le
+.ls key_biassec = "BIASSEC"
+Header keyword where the overscan region is defined. 
+.le
+.ls median = no
+Take the median of the bias columns? If no, then the bias columns are 
+averaged. 
+.le
+.ls function = "chebyshev" (legendre|chebyshev|spline1|spline3)
+Function fit to the average bias column. 
+.le
+.ls order = "default"
+Order of the fitting function to the bias column. Where "default" is used,
+\fIgireduce\fR selects a default value appropriate for the relevant GMOS
+detectors.
+.le
+.ls low_reject = 3., high_reject = 3.
+Low and high sigma rejection factor. 
+.le
+.ls niterate = 2
+Maximum number of rejection iterations. 
+.le
+.ls qe_data = "gmosQEfactors.dat"
+Database file that contains the QE fit coefficients and factors to be used when
+creating the QE correction image (spectroscopy) or QE correcting the data
+directly (imaging only).
+.le
+.ls qe_datadir = "gmos$data/"
+Directory containing the file given in \fIqe_data\fR.
+.le
+.ih
+DESCRIPTION
+GIFLAT creates a normalized imaging flat field \fIoutflat\fR from GMOS 
+flat field images \fIinflats\fR taken in imaging mode only.
+The output flat \fIoutflat\fR has the same number of extensions as the
+input flat field images \fIinflats\fR. Full frame flat fields may be 
+inspected by using the task GDISPLAY. It is recommended to paste the 
+images and set the stretch when displaying the \fIoutflat\fR, e.g.
+
+.nf
+    cl> gdisplay flatfield 1 fl_paste+ z1=0.9 z2=1.1
+.fi
+
+Each MEF extension file of the input flat fields is combined separately 
+with IMCOMBINE, i.e. there are
+as many calls to imcombine as there are extensions in the input images. 
+The output flat \fIoutflat\fR is converted to electrons by multiplying by the 
+gain. Since each extension corresponds to a different CCD, they each have a
+different gain value and are therefore multiplied by its own gain. 
+The gain value in the header is replaced by the total number of flatfield 
+images and the original gain value is written into the header under the keyword
+"GAINORIG."
+
+The input flatfield images can be scaled before combining them 
+if \fIfl_scale\fR is "yes."
+The intensity level determined from the region defined with \fIstatsec\fR 
+is used when combining the images with the task IMCOMBINE. The inverse of the
+intensity level in each image is determined and written to the image header of 
+each MEF extension in the keyword "RELINT."  The parameter \fIscale\fR in 
+IMCOMBINE is set to "!RELINT" and once IMCOMBINE is finished, the keyword
+"RELINT" is deleted from the image header. Because the intensities can be
+large, the value written to the header is not exactly the inverse of the
+intensity level. The inverse is multiplied by the intensity level of the first
+image in the input list. 
+
+The output flat \fIoutflat\fR is normalized by the level determined from 
+the region defined with \fInormsec\fR. The format of \fInormsec\fR is:
+.ce
+[EXTNAME,EXTVER][x1:x2,y1:y2]
+where  x1 and x2 are the ranges in columns and y1 and y2 are the ranges in 
+rows of the array in the extension [EXTNAME,EXTVER]. 
+Usually, the EXTNAME will be the science plane ("SCI"). The default 
+\fInormsec\fR for full frame images is the section: 
+[100/xbin:1800/xbin,100/ybin:4500/ybin] 
+of the data that form to make the middle CCD. The parameters xbin and ybin are 
+the binning values in the x and y direction, respectively. They are defined by
+ the CCDSUM keyword in each of the science extensions.  The normalization level
+ is determined with two passes through IMSTATISTICS. In the first pass, the 
+mode and standard deviation are determined excluding pixels that are above the 
+saturation level \fIsat\fR. However, this saturation level is corrected by the 
+overscan level, if the image had the overscan level subtracted, and corrected 
+by the gain of the same extension where the normalization value is determined 
+[EXTNAME,EXTVER]:
+.ce
+sat [e] = (sat[ADU] - overscan[ADU][EXTNAME,EXTVER] )*gain[i]
+The second pass through IMSTATISTICS, the median is determined (midpt) of the
+same region \fInormsec\fR but now excluding pixels with intensities lower
+(higher) than 3 standard deviations below (above) the mode. 
+
+If \fIfl_vardq\fR=yes, the variance plane is created in the call to GIREDUCE
+using Poisson noise statistics:
+variance = (readnoise/gain)^2 + (science-bias)/gain
+Please see GIREDUCE help pages for more information.
+When combining multiple flat images, variance for each image is 
+combined using \fIcombine\fR in IMCOMBINE. Combining many flat images results 
+in a small additional sigma between combined pixels. 
+The sigma value is squared and added to the combined variance plane. The 
+resultant variance is then divided by the square of the normalization value.
+
+The data quality plane is created in GIREDUCE by combining the bad pixel mask
+\fIbpm\fR with saturated pixels in the data. Rejection masks are created if
+combining multiple flats, these masks are then added to the DQ plane using 
+addmasks.
+
+The header of the output image is updated. The keywords GIFLAT (time stamp of
+GIFLAT), GIFLNORM (the normalization factor), and GEM-TLM (time of last 
+modification by the GMOS package) are added to the primary header unit. 
+
+If the input flat field images have not been prepared with GPREPARE nor reduced
+with GIREDUCE, GIFLAT will take care of it. If the images are raw, GIFLAT will
+call GPREPARE and GIREDUCE in that order. The images can be either in the 
+\fIrawpath\fR directory or in the current directory. The output images from
+GPREPARE will have the prefix \fIgp_outpref\fR added to the input images. 
+The output images from GIREDUCE will have the prefix \fIgi_outpref\fR added 
+prepended the input image names. If the images are raw, both prefixes will 
+be prepended to the image names before combining them with IMCOMBINE. 
+If the images are prepared with GPREPARE, only the prefix \fIgi_outpref\fR 
+will be prepended to the image names. 
+
+If GPREPARE is called, the parameters \fIrawpath\fR and \fIkey_ron\fR will 
+be used. 
+
+If GIREDUCE is called, the zero-level image \fIbias\fR needs to point to an
+existing image that also matches the binning and the number of extensions in
+the input images. The images will be trimmed and bias subtracted but they will 
+not be corrected for dark current.  The user has the option to subtract the 
+overscan level in the images if \fIfl_over\fR  is "yes". If  \fIfl_over\fR is 
+"yes", the flags \fIfl_inter\fR and \fIkey_biassec\fR, \fImedian\fR,
+\fIfunction\fR, \fIorder\fR, \fIlow_reject\fR, \fIhigh_reject\fR, and
+\fIniterate\fR will be used.
+
+If the images have been prepared with GPREPARE and they exist in the
+current directory, GIFLAT can be called with \fIinflats\fR pointing to the raw
+images. GIFLAT will take the prepared images in the current directory as long
+as the prepared images have the prefix \fIgi_outpref\fR 
+
+Similarly, if the images have been reduced with GIREDUCE and they exist in the
+current directory, GIFLAT can be called with \fIinflats\fR pointing to the raw
+or GPREPARE'd images. GIFLAT will take the reduced images in the current
+directory. 
+
+GIFLAT leaves behind any GPREPARE'd and GIREDUCE'd images produced from
+raw or GPREPARE'd input images. This is done to make it easier to rerun the
+task changing the parameters for combining the images.
+
+.ih
+EXAMPLES
+1.  Create flat field image flatI using raw images in directory ddata$:
+
+.nf
+   gm> giflat N20020109S303,N20020109S304,N20020109S305 flatI \
+       bias=caldir$gN20010823S143_bias rawpath=ddata$
+.fi
+
+2.  Create flat field image flatI using prepared images in the current
+directory (the raw images are in directory ddata$):
+
+.nf
+   gm> giflat N20020109S303,N20020109S304,N20020109S305 flatI \
+       bias=caldir$gN20010823S143_bias rawpath=ddata$
+
+or 
+
+   gm> giflat gN20020109S303,gN20020109S304,gN20020109S305 flatI \
+       bias=caldir$gN20010823S143_bias 
+.fi
+
+3.  Create flat field image flatI using reduced images in the current 
+directory (the raw images are in directory ddata$):
+
+.nf
+   gm> giflat N20020109S303,N20020109S304,N20020109S305 flatI \
+       bias=caldir$gN20010823S143_bias rawpath=ddata$
+
+or 
+
+   gm> giflat rgN20020109S303,rgN20020109S304,rgN20020109S305 flatI \
+       bias=caldir$gN20010823S143_bias
+.fi
+
+4.  Create flat field image flatI using reduced images in the current 
+directory using a list-directed call. 
+
+.nf
+    gm> type flatlist
+    rgN20020109S303
+    rgN20020109S304
+    rgN20020109S305
+    gm> giflat @flatlist flatI bias=caldir$gN20010823S143_bias 
+.fi
+
+
+.ih
+TIME REQUIREMENTS
+.ih
+BUGS AND LIMITATIONS
+Improvements to the (previously semi-functional) variance and
+data quality propagation in the GMOS package have undergone limited
+testing; the accuracy of the results should still be verified at
+each step by the scientist, particularly for spectroscopic data
+reduction tasks.
+.ih
+SEE ALSO
+gmosinfo, gmosinfoimag, gprepare, gireduce, imstatistics, imcombine, gdisplay
+.endhelp

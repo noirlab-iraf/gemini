@@ -1,0 +1,106 @@
+.help gmosexamples March2012 gemini.gmos
+.ih
+NAME
+gmosexamples - Print reduction examples to the screen
+.ih
+USAGE
+gmosexamples example
+.ih
+PARAMETERS
+.ls example (imaging|longslit|standard_longslit|MOS|NS_longslit|NS_MOS|IFU_1slit|IFU_2slit|standard_IFU)
+Example script to print to the screen.
+.le
+.ih
+DESCRIPTION
+
+A few example scripts are provided for the GMOS package.
+GMOSEXAMPLE prints these to the screen.
+The examples use real data and have all been use for data reduction.
+The users will need to modify directory and image names for their own use.
+The example files are located in gmos$doc.
+
+.nf
+    Example              File
+    ------------------------------------------------
+    imaging              gmos_imaging_example.cl
+    longslit             gmos_longslit_example.cl
+    standard_longslit    gmos_longslit_standard_example.cl
+    MOS                  gmos_mos_example.cl
+    NS_longslit          gmos_ns_longslit_example.cl
+    NS_MOS               gmos_ns_mos_example.cl
+    IFU_1slit            gmos_ifu_1slit_example.cl
+    IFU_2slit            gmos_ifu_2slit_example.cl
+    standard_IFU         gmos_ifu_standard_example.cl
+    ------------------------------------------------
+.fi
+
+To print the reduction example of imaging data, including fringe correction
+if needed:
+
+.nf
+  cl> gmosexamples imaging
+.fi
+
+To print the reduction example of a longslit observation:
+
+.nf
+  cl> gmosexamples longslit
+.fi
+
+To print the reduction example of observation of spectrophotometric standard
+star, including establishing the sensitivity function for (relative)
+flux calibration:
+
+.nf
+  cl> gmosexamples standard_longslit
+.fi
+
+To print the reduction example of a MOS observation:
+
+.nf
+  cl> gmosexamples MOS
+.fi
+
+To print the reduction example of a Nod & Shuffle longslit observation
+
+.nf
+  cl> gmosexamples NS_longslit
+.fi
+
+To print the reduction example of a Nod & Shuffle MOS observation,
+only the steps specific to N&S:
+
+.nf
+  cl> gmosexamples NS_MOS
+.fi
+
+To print the reduction example of an IFU observation taken in 1-slit mode:
+
+.nf
+  cl> gmosexamples IFU_1slit
+.fi
+
+To print the reduction example of an IFU observation taken in 2-slit mode:
+
+.nf
+  cl> gmosexamples IFU_2slit
+.fi
+
+To print the reduction example of an IFU observation of a spectrophotometric
+standard star taken in 2-slit mode:
+
+.nf
+  cl> gmosexamples standard_IFU
+.fi
+
+.ih
+BUGS AND LIMITATIONS
+Improvements to the (previously semi-functional) variance and
+data quality propagation in the GMOS package have undergone limited
+testing; the accuracy of the results should still be verified at
+each step by the scientist, particularly for spectroscopic data
+reduction tasks.
+.ih
+SEE ALSO
+gmosinfo, gmosinfoimag, gmosinfospec, gmosinfoifu
+.endhelp

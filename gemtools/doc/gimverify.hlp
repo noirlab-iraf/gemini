@@ -1,0 +1,122 @@
+.help gimverify December2012 gemini.gemtools
+.ih
+NAME
+gimverify -- Verify input/output image names and file type
+.ih
+USAGE
+gimverify image
+.ih
+PARAMETERS
+.ls image
+The input image name (including the path to the file) to be verified. A single
+image name (with or without a file extension) should be provided. Lists and
+wild cards are NOT supported. Any common mistakes that are made when supplying
+paths, including those containing environmental variables, (such as excluding
+the trailing forward slash) are corrected by the task before verifying the
+existence of \fIimage\fR.
+.le
+.ls outname = ""
+This is the verified name of the input file (including the path to the file, if
+one was supplied in \fIimage\fR) without the file extension. The path contained
+in \fIoutname\fR may not be the same as the one supplied in \fIimage\fR due to
+the correction of any common mistakes in \fIimage\fR. Therefore, if the image
+name is to be used after verification, it is imperative that the \fIoutname\fR
+parameter be used as the image name thereafter, since it will contain the
+corrected path. \fIoutname\fR is set internally by the task and should not be
+updated by the user.
+.le
+.ls status = 0
+This indicates the outcome of the verification checks of \fIimage\fR. This is
+set internally by the task and should not be updated by the user. The
+\fIstatus\fR parameter can have the following values:
+
+.nf
+    0 - file exists and is a MEF file
+    1 - file does not exist
+    2 - file exists and is an imh file
+    3 - file exists and is a hhh file
+    4 - file exists and is a simple fits file
+.fi
+
+where "file" refers to the file name given by the \fIoutname\fR parameter.
+.le
+.ih
+DESCRIPTION
+
+The task GIMVERIFY can be used to verify the existence and determine
+the type of an input file. The file to be verified is supplied by the
+\fIimage\fR parameter and should contain any relevant paths to that file.
+
+If the file name returned by the \fIoutname\fR parameter has a file extension
+of ".fits", ".imh", or ".hhh", the file extension will be stripped from the end
+of the name. 
+
+If using GIMVERIFY to check the existence of a file, the \fIoutname\fR should
+be used thereafter instead of the name supplied by the \fIimage\fR
+parameter, since common mistakes in any paths supplied as part of \fIimage\fR
+are corrected, which could result in \fIoutname\fR differing from \fIimage\fR
+other than by the removal of the file extension.
+
+Sometimes within other tasks after the GIMVERIFY call it may be required to
+append the file extension back to \fIoutname\fR, so that subsequent tasks do
+not fail.
+.ih
+EXAMPLES
+
+The following examples can be run after loading the Gemini IRAF package and the
+gemtools package.
+
+1. Verify that the BPM file for GSAOI (located in the data directory of the
+gsaoi package) is a MEF:
+
+.nf
+    ecl> gimverify gsaoi$data/gsaoibpm_high_full.fits
+    ecl> print (gimverify.status)
+         0
+    ecl> print (gimverify.outname)
+         gsaoi$data/gsaoibpm_high_full
+.fi
+
+Note that GIMVERIFY returns a status of 0 and strips the ".fits" from the
+\fIoutname\fR.
+
+2. Verify the existence of a file by using a path provided by an incorrectly
+defined IRAF environmental variable (the trailing forward slash is missing):
+
+.nf
+    ecl> show rawpath
+         /rawdir/somepath
+    ecl> gimverify rawpath$image.fits
+    ecl> print (gimverify.status)
+         0
+    ecl> print (gimverify.outname)
+         rawpath$/image
+.fi
+
+Note that GIMVERIFY returns a status of 0 (since it found the file after
+correcting for the missing trailing forward slash) and the \fIoutname\fR
+contains the missing trailing forward slash.
+
+3. Verify that a file does not exist by using an incorrectly defined path (the
+IRAF environmental variable is defined correctly with the trailing forward
+slash, but the path contains an additional forward slash):
+
+.nf
+    ecl> show rawpath
+         /rawdir/somepath/
+    ecl> gimverify rawpath$/image2.fits
+    ecl> print (gimverify.status)
+         1
+    ecl> print (gimverify.outname)
+         rawpath$image2
+.fi
+.ih
+BUGS AND LIMITATIONS
+
+GIMVERIFY should not be used to verify MDFs. The task will return a status of 4
+if ran on an MDF (that exists).
+.ih
+SEE ALSO
+imaccess
+
+.endhelp

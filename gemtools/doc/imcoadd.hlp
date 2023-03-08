@@ -1,0 +1,854 @@
+.help imcoadd April2017 gemini.gemtools
+.ih
+NAME
+imcoadd -- Co-add direct images with removal of cosmic ray hits
+.ih
+USAGE
+imcoadd images
+.ih
+PARAMETERS
+.ls images
+Input images. Comma-separated list or @file with image names.
+The first image in the list is in the following referred to as the
+\fIreference\fR image.
+The images may be either IRAF images or simple FITS.
+The task works on MEF files with one science extension. To process
+MEF files, the user's IRAF session must have imtype="fits".
+Image sections cannot be specified as input images.
+.le
+.ls outimage = ""
+Name of output image. If \fIoutimage\fR="", the output image is named
+\fIreference\fR_add.
+.le
+.ls sci_ext = "SCI"
+Name or number of science extension.
+.le
+.ls var_ext = "VAR"
+Name or number of variance extension. (Use not yet implemented)
+.le
+.ls dq_ext = "DQ"
+Name or number of data quality extension.
+.le
+.ls immasks = "DQ"
+Masks of bad pixels for each image. If \fIimmasks\fR="DQ" and the
+input images are MEF, the data quality plane from the images are used
+as the bad pixel masks. Otherwise, comma-separated list or @file with
+mask names may be supplied. If only some of the images need mask files 
+supplied, place-holders for the other images are specified as "none" in
+\fIimmasks\fR. If lists are supplied, the number of \fIimmasks\fR must 
+match the number of input \fIimages\fR.
+.le
+.ls database = "imcoadd.dat"
+Database for geometric transformations. Used by GEOMAP and GEOTRAN.
+Solutions are named and appended to the database. 
+.le
+.ls threshold = 20.
+Threshold in sigmas above the sky level. Used by DAOFIND.
+.le
+.ls fwhm = 7.
+FWHMPSF in pixels. Used by DAOFIND.
+.le
+.ls box = 20.
+Centering box in pixels. Used by CENTER.
+.le
+.ls alignmethod = "wcs" (wcs|user|twodx|header)
+Method for rough alignment of images. 
+.ls wcs
+The WCS in the image headers provides the first rough estimates of offsets,
+rotation and scaling.
+.le
+.ls user
+The user uses the image display to point to 1 or 2 objects in common.
+Though time consuming, this method is very reliable even if there are 
+very few objects in the field. 
+.le
+.ls twodx
+Cross-correlation on two subsections, defined by \fIasection\fR, 
+provides the first rough estimates of offsets, rotation and scaling.
+This does not work if the geometrical scale differences are too large.
+It is very reliable for fields with moderate to many objects. 
+.le
+.ls header
+Use the header information as defined by \fIkey_xoff\fR, \fIkey_yoff\fR,
+\fIinstscale\fR, \fIxsign\fR, \fIysign\fR and \fIkey_pixscale\fR to
+give the first rough estimate of the offsets in X and Y.
+.le
+.le
+.ls asection = "default"
+The two image sections to use for \fIalignmethod\fR=twodx.
+The sections should be separated by a space.
+\fIasection\fR=default selects the two sections 
+.nf
+     [0.25*Xmax:0.375*Xmax,0.25*Ymax:0.375*Ymax]
+     [0.625*Xmax:0.75*Xmax,0.625*Ymax:0.75*Ymax]
+.fi
+where Xmax and Ymax are the sizes of x-axis and the y-axis of the 
+reference image, respectively.
+.le
+.ls xwindow = 181 
+Search window for cross-correlation. The search covers from -xwindow/2
+to +xwindow/2 in both x and y.
+.le
+.ls key_inst = "INSTRUME"
+Header keyword for instrument name. Supported Gemini instruments are
+"GMOS", "GMOS-N", "NIRI", and "Hokupaa+QUIRC".
+.le
+.ls key_camera = "CAMERA"
+Header keyword for instrument camera. This is currently used only for NIRI
+images.
+.le
+.ls key_inport = "INPORT"
+Header keyword for telescope ISS port number. 
+.le
+.ls key_xoff = "default", key_yoff = "default"
+Header keywords for instrument X-offset and Y-offset. Used if 
+\fIalignmethod\fR="header". The offsets are converted to arcsec in the
+X- and Y-direction using the values of \fIinstscale\fR,
+\fIxsign\fR, and \fIysign\fR. The offsets are converted to pixels using the
+pixel scale from the header keyword defined by \fIkey_pixscale\fR
+(if that keyword does not exist \fIpixscale\fR is used).
+If \fIkey_xoff\fR="default" and \fIkey_yoff\fR="default", the values of
+these parameters as well as \fIinstscale\fR, \fIxsign\fR, and \fIysign\fR
+are set based on the instrument, camera (for NIRI) and instrument port
+values in the headers of the images.
+.le
+.ls instscale = 1.
+Scale for instrument offsets. The default value assumes that the instrument
+offsets are in arcsec. If the instrument offsets are in mm as is the case
+for Hokupaa+QUIRC data taken at Gemini-North, a value of 1.611444 is needed.
+.le
+.ls xsign = "default"; ysign = "default" (default|negative|positive)
+Instrument offset signs relative to detector offsets.
+.le
+.ls key_pixscale = "PIXSCALE"
+Header keyword for pixel scale in arcsec/pixel.
+.le
+.ls pixscale = 1.
+Pixel scale arcsec/pixel. \fIpixscale\fR is used if \fIkey_pixscale\fR = "",
+if \fIkey_pixscale\fR does not exist or returns zero value.
+.le
+.ls dispmag = 1.0
+Display magnification if \fIalignmethod\fR="user". Set this value
+<1 if working on large images with large shifts.
+.le
+.ls rotate = no; scale = no
+These two parameters guide the initial rough alignment of the images.
+If \fIrotate\fR=yes and/or \fIscale\fR=no, and
+\fIalignmethod\fR=user the user will be asked to point to two objects
+in common. Otherwise only one object is needed.
+If \fIrotate\fR=yes and/or \fIscale\fR=no, and \fIalignmethod\fR=twodx,
+a shift and a rotation and/or scaling are derived from the 
+cross-correlation, otherwise only a shift is derived.
+If \fIalignmethod\fR=header, IMCOADD sets \fIrotate\fR=no and
+\fIscale\fR=no.
+.le
+.ls geofitgeom = "rscale" (shift|xyscale|rotate|rscale|rxyscale|general)
+Fitting geometry for GEOMAP. See GEOMAP for details.
+.le
+.ls order = 3
+GEOMAP fitting order. Only used if \fIgeofitgeom\fR=general.
+.le
+.ls sigfit = 2.5
+GEOMAP sigma rejection. Objects deviating more than \fIsigfit\fR
+ times the rms of a fit are rejected in the next iteration.
+.le
+.ls niter = 5
+Number of rejection iterations for the fitting of the transformation
+using GEOMAP.
+.le
+.ls coolimit = 0.3
+Sigma in pixels for convergence of the GEOMAP fitting.
+.le
+.ls geointer = "linear"
+GEOTRAN interpolation algorithm for pixel values. If \fIgeointer\fR="nearest"
+no interpolation of pixel values take place. See GEOTRAN for details.
+.le
+.ls geonxblock = 2048; geonyblock = 2048
+The working block size in pixels.
+Passed to GEOTRAN as \fInxblock\fR and \fInyblock\fR, respectively.
+.le
+.ls key_ron = "RDNOISE"
+Image header keyword containing the read noise.
+.le
+.ls key_gain = "GAIN"
+Image header keyword containing the gain.
+.le
+.ls ron = 1.
+Read noise in electrons, if not found in the header.
+.le
+.ls gain = 1.
+Gain in e-/ADU, if not found in the header.
+.le
+.ls datamin = -1000.
+Minimum data value below the sky level for good pixels.
+.le
+.ls key_sat = "SATURATI"
+Header keyword for maximum data value for good pixels. If present
+in the header, this value is used rather than \fIdatamax\fR.
+.le
+.ls datamax = 50000.
+Maximum data value for good pixels, if not found in the header.
+.le
+.ls aperture = 30.
+Aperture radius for aperture photometry used for the scaling.
+.le
+.ls limit = 15.; key_limit = yes
+\fIlimit\fR is the intensity limit for cosmic-ray cleaning.
+If \fIkey_limit\fR=yes, then \fIlimit\fR is given in sigmas above
+the sky level. Otherwise it is given in counts above the sky level.
+Values of \fIlimit\fR larger than about 15 for ground based
+data with significant differences in the seeing will lead to 
+incorrect rejection of pixels that contain signal from objects.
+.le
+.ls lowsigma = 7.
+Sigma rejection limit for cosmic-ray hits. Pixels that deviate from the
+median value by more than \fIlowsigma\fR times the local noise are 
+flagged as affected by cosmic-ray hits.
+.le
+.ls lowlimit = 500.
+Absolute rejection limit for cosmic-ray hits. Pixels that deviate
+from the median value by more than \fIlowlimit\fR counts are
+flagged as affected by cosmic-ray hits.
+.le
+.ls scalenoise = 0.
+Noise term proportional to the signal above sky. \fIscalenoise\fR>0
+may improve cleaning of images with large differences in the seeing.
+.le
+.ls growthrad = 1 (0|1)
+Growth radius for flagged pixels.
+.le
+.ls statsec = "default"
+Section of images to use for automated sky determination. 
+If \fIstatsec\fR=default, the section [100:Xmax-100,100:Ymax-100] is 
+used.  Xmax and Ymax are the sizes of x-axis and the y-axis of the 
+reference image, respectively.
+.le
+.ls badpixfile = "default"
+Bad pixel file or image for the detector. The file is either an
+IRAF mask file (*.pl) or it is an ASCII file with the format
+
+.nf
+    # trimmed|untrimmed
+    x1 x2 y1 y2
+.fi
+
+The first line contains "trimmed" or "untrimmed" depending on
+whether the image was trimmed relative to the bad pixels defined in
+\fIbadpixfile\fR.
+If \fIbadpixfile\fR="default" the default bad pixel file for the
+instrument is used if available.
+
+Each GMOS instrument, has a different BPM for each type of CCD it is using /
+has used, for unbinned and 2x2 binning, respectively. For the list of available
+BPMs please read the README in the gmos$data/ directory. This can be done with
+the following command:
+
+.nf
+    cl> page gmos$data/README
+.fi
+
+For NIRI images niri$data/niri_bpm.pl is used.
+For Hokupaa+QUIRC images quirc$data/quirc_bpm.pl is used.
+If \fIbadpixfile\fR="" no bad pixel file is used.
+.le
+.ls dq_maskexpr "default"
+Expression used by IMEXPRESSION to create badpixel masks from input
+\fIdq_ext\fR extensions of MEFs. The pixel mask created will have a value of 1
+if the \fIdq_maskexpr\fR criterion is met else it is set to 0. The default
+values are given below. Each expression has " ? 1 : 0" appended to them.
+
+.in 4
+For GMOS images:
+
+.in 4
+"(((int(a) & 2) || (int(a) & 4)) > 0 ? 0 : a) > 0"
+.in -4
+
+where a is the input \fIdq_ext\fR extension. This is to exclude non-linear
+(bit value of 2) and saturated (bit value of 4) pixels from the mask being
+created. This is to replicate the behaviour previous to Gemini IRAF v1.12.
+The previous behaviour is the same as shown below for all other
+instruments. GMOSAIC was updated in Gemini IRAF v1.12, to have > 1
+bit values and to propagate them properly in the output data quality plane.
+
+For all other instrument images:
+.in 4
+    
+"(int(a/2.) * 2 != a)"
+.in -4
+
+where a is the input \fIdq_ext\fR extension.
+
+.in -4
+The user can override the default values by supplying a valid IMEXPRESSION
+expression. Note if performing bitwise operations make sure either the
+expression uses an integer representation of the input data quality plane or
+that the data quality plane has an integer pixel type.
+.le
+.ls fl_inter = no
+Inspect the geometrical transformation fits interactively.
+.le
+.ls fl_refmark = no
+Mark objects on display for the reference image. 
+Only used if \fIalignmethod\fR=user.
+.le
+.ls fl_mark = no
+Mark objects on display for the other images.
+Only used if \fIalignmethod\fR=user.
+.le
+.ls fl_fixpix = yes
+Interpolate across bad pixels as defined in the data quality planes
+(extname=DQ). This functionality is only supported for MEF files, and 
+only if DQ planes are present in the input data. It is typically used 
+for near-IR imaging data for which many isolated bad pixels might
+otherwise affect the object identification and the geometrical
+mapping. It is recommended to use fl_fixpix=no for all GMOS
+data reduction. 
+.le
+.ls fl_find = yes
+Find objects using DAOFIND.
+.le
+.ls fl_map = yes
+Determine the transformation using GEOMAP.
+.le
+.ls fl_trn = yes
+Apply the transformation using GEOTRAN.
+.le
+.ls fl_med = yes
+Derive the median image.
+.le
+.ls fl_add = yes
+Derive the average image with all bad pixels and flagged cosmic-ray hits
+omitted.
+.le
+.ls fl_avg = no
+Derive the average image with no masking for bad pixels and cosmic-ray 
+hits.
+.le
+.ls fl_scale = yes
+Scale the median and average images according to the signal in the 
+objects. \fIfl_scale\fR=yes makes it possible to combine images taken at
+different airmasses and during different transparency conditions.
+.le
+.ls fl_overwrite = no
+Overwrite previous results. If \fIfl_overwrite\fR=yes previous output
+files are overwritten. The only exceptions are the database file for 
+the transformations \fIdatabase\fR and the \fIlogfile\fR.
+.le
+.ls logfile = "imcoadd.log"
+Logfile.
+.le
+.ls verbose = yes
+Print actions to the screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an
+error. This parameter is always set by the task, and should
+not be modified by the user.
+.le
+.ih
+DESCRIPTION
+
+.nf
+1. General description and guidelines
+--------------------------------------
+.fi
+IMCOADD can be used for 
+.nf
+ * deriving the geometrical transformation (shift, rotation and scaling)
+   necessary to register several images of the same field 
+ * applying the derived transformation to each of the images 
+ * deriving an average image of the transformed images, cleaning for 
+   cosmic-ray-events 
+.fi
+In order for IMCOADD to work best the images need to contain 5
+or more point-like sources. It will in general not work on star forming
+regions where most of the field is filled with diffuse emission from 
+gas and dust. 
+
+IMCOADD is modular in design and each step has a flag in the parameter 
+file related to it. The steps and flags are 
+
+.nf
+  1. Find the objects in the reference image (the first in the list of 
+     images) using DAOFIND: fl_find+ 
+  2. Derive the transformations using GEOMAP: fl_map+ 
+  3. Transform the images using GEOTRAN: fl_trn+ 
+  4. Derive the median image using IMCOMBINE: fl_med+ 
+  5. Derive the average image cleaned for cosmic-ray-events, using 
+     IMCOMBINE: fl_add+ 
+  6. Derive the average uncleaned image using IMCOMBINE: fl_avg+ 
+.fi
+
+The steps should be run in order of the flags. 
+If IMCOADD is used with \fIalignmethod\fR=user the most efficient
+way to run the full process is to call the script twice as follows. 
+
+.nf
+  1. First call with the flags set to
+        fl_find+ fl_map+ fl_trn- fl_med- fl_add- fl_avg- [fl_inter+]
+  2. Second call with the flags set to
+        fl_find- fl_map- fl_trn+ fl_med+ fl_add+ fl_avg+ 
+.fi
+
+If the input images contain few objects and DAOFIND cannot reliable
+be made to find them, the positions can be put in a file 
+in the format
+
+.nf
+   x    y    NoError  object-number 
+.fi
+
+(x,y) are the pixel coordinates, "NoError" makes IMCOADD act as if the
+coordinate file was from DAOFIND, and "object-number" is an object 
+number running from 1 to the total number of objects in the image. 
+The file should be named [reference]_pos, where "reference" is the 
+name of the first image in the list of images to process.
+
+Then run IMCOADD with the flags set to
+.nf
+  fl_find- fl_map+ fl_trn+ fl_med+ fl_add+ fl_avg+ [fl_inter+]
+.fi
+
+IMCOADD can be started from any intermediate result by setting the 
+preceding flags to "no" and the flags for the following actions 
+to "yes". For example, if to rederive the cleaned average image 
+rerun the task with the flags set to
+
+.nf
+     fl_find- fl_map- fl_trn- fl_med- fl_add+ fl_avg+ fl_overwrite+
+.fi
+
+\fIfl_overwrite\fR=yes will delete the existing output files that
+are about the be rederived.
+
+
+.nf
+2. Input files
+---------------
+.fi
+The input images should be given as a comma separated list, e.g. 
+.nf
+       images=image1,image2,image3,image4 
+.fi
+The input images can also be given as a file that lists one image per 
+line, e.g. 
+.nf
+       images=@imagelist 
+.fi
+where "imagelist" contains the image names.
+
+If the input images are MEF files and contain data quality planes,
+these can be used as the bad pixel masks by setting immasks="DQ".
+This is the default value of the parameter. If the input images are
+not MEF files, immasks="DQ" is ignored by the task.
+Individual bad pixel files can be given for the images to facilitate 
+masking of pixels that are only bad in one of the images. If individual
+bad pixel files are used, the number of entries in the parameter 
+\fIimmasks\fR need to be the same as the number of input images, e.g. 
+.nf
+       immasks="image1.msk,image2.msk,image3.msk,image4.msk" 
+.fi
+If not all the images require an individual bad pixel file, any of the 
+entries can be substituted with the word "none",
+e.g. 
+.nf
+       immasks="image1.msk,image2.msk,none,image4.msk" 
+.fi
+The individual bad pixel files can also be given as a file that lists 
+one bad pixel file per line, e.g. 
+.nf
+       immasks=@masklist 
+.fi
+where "masklist" contains the bad pixel file names. 
+
+The individual bad pixel files may either be IRAF mask files, or
+ascii files. IRAF mask files are assumed to have "0" in the good
+pixels and values larger than zero in the bad pixels.
+If ascii files are used for the individual bad pixel files, then
+the format must be as show in this example which 
+masks the image sections [1:50,1:50] and the pixel (250,235) 
+
+.nf
+       # trimmed 
+       1 50 1 50 
+       250 250 235 235 
+.fi
+
+If the first line in the file contains "# trimmed", IMCOADD will use 
+the file as it is. If the first line in the file contains 
+"# untrimmed", imcoadd will use the image header keyword TRIMSEC to 
+correct the mask file according to how the image was trimmed. 
+In this case, make sure that your images still contain the header 
+keyword TRIMSEC after the trimming. 
+
+A bad pixel file for the detector may be given either as an ASCII file
+in the same format as used for the individual bad pixel files or
+as an IRAF mask file.
+
+If you run with fl_find- fl_map+, IMCOADD will look for the 
+coordinate file [reference]_pos, where "reference" is the first 
+image in the list of input images. 
+
+.nf
+3. Output files
+----------------
+.fi
+Finding the objects (fl_find+) will result in a coordinate file named 
+[reference]_pos. 
+
+Deriving the transformations (fl_map+) will result in a database file 
+\fIdatabase\fR. The file is ASCII, and if necessary any failed fits
+may be deleted from it (see GEOMAP for details).
+Other output files from this step are 
+  
+.nf
+ [image]_pos     Coordinate files for the images, approximate positions
+ [reference]_cen Coordinate file for the reference image, positions 
+                 derived using APPHOT.CENTER with [reference]_pos as 
+                 the input file.
+ [image]_cen     Coordinate files for the other images, positions derived
+                 using APPHOT.CENTER with [image]_pos as the input file.
+ [image]_trn     Position input file for GEOMAP. The entry in \fIdatabase\fR
+                 will also be called [image]_trn. The file is made from
+                 [reference]_cen and [image]_cen
+.fi
+
+Applying the transformations (fl_trn+) results in transformed images 
+named [image]_trn. These images are sky subtracted. 
+In addition, the sky subtracted reference image [reference]_trn is 
+derived.  The subtracted sky level is stored in the header keyword 
+MED_SKY in [image]_trn and [reference]_trn.
+If the input images are MEF, the transformed images [image]_trn and
+[reference]_trn will be simple FITS.
+
+Deriving the median image (fl_med+) results in the following output files.
+  
+.nf
+ [image]_trn_mag      Photometry information used for scaling of the 
+                      intensity of the images.
+ [reference]_mag.tab  All the photometry information used for scaling 
+                      the intensity of the images.
+ [reference]_med      Median image. If the input images are MEF this image
+                      will be simple FITS.
+.fi
+
+Deriving the average image cleaned for cosmic-ray-events (fl_add+) 
+results in the following output files.
+  
+.nf
+ [reference]badpix.pl Bad pixel mask for reference image
+ [image]badpix.pl     Bad pixel mask for other images
+ [reference]_add      Cosmic-ray cleaned average image. If the input 
+                      images are MEF this image will also be MEF.
+                      If \fIoutimage\fR!="" [reference]_add will be 
+                      renamed to \fIoutimage\fR.
+.fi
+
+Deriving the uncleaned average image (fl_avg+) results in the output 
+image [reference]_avg. If the input images are MEF this image this image
+will be simple FITS.
+
+The median image should not be used for photometry. It should be 
+considered an intermediate step on the way to the cosmic-ray 
+cleaned average image. The uncleaned average image should only be 
+used for checking the output from the cosmic-ray cleaning. 
+
+Note, that if the input images are MEF files, the only output image that
+is also MEF is [reference]_add. This is also the only image that 
+contains complete header information.
+
+.nf
+4. Detailed description of the method
+--------------------------------------
+.fi
+4.1. Find the objects: fl_find+
+
+IMCOADD uses DAOFIND for finding the objects in the reference image.
+IMCOADD will determine the sky level using "midpt" from IMSTATISTICS. 
+The noise in the background is derived from the read-noise, gain and 
+the sky level. \fIdatamin\fR and \fIdatamax\fR are used as input for 
+DAOFIND. \fIdatamin\fR should be smaller than zero, to ensure correct 
+behavior of later steps. 
+
+4.2. Derive the transformations:  fl_map+
+
+IMCOADD uses GEOMAP for deriving the transformations that will register
+the images. These are the steps if \fIalignmethod\fR=user:
+
+.nf
+ 1. IMCOADD centers the objects in the reference image.
+ 2. IMCOADD displays the reference image.
+ 3. The user points to one (two if \fIrotate\fR=yes or \fIscale\fR=yes) 
+    object(s) 
+    to be used as common object(s) for all the images.
+ 4. IMCOADD displays the next image, called "current image" in the following.
+ 5. The user points to the same one/two object(s) in common.
+ 6. IMCOADD makes a first simple fit of the transformation (shift,
+    shift+rotation, or shift+rotation+scaling).
+ 7. IMCOADD matches the objects in [reference]_pos to the positions in 
+    the current image.
+ 8. IMCOADD derives accurate coordinates for the objects in the current
+    image using APPHOT.CENTER.
+ 9. IMCOADD uses GEOMAP iteratively to derive the transformation, using all 
+    the objects in common that were successfully centered in both images 
+    The parameters \fIgeofitgeom\fR, \fIorder\fR, \fIsigfit\fR, \fIniter\fR, 
+    and \fIcoolimit\fR are used in this process.
+   
+10. If \fIfl_inter\fR=yes, the user is after the last iteration left with 
+    geomap in interactive mode and can inspect the fit, change the fitting 
+    parameters and refit if necessary. A short help menu is printed.
+    When happy, the users exits geomap with "q".
+11. The steps  4-10 are repeated for the rest of the images.
+.fi
+
+If \fIalignmethod\fR=twodx, the steps 2-6 are replaced by 
+cross-correlation of two image sections specified in \fIasection\fR.
+The cross-correlation is done with IMAGES.IMMATCH.XREGISTER. The output
+from the cross-correlation is used for the first simple fit in step 6.
+It is important to ensure that \fIxwindow\fR is at least 
+twice the maximum pixel offsets between the successive input images.
+Otherwise XREGISTER will fail to find the cross-correlation peak.
+Further \fIxwindow\fR cannot be larger than the minimum size of 
+the image sections defined in \fIasection\fR. \fIxwindow\fR will be
+automatically reset to a smaller value if the input value is too
+large.
+
+If \fIalignmethod\fR=header, the steps 2-6 are replaced by reading
+the relevant header keywords and deriving the first rough estimates
+of the shifts in the X- and Y-directions from the values of these
+keywords.
+
+If \fIalignmethod\fR=wcs, the steps 2-6 are replaced by deriving
+the transformations based on the WCS in the headers.
+
+If \fIniter\fR=0, the transformation will not be improved past the
+first rough estimate. This may be useful if the individual frames
+do not contain any visible objects, but the header information is 
+accurate enough to allow co-addition of the images.
+
+4.3 Transform the images: fl_trn+
+
+IMCOADD uses GEOTRAN to transform the images according to the derived 
+transformations. Large values of \fIgeonxblock\fR and \fIgeonyblock\fR 
+causes the task to use more memory and run faster.
+
+If \fIgeointer\fR="nearest" no interpolation of pixel values is done.
+The noise characteristics of the transformed images is the same
+as for the input images and no correlated noise between the pixel
+values result from the transformation.
+
+IMCOADD derives the sky level of each of the images using IMSTATISTICS 
+iteratively. The resulting sky level is the "midpt" from IMSTATISTICS 
+for values within 5 times the expected noise in the background. 
+The expected noise is determined from the sky level, the read-noise 
+and the gain. The sky level is subtracted from each of the images. 
+The images are still called [reference]_trn and [image]_trn. The 
+subtracted sky level is recorded in the headers in the keyword MED_SKY. 
+
+4.4 Derive the median image: fl_med+
+
+IMCOADD derives the relative signal in each of the images from aperture
+photometry of the objects that were successfully centered in all the 
+images and that do not contain pixels outside the range defined by 
+\fIdatamin\fR and \fIdatamax\fR. \fIdatamin\fR should be smaller than 
+zero. \fIdatamax\fR should be the saturation level of the detector. 
+The aperture size should be large enough to eliminate differences in 
+the photometry due to small differences in the seeing, but small 
+enough to ensure that sky noise does not dominate (as it may in the 
+near-IR). 
+
+It is recommended to scale the images in intensity, \fIfl_scale\fR=yes.
+If \fIfl_scale\fR=no is used, even small differences in the signal
+between images will show up in the combined image as "missing" or 
+"extra" signal in objects where some pixels in some of the input 
+images are flagged as bad (either in the detector bad pixel file or 
+as a cosmic-ray hit). 
+To illustrate this, imagine a set of images where one image has 
+lower signal that the rest. An extended object with a few bad pixels 
+in the low-signal image will then on the co-added image have 
+slightly higher signal in that area (where the result is the mean of 
+all the high signals) than in the surrounding area (where the result 
+is the mean of all the high signals and one lower signal). 
+
+IMCOADD derives the median image, with the images scaled according to 
+their relative signal if \fIfl_scale\fR=yes. 
+The bad pixels as defined in [image]badpix.pl are excluded from the 
+median image. 
+
+IMCOADD will automatically turn off the scaling 
+(setting \fIfl_scale\fR=no) if no objects in common are found in 
+the images.
+
+4.5 Derive the cleaned average image: fl_add+
+
+For each input image are calculated 
+
+.nf
+*  A difference image: 
+   "difference image" = "transformed input image" - "median image" 
+*  A sigma image representing the local noise in the difference images 
+.fi
+
+Scalings and sky levels are taken into account. The \fIron\fR and the 
+\fIgain\fR are needed for these calculations. If \fIscalenoise\fR > 0, 
+then a noise term of "input image"*scalenoise is added in quadrature 
+to the sigma image. The purpose of \fIscalenoise\fR is to make it 
+possible to combine images with significant differences in the PSFs. 
+\fIscalenoise\fR=0 works for images with very little difference in the 
+FWHM of the PSFs, while \fIscalenoise\fR=0.3 can handle images with up 
+to 15-20% difference in the FWHM of the PSFs. When combining
+images with 15-20% difference in the FWHM of the PSFs using 
+\fIscalenoise\fR=0 the result may be that rings around the objects in 
+the image with the worst seeing get flagged as bad pixels. 
+
+Based on difference and the sigma images the deviating pixels are 
+identified. Deviating pixels satisfy one of the following criteria
+where N(image) is the number of ADU in a given pixel in an image: 
+.nf
+       N(median) <= limit  &&  N(difference) >= \fIlowsigma\fR * N(sigma) 
+       N(median) <= limit  &&  N(difference) >= \fIlowlimit\fR
+.fi
+For median signal below \fIlimit\fR pixels are flagged as deviating 
+if they deviate more than \fIlowsigma\fR times the local noise, or 
+with more than an absolute value of \fIlowlimit\fR. 
+For median signal above \fIlimit\fR no flagging is done.
+\fIlimit\fR should be set to approximately 15 times the noise in the 
+background. If the images have very different sky levels, it is
+recommended that to use an absolute \fIlimit\fR set to 15 times the 
+noise in the sky of the image with the lowest sky level. 
+In that case set \fIkey_limit\fR=no.
+
+If growthrad=1 then pixels neighboring the deviating pixels are also 
+identified as deviating. 
+
+The mask image [image]badpix.pl for each input image is updated to 
+include the deviating pixels as bad pixels. 
+
+IMCOADD derives the average image, with the images scaled according 
+to their relative signal if \fIfl_scale\fR=yes. 
+IMCOADD will automatically turn off the scaling 
+(setting \fIfl_scale\fR=no) if no objects in common are found in 
+the images.
+
+The bad pixels as defined in [image]badpix.pl are excluded from the 
+average image. 
+It is recommended to inspect the output [image]badpix.pl for possible 
+problems related to the cleaning of the images. If there are rings of 
+excluded pixels around all the stars in the images, then the difference
+in FWHM combined with the choice of \fIlimit\fR made IMCOADD exclude 
+pixels from the images with the worst seeing. 
+The solution to this is to use \fIscalenoise\fR=0.3 and/or a lower
+value of \fIlimit\fR. 
+
+4.6 Derive the uncleaned average image: fl_avg+
+
+IMCOADD derives the average image, with the images scaled according to 
+their relative signal if \fIfl_scale\fR=yes. 
+IMCOADD will automatically turn off the scaling 
+(setting \fIfl_scale\fR=no) if no objects in common are found in 
+the images.
+
+No pixels are excluded, and no cleaning takes place. 
+
+.nf
+5. Photometry from the combined cleaned image
+----------------------------------------------
+.fi
+The median image should not be used for photometry. It should be 
+considered an intermediate step on the way to the cosmic-ray 
+cleaned average image. The uncleaned average image should only be 
+used for checking the output from the cosmic-ray cleaning. 
+
+Science grade photometry should be derived from the cleaned average
+image [reference]_add.
+[reference]_add is on the same magnitude scale as the reference
+image, e.g. same exposure time and same airmass. If the reference
+image was obtained under photometric conditions, then photometry 
+derived from [reference]_add can be calibrated in the same way as 
+would be done for photometry from the reference image.
+
+To improve the absolute accuracy of the photometry derived from
+[reference]_add, the user may also derive relative offsets between
+[reference]_add and the input images. This is easiest done by
+deriving the photometry from [image]_trn, since these are all
+registered and therefore the same object coordinate file may be used
+for all the images.
+A planned upgrade to IMCOADD includes deriving all the magnitude
+offsets between [reference]_add and the input images.
+
+.nf
+6. Planned upgrades to IMCOADD
+-------------------------------
+The list is in the order of priority.
+
+1.  Optional use of the variance plane in MEF files.
+2.  Output files that are larger than the input files, instead of being
+    cropped to the size of the reference image.
+3.  Other algorithms for the rough alignment of the images, e.g. use
+    of a user-supplied list of offsets
+.fi
+
+
+.nf
+7. Reference for the procedure use in IMCOADD
+-----------------------------------------------
+.fi
+The procedure implemented in IMCOADD is described in 
+
+.nf
+    Jorgensen I., 2003, AJ, submitted
+.fi  
+
+
+.ih
+EXAMPLES
+
+1. Combine the images in "imagelist" using default values of all
+parameters
+
+.nf
+  cl> imcoadd @imagelist
+.fi
+
+.ih
+PERFORMANCE
+.nf
+Hardware: Ultra 30, CPU 300 Mhz, 1Gb RAM at 100 Mhz, 
+          SCSI3 hard drive
+.fi
+
+Combination of five 1kx1k NIRI images, \fIimmasks\fR="", 
+\fIalignmethod\fR=wcs and \fIverbose\fR=yes. Time for
+completion of all steps: 2 min 43 sec.
+
+Combination of eight GMOS images binned 2x2, \fIimmasks\fR="", 
+\fIalignmethod\fR=wcs and \fIverbose\fR=yes. Time for
+completion of all steps: 23 min.
+
+.ih
+BUGS AND LIMITATIONS
+
+IMCOADD works on IRAF images and simple FITS. It also works on MEF
+files that have one science extension. Processing of MEF files
+requires imtype="fits".
+
+If IMCOADD crashes a number of temporary files and images may be 
+left in the current directory. These have names starting with "tmp" 
+and should all be deleted before attempting another run. 
+
+IMCOADD crashes when any of the objects appear to have negative flux. 
+This may happen if the objects are very faint and the sky level 
+gets determined slightly too high.
+This bug can be avoided by setting the threshold high enough. 
+For manually provided positions for very faint objects, this bug may be
+difficult to avoid and difficult to fix, since the reason is an 
+untrapped floating point exception in IRAF. 
+
+Image names containing a '.' other than for the file name extension
+should be avoided as in some cases IMCOADD does not parse such image
+name correctly.
+.ih
+SEE ALSO
+geomap, geotran, images.immatch.xregister, wcsmap
+.endhelp

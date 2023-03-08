@@ -1,0 +1,42 @@
+.help ohead November2011 gemini.oscir
+.ih
+NAME
+ohead -- Print header info for OSCIR image
+.ih
+USAGE
+ohead inimages
+.ih
+PARAMETERS
+.ls inimages
+Input image(s).
+.le
+.ls fl_showqa = yes
+Print quality assurance header fields.
+.le
+.ih
+DESCRIPTION
+
+Prints frame and header information for OSCIR images.
+Frame information includes number of chop and nod
+positions, number of savesets, number of nodsets and
+total number of frames.  Optionally (\fIfl_showqa\fR = yes),
+header fields associated with Gemini quality assurance
+are printed.  Screen display only; no information is logged.
+.ih
+EXAMPLES
+1.  Print frame info only.
+.sp
+.nf
+    cl> ohead 00dec03_018 fl_showqa-
+.fi
+2.  Print frame and gemqa info.
+.sp
+.nf
+    cl> ohead 00dec03_018 fl_showqa+  ; default
+.fi
+.ih
+BUGS AND LIMITATIONS
+.ih
+SEE ALSO
+oscirinfo, oview, obackground
+.endhelp

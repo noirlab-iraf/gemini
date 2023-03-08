@@ -1,0 +1,122 @@
+.help gemscombine January2015 gemini.gemtools
+.ih
+NAME
+gemscombine -- Combine spectra aperture by aperture for each extension version in a list of MEFs
+.ih
+USAGE
+
+gemscombine inimages out_image.fits
+.ih
+PARAMETERS
+.ls inimages
+List of MEF files containing extracted spectra to combine
+.le
+.ls outimage
+Output MEF image.
+.le
+.ls combine = "average" ("average|median|sum")
+Type of combining operation performed by IMCOMBINE on the final set of pixels
+after resampling by SCOMBINE.
+.le
+.ls reject = "avsigclip" ("none|minmax|ccdclip|crreject|sigclip|avsigclip|pclip")
+Type of rejection operation performed on the pixels remaining after resampling
+by SCOMBINE and thresholding. The algorithms are described in the help for
+IMCOMBINE.
+.le
+.ls scale = "none"
+Multiplicative image scaling to be applied.
+.le
+.ls zero = "none"
+Additive zero level image shifts to be applied.  
+.le
+.ls weight = "none"
+Weights to be applied during the final combining.  
+.le
+.ls sample = ""
+Wavelength sample region for statistics
+.le
+.ls section = "default"
+Image section used during combing. "default" means use all of the image area
+.le
+.ls lthreshold = INDEF, hthreshold = INDEF
+Low and high thresholds to be applied to the input pixels. This is done
+before any scaling, rejection, and combining. If INDEF the thresholds
+are not used. [An internal value of -9999.0 is used for lthreshold if INDEF is
+used].
+.le
+.ls nlow = 0, nhigh = 1 (minmax)
+The number of low and high pixels to be rejected by the "minmax" algorithm.
+.le
+.ls lsigma = 3., hsigma = 3.
+Low and high sigma clipping factors for the "ccdclip", "crreject", "sigclip",
+"avsigclip", and "pclip" algorithms.  
+.le
+.ls radius = 0.
+Grow radius for bad pixels
+.le
+.ls project = no
+Project highest dimension of input images?
+.le
+.ls fl_vardq = no
+Propagate variance and data quality planes?
+.le
+.ls logfile = ""
+Name of log file. Default is "gemtools.log"
+.le
+.ls verbose = yes
+Verbose?
+.le
+.ls status 0
+Exit status. (0=good; 1=error)
+.le
+.ls scanfile ""
+For internal use only.
+.le
+.ih
+DESCRIPTION
+
+GEMSCOMBINE can be used to combine the same aperture(s) from the same extension
+version and name from multiple MEF files. The spectra should have been
+extracted before using GEMSCOMBINE.
+
+For each aperture in a given extension version for each input image, the
+aperture's maximum limits in the wavelength are calculated and a mean dispersion
+is determined using the input dispersion values.
+
+Then each of the apertures for the given extension version are resampled using
+SCOMBINE according to the limits and dispersion previously determined.
+
+This is repeated for background extensions (if present), and variance and data
+quality extensions too (if \fIfl_vardq\fR=yes and present).
+
+If data quality extensions exist and \fIfl_vardq\fR=yes, pixels represented as
+bad in the resampled data quality spectrum are replaced in the all other
+extension types (including the science extension)  with the value
+(\fIlthreshold\fR - 1). 
+
+After this, each extension version for a given extension type in all input
+images are combined using IMCOMBINE, output pixels that have no input
+contribution to them are interpolated across, along the dispersion axis, using
+FIXPIX.
+.ih
+EXAMPLES
+
+1. Combine spectra from multiple GMOS MOS data that have been dithered to
+cover the chip gaps and have been rectified, wavelength calibrated, sky
+background subtracted and extracted.
+
+.nf
+    cl> gemscombine estgs@inlist.lis outcomb.fits
+.fi
+.ih
+LIMITATIONS
+
+GEMSCOMBINE has undergone limited testing and should be considered experimental.
+
+Data quality bit information my either be lost or merged into a single bit
+value of 1 when \fIfl_vardq\fR=yes.
+.ih
+SEE ALSO
+
+SCOMBINE, IMCOMBINE, FIXPIX
+.endhelp

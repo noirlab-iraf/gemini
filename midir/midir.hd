@@ -1,0 +1,48 @@
+# Copyright(c) 2003-2011 Association of Universities for Research in Astronomy, Inc.
+#
+# Help directory for the midir package
+
+$doc = "midir$doc/"
+
+# Michelle specific tasks
+mprepare           hlp = doc$mprepare.hlp, src=midir$mprepare.cl
+mview              hlp = doc$mview.hlp, src=midir$mview.cl
+mcheckheader       hlp = doc$mcheckheader.hlp, src=midir$mcheckheader.hlp
+
+# TReCS specific tasks
+tprepare           hlp = doc$tprepare.hlp, src=midir$tprepare.cl
+tbackground        hlp = doc$tbackground.hlp, src=midir$tbackground.cl
+tview              hlp = doc$tview.hlp, src=midir$tview.cl
+tcheckstructure    hlp = doc$tcheckstructure.hlp, src=midir$tcheckstructure.cl
+
+# Imaging tasks
+miview             hlp = doc$miview.hlp, src=midir$miview.cl
+miflat             hlp = doc$miflat.hlp, src=midir$miflat.cl
+mistack            hlp = doc$mistack.hlp, src=midir$mistack.cl
+miregister         hlp = doc$miregister.hlp, src=midir$miregister.cl
+mireduce           hlp = doc$mireduce.hlp, src=midir$mireduce.cl
+miclean            hlp = doc$miclean.hlp, src=midir$miclean.cl
+mipsf              hlp = doc$mipsf.hlp, src=midir$mipsf.cl
+mistdflux          hlp = doc$mistdflux.hlp, src=midir$mistdflux.cl
+
+# Michelle polarimetry reductions
+mipsplit           hlp = doc$mipsplit.hlp, src=midir$mipsplit.cl
+mipstack           hlp = doc$mipstack.hlp, src=midir$mipstack.cl
+mipstokes          hlp = doc$mipstokes.hlp, src=midir$mipstokes.cl
+miptrans           hlp = doc$miptrans.hlp, src=midir$miptrans.cl
+mipsstk            hlp = doc$mipsstk.hlp, src=midir$mipsstk.cl
+mipql              hlp = doc$mipql.hlp, src=midir$mipql.cl
+
+# Spectroscopy tasks
+msreduce           hlp = doc$msreduce.hlp, src=midir$msreduce.cl
+mstelluric         hlp = doc$mstelluric.hlp, src=midir$mstelluric.cl
+msabsflux          hlp = doc$msabsflux.hlp, src=midir$msabsflux.cl
+msdefringe         hlp = doc$msdefringe.hlp, src=midir$msdefringe.cl
+msflatcor          hlp = doc$msflatcor.hlp, src=midir$msflatcor.cl
+msslice            hlp = doc$msslice.hlp, src=midir$msslice.cl
+
+# Cook book task
+midirinfo          hlp = doc$midirinfo.hlp
+midirexamples      hlp = doc$midirexamples.hlp
+
+

@@ -1,0 +1,165 @@
+.help gloginit October2004 gemini.gemtools
+.ih
+NAME
+gloginit -- Initialize a Gemini log file.
+.ih
+USAGE
+gloginit logfile curtask curpack paramstr
+.ih
+PARAMETERS
+.ls logfile
+The name of the Gemini logfile.  If left empty, GLOGINIT will successively look
+for the \fIlogfile\fR parameter in GLOGPARS then in the current package.  If
+still undefined, the current package name will be used (e.g. midir.log).
+.le
+.ls curtask
+The name of the current task, i.e. the name of the task calling GLOGINIT.  
+This name will be added to the log entries.
+.le
+.ls curpack
+The name of the current package, i.e. the name of the package the calling task 
+is part of.  This will be used to define the default name of the logfile, if it 
+has not been defined by the user.
+.le
+.ls paramstr
+A user formatted list of the current task's parameter/value pairs to be written
+to the Gemini log file.  The line delimiter is '\n'.
+.le
+.ls fl_append = yes
+If set to 'yes', the new entries will be appended to the Gemini log file,
+\fIlogfile\fR.  If the logfile does not exist, it will be created.  If set to 
+'no', a new logfile will be created and an error will occur if the file 
+already exists.
+.le
+.ls glogpars = ""
+The name of the text file containing the Gemini logging preferences parameters. 
+The parameters relating to the entry levels to be written are found here.  If
+\fIglogpars\fR is undefined then the default parameter set in the uparm 
+directory is used.
+.le
+.ls verbose = yes
+Print log entries to the screen as well as to the logfile.
+.le
+.ls status = 0
+Exit status will be non-zero if the GLOGINIT halted with an error.  This
+parameter is always set by the task, and should not be modified by the user.
+.le
+.ih
+DESCRIPTION
+Before a task can write to a Gemini log file, this log file should be
+initialized with GLOGINIT.  GLOGINIT will determine the name of the logfile,
+and create it, if necessary. Then a set of entries including the begin-of-entries
+(BOE) tag (used by GLOGEXTRACT), and the date and time, will be appended to the
+logfile.  If a list of task parameters and values, \fIparamstr\fR, is provided,
+it will also be written to the logfile at that time.
+
+GLOGINIT first attempts to determine the name of the logfile by successively 
+looking at the parameters \fIgloginit.logfile\fR, \fIgemlogpars.logfile\fR, and 
+\fIcurpack.logfile\fR, where \fIcurpack\fR stands for the name of package in 
+which the calling task resides.  That package name is specified
+with the parameter \fIcurpack\fR.  If GLOGINIT does not find a logfile name, a
+default name based on \fIcurpack\fR will be used.  Taking as an example the task
+MIREDUCE in the MIDIR package, GLOGINIT would look successively for the logfile 
+name in 'gloginit.logfile', 'gemlogpars.logfile', then 'midir.logfile'; the 
+default logfile name would be "midir.log".
+
+The standard entries are the begin-of-entries (BOE) tag, and a date and time
+string.  The BOE tag is required by GLOGEXTRACT and it is always written to the
+logfile.  The date and time string is given a 'Status' log level (see help on 
+GEMLOGPARS for definition) and will therefore not be written if the user sets
+\fIgemlogpars.fl_status\fR to 'no'.
+
+A listing of the calling task's parameter/value pairs can be written to the
+logfile by using the string parameter \fIparamstr\fR.  That string must be
+already formatted, using '\n' as a line delimiter.  GLOGINIT will parse the
+string and append each line to the logfile as individual entries.  Those entries
+are 'Task' level entries (see GEMLOGPARS).  Example 3, below, shows how to
+format the \fIparamstr\fR string.
+
+A Gemini log file, opened with GLOGINIT, should always be "closed" with
+GLOGCLOSE.  Failure to do so will prevent GLOGEXTRACT from working correctly.
+.ih
+EXAMPLES
+In the examples below, the program mode syntax is used as GLOGINIT will most
+often be used in a procedure script.  Indeed, by its very nature, GLOGINIT has
+a limited pratical use in command mode (CL prompt).
+.sp
+1. To create and initialize a new Gemini log file, named 'dataredux.log', from
+the task MIDIR.MPREPARE. In this example, the parameter list is left empty:
+.sp
+.nf
+   gloginit ("dataredux.log", "mprepare", "midir", "", fl_append-)
+.fi
+.sp
+This will write the following lines to "dataredux.log":
+.sp
+.nf
+    BOE  MPREPARE 20040317-170557
+    STAT MPREPARE Log opened at [Wed 17:05:57 17-Mar-2004]
+    VIS  MPREPARE
+.fi
+.sp
+2. To let the task define the logfile name.  GLOGINIT will first look in the
+user defined GLOGPARS, then in the current package parameter file (midir.cl in 
+this example).  If it finds nothing, it will use a default value based on the 
+current package name.
+.sp
+.nf
+   gloginit ("","mprepare","midir", "", fl_append+)
+.fi
+.sp
+Assuming that \fIglogpars.logfile\fR = "" and \fImidir.logfile\fR = "", the
+logfile name, in this example, will be set to "midir.log".  A warning will be
+written to the logfile.
+.sp
+3. To add a parameter list, it must first be defined and formatted.
+.sp
+.nf
+   ...
+   char paramstr
+   ...
+   # Create the list of parameter/value pairs.  One pair per line.
+   # All lines combined into one string.  Line delimiter is '\n'.
+   paramstr =  "inimages   = "//inimages.p_value//"\n"
+   paramstr += "rawpath    = "//rawpath.p_value//"\n"
+   paramstr += "outimages  = "//outimages.p_value//"\n"
+   paramstr += "outprefix  = "//outprefix.p_value//"\n"
+   paramstr += "logfile    = "//logfile.p_value//"\n"
+   paramstr += "sci_ext    = "//sci_ext.p_value//"\n"
+   paramstr += "key_sat    = "//key_sat.p_value//"\n"
+   paramstr += "key_filter = "//key_filter.p_value//"\n"
+   paramstr += "database   = "//database.p_value//"\n"
+   paramstr += "verbose    = "//verbose.p_value
+
+   # Initialize and start writing to the Gemini log file
+   gloginit (l_logfile, "mprepare", "midir", paramstr, fl_append+,
+       verb=l_verbose)
+.fi
+.sp
+The above call would append to the logfile a set of entries similar to the
+following:
+.sp
+.nf
+   BOE  MPREPARE 2004-04-28T16:01:45
+   STAT MPREPARE Log opened at [Wed 16:01:45 28-Apr-2004]
+   VIS  MPREPARE 
+   VIS  MPREPARE -----------------------------------------------------------
+   TSK  MPREPARE Input Parameters:
+   TSK  MPREPARE      inimages   = N*.fits
+   TSK  MPREPARE      rawpath    = 
+   TSK  MPREPARE      outimages  = 
+   TSK  MPREPARE      outprefix  = m
+   TSK  MPREPARE      logfile    = 
+   TSK  MPREPARE      sci_ext    = SCI
+   TSK  MPREPARE      key_sat    = SATURATI
+   TSK  MPREPARE      key_filter = FILTER
+   TSK  MPREPARE      database   = midir$midir.dat
+   TSK  MPREPARE      verbose    = yes
+   VIS  MPREPARE -----------------------------------------------------------
+.fi
+.ih
+BUGS AND LIMITATIONS
+.ih
+SEE ALSO
+glogpars, glogclose, glogprint, glogextract, gemlog
+.endhelp

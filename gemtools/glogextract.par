@@ -1,0 +1,17 @@
+# Copyright(c) 2004-2006 Association of Universities for Research in Astronomy, Inc.
+
+# GLOGEXTRACT parameters
+
+logfile,s,a,,,,"Logfile name"
+taskname,s,h,"",,,"Retrieve logs for this task"
+block,s,h,"",,,"Which occurence of the task (e.g. first,last,2,...)"
+ltime,s,h,"",,,"Lower limit on the time range"
+utime,s,h,"",,,"Upper limit on the time range"
+fl_child,b,h,yes,,,"Include logs from the child processes"
+nchild,i,h,INDEF,,,"Maximum number of subprocess levels"
+fl_stat_level,b,h,no,,,"Retrieve status level logs"
+fl_tsk_level,b,h,no,,,"Retrieve task level logs"
+fl_sci_level,b,h,no,,,"Retrieve science level logs"
+fl_eng_level,b,h,no,,,"Retrieve engineering level logs"
+fl_vis_level,b,h,no,,,"Retrieve visual (readability) level logs"
+status,i,h,0,,,"Exit status (0=good)"

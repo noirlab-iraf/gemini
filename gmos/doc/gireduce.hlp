@@ -1,0 +1,504 @@
+.help gireduce October2015 gemini.gmos
+.ih
+NAME
+gireduce -- Reduce images from GMOS (overscan, trim, bias, dark, flat)
+.ih
+USAGE
+gireduce inimages 
+.ih
+PARAMETERS
+.ls inimages
+GMOS images to process. Can be a list of images. Wild cards are supported.
+Only data taken in image mode are accepted. 
+Images can be either raw or partly processed with \fIgprepare\fR and/or
+\fIgireduce\fR. 
+Directory names should not be included as part of the image names.
+All images must be in multi-extension FITS (MEF) format. 
+.le
+.ls outpref = "r"
+Prefix of output image names. Names of output images will be the names of
+the input images with the prefix attached. \fIoutpref\fR is used if 
+\fIoutimages\fR="". 
+.le
+.ls outimages = ""
+Output MEF images. The parameter can be one single image name, a list of 
+images or a list file. \fIoutimages\fR has precedence over \fIoutpref\fR. 
+.le
+.ls fl_over = yes
+Apply overscan correction by fitting and subtracting the overscan 
+level. If "yes", the parameter \fIkey_biassec\fR is used to 
+query the overscan section parameters from the header. 
+.le
+.ls fl_trim = yes
+Trim the image.  If "yes", the image is trimmed to keep only the sections 
+defined by the parameter \fIkey_datasec\fR.
+.le
+.ls fl_bias = yes
+Subtract the bias image. If "yes", the bias image must be 
+specified by the \fIbias\fR parameter.
+.le
+.ls fl_dark = no
+Subtract the (scaled) dark image.  
+If "yes", the dark image must be specified by the \fIdark\fR parameter.
+.le
+.ls fl_qecorr = no
+Quantum efficiency (QE) correct your input data? If "yes" and the input data
+are spectroscopic, a wavelength reference image (\fIqe_refim\fR) or QE
+correction image (\fIqe_corrimages\fR) must be supplied. For imaging data, no
+reference or correction images are required. Images must have been or be about
+to be BIAS or DARK subtracted. For more detailed information, please read the
+help for GQECORR. WARNING: This parameter is only applicable for imaging data
+when taken with the GMOS-S Hamamatsu CCDs. For spectroscopy, it is currently
+unavailable for the GMOS-N e2vDD detectors (for which there are no calibration
+data).
+.le
+.ls fl_flat = yes
+Divide by the flat field. The flat field image names are taken from
+the parameters \fIflat1\fR, \fIflat2\fR, \fIflat3\fR and \fIflat4\fR.
+.le
+.ls fl_vardq = no
+Create or propagate the variance and data quality images? A meaningful 
+variance plane based on photon statistics can only be created if bias 
+subtracting.
+.le
+.ls fl_addmdf = no
+Add mask definition file. Only applicable for longslit, MOS, or IFU modes.
+.le
+.ls bias = ""
+Bias image to be subtracted.  This image must be in MEF format with 
+the same number of extensions as the input \fIinimages\fR images.  
+If \fIfl_vardq\fR set to "yes", \fIbias\fR should also contain 
+variance and data quality extensions.  The bias
+image \fIbias\fR should be created using the GBIAS task. 
+.le
+.ls dark = ""
+Dark image to be scaled and subtracted if \fIfl_dark\fR=yes.
+This image must be in MEF format with the same number of extensions as the
+input \fIinimages\fR images.  If \fIfl_vardq\fR set to "yes", \fIdark\fR 
+should also contain variance and data quality extensions. 
+The dark correction image \fIdark\fR should be created using the 
+GDARK task (not yet released).  The \fIkey_exptime\fR parameter must be 
+set correctly for proper exposure scaling of the \fIdark\fR.
+The dark current for GMOS is very low (< 1 e-/hour) and the subtraction 
+of a dark image in generally not needed.
+.le
+.ls flat1 = ""; flat2 = ""; flat3 = ""; flat4 = ""
+Flat field images in up to four different filters can be set. If the input
+images \fIinimages\fR were observed with more than one filter, GIREDUCE 
+will figure out which flat field image to use for each filter by 
+comparing content of the header keyword \fIkey_filter\fR.
+.le
+.ls qe_refim = ""
+Wavelength reference image used as template to create the QE correction image.
+For spectroscopic data only. This file must contain a GSAPPWAVE wavelength
+solution. It is recommended to use FLAT images for this. For MOS and MOS 
+nod-and-shuffle data a combined FLAT (see the \fIcombflat\fR parameter in 
+GSFLAT) that has been GSCUT using the gradient method is preferred. For more 
+detailed information please read the gmos example for your given observation
+mode. This parameter accepts a list of files. However, if a list is supplied
+there must be one reference image for each input image. In either case the 
+reference image must have been observed with the same observing set up as 
+the corresponding input image(s).
+.le
+.ls fl_keep_qeim = no
+Keep the image that is created to QE correct the input data? Spectroscopy only.
+.le
+.ls qe_corrpref = "qecorr"
+Prefix added to \fIqe_refim\fR to name the output QE correction image.
+.le
+.ls qe_corrimages = ""
+Either output name for the QE correction image when creating the QE correction
+image for the first time, or a previously created QE correction image to be 
+used to QE correct the input data instead of creating one from 
+scratch. This parameter accepts a list. If using this parameter to supply
+the output name for a new created QE correction image, the list must contain 
+the same number of entries as \fIqe_refim\fR. Or if supplying the names of 
+previously created QE correction images, the number of supplied names must be 
+the same as the number of input images or just one that will be applied to all.
+Previously created QE correction images must have the same observing set up 
+as the input images.
+.le
+.ls qe_data = "gmosQEfactors.dat"
+Database file that contains the QE fit coefficients and factors to be used when
+creating the QE correction image (spectroscopy) or QE correcting the data
+directly (imaging only).
+.le
+.ls qe_datadir = "gmos$data/"
+Directory containing the file given in \fIqe_data\fR.
+.le
+.ls key_exptime = "EXPTIME"
+Image header keyword to be used for scaling the dark calibration image.  
+.le
+.ls key_biassec = "BIASSEC"
+Header keyword defining the overscan sections. 
+.le
+.ls key_datasec = "DATASEC" 
+Header keyword containing the CCD data section
+(excludes the overscan section). 
+.le
+.ls rawpath = ""
+Path for the directory containing the raw GMOS images.
+.le
+.ls gp_outpref = "g"
+Prefix used to name the output images created with GPREPARE.
+.le
+.ls sci_ext = "SCI"
+Name of the MEF extension containing the science data.
+.le
+.ls var_ext = "VAR"
+Name of the MEF extensions containing the variance frame.
+.le
+.ls dq_ext = "DQ"
+Name of the MEF extensions containing the data quality array.
+.le
+.ls key_mdf = "MASKNAME"
+Header keyword for Mask Definition File.
+.le
+.ls mdffile = ""
+MDF file is header keyword \fIkey_mdf\fR is not found.
+.le
+.ls mdfdir = "gmos$data/"
+Directory of Mask Definition Files.
+.le
+.ls bpm = ""
+The bad pixel mask name is used only if \fIfl_vardq\fR=yes. It is 
+recommended that \fIbpm\fR  be created using the GBPM task.
+.le
+.ls gaindb = "default"
+Database file containing the GMOS gain data. The default value for \fIgaindb\fR
+is gmos$data/gmosamps.dat.
+.le
+.ls sat = "default"
+Saturation level of raw images in ADU.
+The default value of \fIsat\fR for the EEV CCDs is 65000 ADU. For the GMOS-N
+e2vDD and GMOS-S Hamamatsu CCDs each individual amplifier has its own
+saturation value. For more information about the saturation levels used as the
+default please read the help file for the task GSAT, as this calculates the
+default saturation levels. Note for GMOS-S Hamamatsu CCDs the determined
+saturation value is scaled by a factor of 0.98 (using the scale parameter for
+GSAT). This is because the overscan fit is not of order 1 for GMOS-S Hamamatsu
+data.
+.le
+.ls key_nodcount="NODCOUNT"
+Header keyword with number of nod cycles 
+(only important in Nod-and Shuffle).
+.le
+.ls key_nodpix = "NODPIX"
+Header keyword with shuffle distance
+(only important in Nod-and Shuffle)
+.le
+.ls key_filter = "FILTER2"
+Image header keyword of the imaging filter. Used to match input images
+\fIinimages\fR to the appropriate flat field image \fIflat1\fR, 
+\fIflat2\fR, \fIflat3\fR, or \fIflat4\fR. 
+.le
+.ls key_ron = "RDNOISE"
+Header keyword for the read noise in electrons.
+.le
+.ls key_gain = "GAIN"
+Header keyword for the gain.
+.le
+.ls ron = 3.5
+Default read noise to use if the \fIgaindb\fR is not available and 
+the header keyword is not found.
+.le
+.ls gain = 2.2
+Default gain to use if the \fIgaindb\fR is not available and 
+the header keyword is not found.
+.le
+.ls fl_mult = yes
+Multiply by the gains using GGAIN to get output in electrons.
+.le
+.ls fl_inter = no
+Fit the overscan level interactively. 
+.le
+.ls median = no
+Take the median of the bias columns. If 
+\fImedian\fR=no, then the bias columns are averaged. 
+.le
+.ls function = "chebyshev" (spline3|legendre|chebyshev|spline1)
+Function fit to the overscan level.
+.le
+.ls nbiascontam = "default"
+Number of columns removed from the overscan region before subtracting.
+The default value of \fInbiascontam\fR for the EEV and GMOS-S Hamamatsu CCDs is
+4. Whereas, a default value of 5 is used for the GMOS-N e2vDD
+CCDs. \fInbiascontam\fR is used when \fIfl_over\fR=yes. The overscan regions of
+GMOS CCDs have some photon bleeding from the science frame. \fInbiascontam\fR
+is the number of columns next to the data section that are not used when
+calculating the overscan to subtract.
+.le
+.ls biasrows = "default"
+Rows to use in bias region. If \fIbiasrows\fR = "default", the entire 
+length of overscan region is used. Value must be of the form "x1:x2" where 
+x1 is the starting pixel row and x2 is the final pixel row. e.g. "3:64"  
+.le
+.ls order = "default"
+Order of the fitting function to the overscan level. If \fIorder\fR = "default"
+a value of 1 is used for all detector types except for the GMOS-S Hamamatsu
+CCDs. The default value for GMOS-S Hamamatsu CCDs is 7.
+.le
+.ls low_reject = 3., high_reject = 3.
+Low and high sigma rejection factor in overscan fitting. 
+.le
+.ls niterate = 2
+Maximum number of rejection iterations in overscan fitting. 
+.le
+.ls maxfiles = 200
+Maximum number of input images that can be supplied to gireduce.  This is
+not to be set by the user.  This is used externally, for example from 
+another script, to learn how many files can be sent to gireduce.
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes the task use the logfile
+defined by gmos.logfile.
+.le
+.ls verbose = yes
+Print actions to the screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted 
+with an error. This parameter is set by the task and should not be 
+modified by the user.
+.le
+.ih
+DESCRIPTION
+GIREDUCE reduces GMOS data taken in imaging mode only. 
+Overscan subtraction, bias subtraction, dark subtraction,
+and flat field correction in this order are the operations that GIREDUCE 
+can perform. 
+
+The input images can be raw or prepared with GPREPARE. At a maximum, 200 
+images can be reduced at once. If the number of input images is larger 
+than 200, the task will exit with an error message. The input images 
+\fIinimages\fR can be as a list of images containing the GMOS image names
+(@list), a comma-separated list of images, wild cards (e.g. N20020207S*),
+or question mark (e.g. N20020207S00?.fits). If the input images have 
+already been processed through the steps requested, the processing steps 
+will not be performed. 
+
+If any of the input images have not been processed with GPREPARE, 
+GPREPARE will be called. The input images can be a combination of raw 
+and GPREPAREd images. 
+
+The output images are taken from the parameter \fIoutimages\fR or
+\fIoutpref\fR. If \fIoutimages\fR is a file (@file), GIREDUCE will 
+check that each file name does not already exist. If any of the output 
+images already exists, the task will exit announcing that the number 
+of input and output images is not the same. 
+
+If any of the required calibration files (\fIflat1-4\fR, \fIbias\fR, or
+\fIdark\fR) does not exist, the task will exit. All calibration files must
+be created with GMOS tasks. Flat field images must be created with 
+GIFLAT, bias images with GBIAS, and dark images with GDARK (not yet
+distributed), otherwise GIREDUCE will exit. 
+
+.ih
+Overscan subtraction
+The overscan subtraction is done with the task COLBIAS on each MEF 
+extension separately. The overscan region is defined in the image 
+header and accessed via the parameter \fIkey_biassec\fR. If the parameter
+\fImedian\fR is "yes", the
+median of the overscan columns is taken, otherwise, the columns are 
+averaged. 
+The resulting vector is then fit with a \fIfunction\fR that can be 
+"legendre", "chebyshev", "spline1", or "spline3" with an order set by the
+parameter \fIorder\fR. Pixels can be rejected with sigma rejection factors
+\fIlow_reject\fR and \fIhigh_reject\fR iterating up to a maximum of
+\fIniterate\fR times. The logfile in COLBIAS is not kept. 
+COLBIAS can be run interactively is \fIfl_inter\fR is "yes". The 
+overscan level (OVERSCAN)  and the rms in the overscan fit (OVERRMS) 
+are kept in the image header of the science extension file. 
+
+If high accuracy is required, overscan subtraction from both the science image
+and the bias image is recommended. Subtracting an overscan subtracted bias 
+from an overscan subtracted science image will eliminate any bias offset 
+fluctuations in time as well as minimize any spatial bias structure. 
+Thus, the recommendation is to run both GBIAS and GIREDUCE with 
+\fIfl_over\fR=yes.
+
+.ih 
+Trimming
+The section \fIdatasec\fR of the input image is copied to the output. 
+This ensures the entire overscan section is trimmed.
+
+.ih
+Bias subtraction
+The first step in the bias subtraction is to check that the bias image 
+\fIbias\fR exists and was created by the task GBIAS, otherwise, GIREDUCE 
+will exit.  To check if the bias image was created by the task GBIAS, 
+GIREDUCE expects to find the keyword "GBIAS" in the header of the bias
+image. If bias subtraction is requested, GIREDUCE expects
+to not find the keyword BIASIM in the header of the input image.
+
+In the following four cases, the task will warn the user of a 
+problem and will not perform the bias subtraction, however the task 
+will continue with the reduction:
+.nf 
+If the number of extension of the input image and the bias image do not 
+match; if the detector readout region (as found in the image header 
+under the keyword "DETSEC") of the input image and the bias do not match; 
+if the detector binning (as found in the image header keyword CCDSUM)
+of the input image and the bias do not match;
+if the input image has already been bias subtracted. 
+(If bias subtraction is requested, GIREDUCE expects
+to not find the keyword BIASIM in the header of the input image.)
+.fi
+Next, if the above checks are passed, each science extension of the bias 
+image is subtracted from that of the input image. 
+
+.ih
+Dark subtraction
+The first step in the dark subtraction is to check that the dark image 
+\fIdark\fR exists and was created by the task GDARK, otherwise, the task 
+will exit. To check if the dark image was created by the task GDARK, 
+GIREDUCE expects to find the keyword "GDARK" in the header of the dark
+image.  GDARK is not yet distributed. However, the dark current for GMOS
+is sufficiently low ( < 1 e-/hour ) that in general dark subtraction is 
+not needed.
+GIREDUCE will warn the user of a problem in the same cases as for
+the bias subtraction (number of extensions, detector readout region,
+detector binning); and if the input image has already been dark
+subtracted.
+(If dark count subtraction is requested, GIREDUCE expects
+to not find the keyword DARKIM in the header of the input image.)
+
+If the above checks are passed, the dark image is scaled to the 
+exposure time of the science image, using the exposure times as 
+given in the header keyword \fIkey_exptime\fR. The scaled dark image
+is then subtracted.
+
+.ih
+Flat field correction
+The first step in the flat field division is to match the input image to 
+one of the four flat field images \fIflat1-4\fR. This is done with the 
+header keyword \fIkey_filter\fR. If this keyword is not set and flat 
+field correction is requested or if the header keyword \fIkey_filter\fR 
+is not found in the header of each flat field image, the task will exit. 
+The flat field images have to be reduced with the task GIFLAT, 
+otherwise the GIREDUCE will not perform the flat field correction. 
+For each input image, the keyword \fIkey_filter\fR is matched to one of 
+the flat field images. 
+
+GIREDUCE will warn the user of a problem in the same cases as for the 
+bias and dark subtraction (number of extensions, detector readout region,
+detector binning); if there is no match between the filters of the 
+flat field images and the input image; 
+if the input image OBSMODE and that of the flat field image do not match 
+(they should be both be "IMAGE" indicating that the data is imaging); 
+and if the input image has already been flat field corrected.
+(If flat field correction is requested, GIREDUCE expects
+to not find the keyword FLATIM in the header of the input image.)
+
+If the above checks are passed, each science extension of the input 
+image is converted to electrons (by multiplying by its gain as found in 
+the header under the keyword \fIkey_gain\fR flat field image) and 
+divided by the flat field image. 
+
+.ih 
+Creation of variance and data quality plane
+
+
+The data quality plane is created by combining the bad pixel mask given 
+by \fIbpm\fR with the pixels found to be saturated in the data. The 
+saturation level is defined by the parameter \fIsat\fR. If the bad pixel 
+mask is not found or \fIbpm\fR is an empty string, only saturated pixels 
+are flagged.
+
+The following warnings and errors apply when creating VAR and DQ planes:
+
+.in 5
+- the extension names for the VAR and DQ planes should be defined or the task 
+will exit with an error (the extension name for the science plane should 
+ALWAYS be defined).
+
+- if either key_ron or key_gain are empty, the task will exit with an error. 
+They should be set to a dummy name if the read noise or gain are to be taken 
+from the task rather than from the header.
+
+- if the keyword for the section of the CCD containing data (excluding 
+overscan) \fIkey_datasec\fR is not defined, the task will exit with an error.
+
+- if using an imaging mode BPM as a basis for the DQ planes for spectra, the 
+task will issue a warning and continue. An imaging mode BPM will have 
+pixels outside the imaging field of view set to bad, while these pixels
+are not bad for spectral data.
+
+- if the data section for data and BPM are not the same, the task will 
+exit with an error (this has to be updated to allow for data taken on windowed 
+readout mode).
+
+- if the data and BPM have been trimmed to different sections, the task will 
+exit with an error.
+.in -5
+
+
+
+If \fIfl_vardq\fR=yes, the variance is created only if the bias is 
+being subtracted and all flat fields have variance 
+and data quality frames.
+.ih
+Variance plane
+The variance plane is created and propagated depending on the corrections 
+applied to the input image. The variance is:
+.ce
+
+eq. (1) : (((ron/gain)**2+max(sci-bias,0.0)/gain) + varover + ...
+           varbias+vardark * darkscale**2)/(flat**2)) + ...
+          (varflat*(sci - bias)**2)/(flat**4))
+
+where:
+ron = readout noise
+sci = raw science frame
+bias = bias frame
+varover = square of rms of overscan fit 
+varbias = variance in bias; only occurs if bias is combination of multiple 
+          bias images
+vardark = variance in dark image. 
+flat = flat frame
+varflat = normalized variance in normalized flat image
+
+If you are not flatfielding set flat=1 and varflat=0 in equation (1).
+
+We take Poisson statistics for the science image minus artificial bias
+level. The number of counts in 'sci-bias' is a good approximation to the
+number of photons detected.
+.ih
+Data quality plane
+The data quality plane of all the calibration files 
+(\fIbias\fR, \fIdark\fR, \fIflat1-4\fR) and that of the input image are 
+combined with a logical "OR" operator using the task ADDMASKS. 
+
+.ih
+EXAMPLES
+Reduce raw images located in the directory /d1/raw/gmos/, the images
+are trimmed, bias subtracted and flat fielded. The reduction steps
+are defined by the default values of the flags.
+
+.nf
+   cl> gireduce N20011028S036,N20011028S037,N20011028S038,N20011028S039 \
+       rawpath=/d1/raw/gmos/ fl_over- fl_trim+ fl_bias+ fl_flat+ \
+       flat1=../../2001nov09/giflat/iflat22 \
+       bias=/usr/dataproc/gmos/CommCalib/gN20010829S120_bias
+.fi
+Reduce raw images, overscan subtract, bias subtract and create vardq planes.
+.nf
+   cl> gireduce @inlist fl_over+ fl_trim+ fl_bias+ 
+       bias=gN20010829S120_bias bpm=gmosbpm_001.fits fl_vardq+
+.fi
+
+.ih
+TIME REQUIREMENTS
+It takes about 10 times longer to create the variance
+and data quality planes than to run GIREDUCE with \fIfl_vardq\fR=no.
+.ih
+BUGS AND LIMITATIONS
+Improvements to the (previously semi-functional) variance and
+data quality propagation in the GMOS package have undergone limited
+testing; the accuracy of the results should still be verified at
+each step by the scientist, particularly for spectroscopic data
+reduction tasks.
+.ih
+SEE ALSO
+gmosinfo, gmosinfoimag, gprepare, gbias, giflat, gqecorr, colbias, addmasks
+.endhelp

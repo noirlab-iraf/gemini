@@ -1,0 +1,271 @@
+.help nswedit December2012 gemini.gnirs
+.ih
+NAME
+.nf
+nswedit -- Search/update a table of wavelength calibration information
+.fi
+.ih
+USAGE
+nswedit table
+.ih
+PARAMETERS
+.ls table
+A table of header key values, each row of which defines a unique 
+configuration, and the corresponding wavelength information.
+(e.g., gnirs$data/nsappwave.fits)
+.le
+.ls camera = ""
+The camera key used for this configuration (if relevant).
+.le
+.ls grating = ""
+The grating key used for this configuration (if relevant).
+.le
+.ls filter = ""
+The filter key used for this configuration (if relevant).
+.le
+.ls prism = ""
+The prism key used for this configuration (if relevant).
+.le
+.ls mask = ""
+The mask key used for this configuration (if relevant).
+.le
+.ls arrayid = ""
+The array ID key used for this configuration (if relevant).
+.le
+.ls order = -1
+The order key used for this configuration (if relevant).  When used
+with NSAPPWAVE (e.g., from NSREDUCE) then the order used depends on the
+value in the header keyword NSHEADERS.key_order.  If this value is not
+present, or -1, then the value of NSHEADERS.key_waveorder is used.
+Otherwise, if NSCUT has been called, then this value will be set from
+the MDF specorder column.
+.le
+.ls centre = INDEF
+The central wavelength (or other continuous variable, such as grating
+angle) used for this configuration.
+.le
+.ls range  = INDEF
+The range (min to max) of the \fIcentre\fR values that lie within this
+configuration.
+.le
+.ls description = ""
+A description of this configuration.  This is not used as a key, but
+helps clarify the table structure.
+.le
+.ls minmatch = 0
+Not all key values need be specified and values which are specified,
+but which do not appear in the table, are ignored.  So the
+configuration found may be based on only a small number of key values.
+\fIminmatch\fR is the minimum number of key values that must be
+matched for a configuration to be considered reliably identified.
+.sp
+A value of zero requires that all specified keys match.
+.le
+.ls append = no
+Append the configuration to the table?  This will fail if the given
+keys already match an existing entry, unless \fIoverwrite\fR is also
+selected.
+.le
+.ls overwrite = no
+Replace the configuration that matches the given keys with the
+configuration defined by the current parameters?  This will fail if
+the keys do not match an existing entry, unless \fIappend\fR is also
+selected.
+.le
+.ls create = no
+Create the table if it does not currently exist.
+.le
+.ls logfile = ""
+Name of logfile.  The GNIRS package logfile "gnirs.log" is used by default.
+.le
+.ls verbose = yes
+Print more actions to the screen.
+.le
+.ls lambda = INDEF
+The central wavelength for the configuration (A).  When writing to the
+table, this value is stored with the keys for the configuration.  If
+the task completes successfully then it contains the value
+corresponding to the configuration found that matches the given keys.
+.le
+.ls delta = INDEF
+The dispersion for the configuration (A/pix).  When writing to the
+table, this value is stored with the keys for the configuration.  If
+the task completes successfully then it contains the value
+corresponding to the configuration found that matches the given keys.
+.le
+.ls resoln = INDEF
+The resolution for the configuration (unused).  When writing to the
+table, this value is stored with the keys for the configuration.  If
+the task completes successfully then it contains the value
+corresponding to the configuration found that matches the given keys.
+.le
+.ls cradius = INDEF
+The search radius (pixels) used by NSWAVELENGTH.  If this value is set
+in the table, the corresponding value in NSWAVELENGTH can be set to
+INDEF.  This is provided for automated wavelength calibration.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error.
+This parameter is always set by the task, and should not be modified
+by the user.
+.le
+.ih
+DESCRIPTION
+This task exists to simplify access to the table of approximate
+wavelength calibrations (\fItable\fR).  That table should be a
+standard IRAF table (a fits format table for portability) and can also
+be modified using the standard tools in tables.ttools.
+.ls The advantages of using NSWEDIT rather than the ttools tasks are:
+.sp
+Automatic table creation.
+.sp
+Automatic verification - after adding a configuration, the table is
+searched for the value added.
+.sp
+Protection against inconsistencies - NSWEDIT will not add a
+configuration if the keys given already match an existing
+configuration.
+.sp
+Simple NSAPPWAVE diagnostics - NSWEDIT allows the behaviour of
+NSAPWPAVE to be checked for different header values without the need
+to run that task on an appropriate file.
+.le
+.sp
+These advantages are important because NSWEDIT uses a flexible
+matching scheme to identify a particular configuration.  This scheme
+allows tables to be defined that have little redundant data and work
+with several different instruments.
+.ls A configuration is identified following the process:
+.sp
+Each key value is checked against the corresponding column in the
+table.  If it appears in the column it will be used to identify the
+configuration.
+.sp
+Any key value that does not match an existing value is shortened by
+dropping the last "_" character and any trailing text.  So, for
+example, "SXD_G5509" would be converted to "SXD".  If this value
+occurs in the column then it is used to identify the configuration.
+Otherwise the process is repeated as necessary until a match is found
+or all shortened strings have been considered.
+.sp
+A key value that does not match any value throughout this process is
+not used to identify the configuration.  The \fIminmatch\fR parameter
+limits the size of the set of keys used.
+.sp
+The table is then searched for rows in which all used keys are equal
+to the value given.
+.sp
+The \fIcentre\fR value places an additional constraint on this search.
+It must contain a value with is within the range defined by the
+table's LO and HI values.  Typically this will define an appropriate
+range of central wavelength or grating tilt.
+.le
+.sp
+The table has the following columns:
+.sp
+.nf
+Name            Description             NSAPPWAVE use
+CAMERA          camera key              from nsheaders.key_camera
+GRATING         grating key             from nsheaders.key_grating
+FILTER          filter key              from nsheaders.key_filter
+PRISM           prism key               from nsheaders.key_prism
+MASK            mask key                from nsheaders.key_mask
+ORDER           order key               MDF order or key_waveorder
+LAMBDA          central wavelength      see NSAPPWAVE docs
+DELTA           dispersion              see NSAPWPAVE docs
+RESOLN          resolution              not used
+CRADIUS         search radius           see NSAPPWAVE docs
+DESCRIPTION     description             not used
+LO              LO <= \fIcentre\fR      \fIcentre\fR value from
+HI              \fIcentre\fR < HI       nsheaders.key_wavevar
+.fi
+.sp
+.sp
+\fITABLE DESIGN\fR
+.sp
+Tables of wavelength data should be designed to exploit the features
+of NSWEDIT and avoid duplicating information.
+.sp
+Only header values that change the wavelength information should be
+defined in the table; unimportant values will be discarded during the
+search if they are not in the table.
+.sp
+Entries may be defined for generic Gemini components that share the
+same prefix but different part numbers.  FOO_1234 and FOO_2345 will
+both match a row that contains only FOO, providing neither complete
+name occurs elsewhere in the column.
+.sp
+It is also possible to use different tables with different
+instruments.  NSHEADERS can be used to automate the selection for a
+particular instrument.
+.sp
+.sp
+\fILOCAL TABLES\fR
+.sp
+In a typical IRAF installation, users do not have write access to
+system tables and so cannot use NSWEDIT to modify or extend the
+information stored there.  However, a user can still copy the system
+table to their own directory and modify that local copy.  NSAPPWAVE
+should then be called with the local table specified using
+\fInsappwave.nsappwavedb\fR.
+.ih
+EXAMPLES
+1. Check the wavelength solution used for a particular file
+.sp
+.nf
+   ge> lpar nsheaders
+      ...
+   (key_filter = "FILTER")       Header keyword for filter
+    (key_prism = "PRISM")        Header keyword for prism
+   (key_camera = "CAMERA")       Header keyword for camera
+  (key_grating = "GRATING")      Header keyword for grating
+  (key_wavevar = "GRATWAVE")     Header keyword for nsappwave variable value
+(key_waveorder = "GRATWAVE")     Header keyword for grating wavelength order
+      ...
+   ge> imhead data[SCI,3,inherit] l+
+      ...
+FILTER  = 'K                 ' / Filter name combined from all 3 wheels
+PRISM   = 'MIR_G5511'          / prism position
+CAMERA  = 'ShortBlue_G5513'    / Camera position
+GRATING = '32/mm_G5506'        / grating position
+GRATWAVE=     2.20780332444367 / grating wavelength
+GRATORD = 2                    / grating wavelength
+      ...
+   ge> nswedit gnirs$data/nsappwave.fits filter=K prism=MIR_G5511 \
+   >>> camera=ShortBlue_G5513 grating="32/mm_G5506" order=2 \
+   >>> centre=2.20780332444367 append- overwrite- create- minmatch=0
+   ge> lpar nswedit
+      ...
+      (lambda = 22200.)         I/O: Central wavelength (A)
+       (delta = -6.47)          I/O: Dispersion (A/pix)
+      (resoln = 0.)             I/O: Resolution (units?)
+      (status = 0)              O: Exit status (0 = good)
+      ...
+.fi
+.sp
+The negative dispersion shows that wavelength increases down the columns; a
+status of zero indicates that a single solution was found that matched
+all keys.
+.sp
+2. Modify the resolution for the same entry in a local file.
+.sp
+.nf
+   ge> copy gnirs$data/nsappwave.fits ./appwave.fits
+   ge> nswedit ./appwave.fits filter=K prism=MIR_G5511 \
+   >>> camera=ShortBlue_G5513 grating="32/mm_G5506" order=2 \
+   >>> centre=2.20780332444367 lambda=22300 delta=-6.5 \
+   >>> append- overwrite+ create-
+   ge> lpar nswedit
+      ...
+      (lambda = 22300.)         I/O: Central wavelength (A)
+       (delta = -6.5)           I/O: Dispersion (A/pix)
+      (resoln = 0.)             I/O: Resolution (units?)
+      (status = 0)              O: Exit status (0 = good)
+      ...
+.fi
+.ih
+BUGS AND LIMITATIONS
+.ih
+SEE ALSO
+nsappwave, nswavelength
+.endhelp

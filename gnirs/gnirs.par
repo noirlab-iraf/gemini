@@ -1,0 +1,7 @@
+# Copyright(c) 2003-2017 Association of Universities for Research in Astronomy, Inc.
+#
+# Package parameters for the gnirs package
+
+database,s,h,"database",,,"Directory for files containing feature data"
+logfile,s,h,"gnirs.log",,,"Logfile for tasks in the gnirs package"
+version,s,h,"20Jul2017",,,"Package version date"

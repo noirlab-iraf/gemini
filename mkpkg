@@ -1,0 +1,155 @@
+# Make the GEMINI external package
+
+$call update
+$exit
+
+update:
+	$call lib
+	$call gmos
+	$call gnirs
+	$call gemtools
+	;
+
+lib:
+	$call update@lib
+	;
+
+gmos:
+	$call update@gmos
+	;
+
+gnirs:
+	$call update@gnirs
+	;
+
+gemtools:
+	$call update@gemtools
+	;
+
+# Multiple architecture support
+
+generic:				#generic installation (no bin)
+	$ifnfile (bin.generic)
+	    !mkdir bin.generic
+	$endif
+	$verbose off
+	$set DIRS = "lib gmos gnirs gemtools"
+	!$(hlib)/mkfloat.csh generic -d $(DIRS)
+	;
+
+alpha:					# install DEC Alpha binaries
+	$ifnfile (bin.alpha)
+	    !mkdir bin.alpha
+	$endif
+	$verbose off
+	$set DIRS = "lib gmos gnirs gemtools"
+	!$(hlib)/mkfloat.csh alpha -d $(DIRS)
+	;
+
+freebsd:				# install FreeBSD binaries
+	$ifnfile (bin.freebsd)
+	    !mkdir bin.freebsd
+	$endif
+	$verbose off
+	$set DIRS = "lib gmos gnirs gemtools"
+	!$(hlib)/mkfloat.csh freebsd -d $(DIRS)
+	;
+
+hp700:					# install HPUX series 700 binaries
+	$ifnfile (bin.hp700)
+	    !mkdir bin.hp700
+	$endif
+	$verbose off
+	$set DIRS = "lib gmos gnirs gemtools"
+	!$(hlib)/mkfloat.csh hp700 -d $(DIRS)
+	;
+
+irix:					# install SGI IRIX binaries
+	$ifnfile (bin.irix)
+	    !mkdir bin.irix
+	$endif
+	$verbose off
+	$set DIRS = "lib gmos gnirs gemtools"
+	!$(hlib)/mkfloat.csh irix -d $(DIRS)
+	;
+
+linux:					# install Slackware Linux binaries
+	$ifnfile (bin.linux)
+	    !mkdir bin.linux
+	$endif
+	$verbose off
+	$set DIRS = "lib gmos gnirs gemtools"
+	!$(hlib)/mkfloat.csh linux -d $(DIRS)
+	;
+
+macosx:					# install Mac OS X binaries
+	$ifnfile (bin.macosx)
+	    !mkdir bin.macosx
+	$endif
+	$verbose off
+	$set DIRS = "lib gmos gnirs gemtools"
+	!$(hlib)/mkfloat.csh macosx -d $(DIRS)
+	;
+
+macintel:					# install Mac OS X Intel binaries
+	$ifnfile (bin.macintel)
+	    !mkdir bin.macintel
+	$endif
+	$verbose off
+	$set DIRS = "lib gmos gnirs gemtools"
+	!$(hlib)/mkfloat.csh macintel -d $(DIRS)
+	;
+
+redhat:					# install Redhat Linux binaries
+	$ifnfile (bin.redhat)
+	    !mkdir bin.redhat
+	$endif
+	$verbose off
+	$set DIRS = "lib gmos gnirs gemtools"
+	!$(hlib)/mkfloat.csh redhat -d $(DIRS)
+	;
+
+rs6000:					# install IBM AIX binaries
+	$ifnfile (bin.rs6000)
+	    !mkdir bin.rs6000
+	$endif
+	$verbose off
+	$set DIRS = "lib gmos gnirs gemtools"
+	!$(hlib)/mkfloat.csh rs6000 -d $(DIRS)
+	;
+
+sparc:					# install sparc binaries
+	$ifnfile (bin.sparc)
+	    !mkdir bin.sparc
+	$endif
+	$verbose off
+	$set DIRS = "lib gmos gnirs gemtools"
+	!$(hlib)/mkfloat.csh sparc -d $(DIRS)
+	;
+
+ssun:					# install Sun/Solaris binaries
+	$ifnfile (bin.ssun)
+	    !mkdir bin.ssun
+	$endif
+	$verbose off
+	$set DIRS = "lib gmos gnirs gemtools"
+	!$(hlib)/mkfloat.csh ssun -d $(DIRS)
+	;
+
+suse:					# install SuSE Linux binaries
+	$ifnfile (bin.suse)
+	    !mkdir bin.suse
+	$endif
+	$verbose off
+	$set DIRS = "lib gmos gnirs gemtools"
+	!$(hlib)/mkfloat.csh suse -d $(DIRS)
+	;
+
+sunos:					# install SunOS (Solarix x86) binaries
+	$ifnfile (bin.sunos)
+	    !mkdir bin.sunos
+	$endif
+	$verbose off
+	$set DIRS = "lib gmos gnirs gemtools"
+	!$(hlib)/mkfloat.csh sunos -d $(DIRS)
+	;

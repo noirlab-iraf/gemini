@@ -1,0 +1,6 @@
+# Copyright(c) 2000-2017 Association of Universities for Research in Astronomy, Inc.
+#
+# Package parameters for the oscir package
+ 
+logfile,s,h,"oscir.log",,,"Logfile for tasks in the oscir package"
+version,s,h,"20Jul2017",,,"Package version date"

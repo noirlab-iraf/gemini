@@ -1,0 +1,25 @@
+# Copyright(c) 2000-2015 Gemini Observatory, AURA
+# Database for gemseeing.cl
+# Version  Jan 29, 2015  MS
+#
+# Instrument  pixelscale   datamax fwhmin  radius buffer width    detector
+#             "/pix        ADU/pix  arcs   pix    pix    pix        type
+DEFAULT       1.           40000    3.00    0      8      2
+NIRI-f6       0.116        40000    0.5     0      20     4
+NIRI-f14      0.050        40000    0.5     0      40     4
+NIRI-f32      0.022        40000    0.25    0      100    4
+Hokupaa+QUIRC 0.01998      30000    0.08    0      100    4
+Hokupaa/QUIRC/Ded 0.01974  30000    0.08    0      100    4
+QUIRC         0.033        30000    0.5     0      8      2
+oscir         0.089        40000    0.5     0      20     4
+OSCIR         0.089        40000    0.5     0      20     4
+GMOS-N        0.0727       100000   0.6     0      20     4     SDSU II CCD
+GMOS-N        0.07288      100000   0.6     0      20     4 SDSU II e2v DD CCD42-90
+GMOS-S        0.0730       100000   0.6     0      20     4     SDSU II CCD
+GMOS-S        0.08         100000   0.6     0      20     4       S10892
+AO-SIM        0.0196       1E9      0.08    0      100    4
+PFC           1.355        40000    4.065   0      8      2
+pfc           1.355        40000    4.065   0      8      2
+FLAMINGOS     0.078        40000    0.5     0      30     3
+hrwfs         0.120        60000    0.5     0      20     4
+TReCS         0.0896       65535    0.5     0      20     4

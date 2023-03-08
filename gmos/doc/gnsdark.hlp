@@ -1,0 +1,264 @@
+.help gnsdark August2014 gemini.gmos
+.ih
+NAME
+gnsdark -- Process and combine GMOS dark images
+.ih
+USAGE
+gnsdark inimages outdark
+.ih
+PARAMETERS
+.ls inimages
+List of input GMOS dark images. Images can be either raw or prepared with
+GPREPARE. A comma-separated list or a list directed input can be used. 
+All images must be in multi-extension FITS (MEF) format. 
+Directory names should not be included as part of the image names.
+.le
+.ls outdark
+The output overscan subtracted, trimmed, and combined dark image.
+.le
+.ls logfile = ""
+Name of the logfile containing error and warning messages. When
+\fIlogfile\fR="",  the name of the logfile is gmos.log. 
+.le
+.ls rawpath = ""
+Path of the directory containing the raw GMOS images.
+.le
+.ls fl_over = yes
+Apply overscan correction by fitting and subtracting the overscan 
+level. If "yes", the parameter \fIkey_biassec\fR is used to 
+query the overscan section parameters from the header. 
+It is recommended to keep \fIfl_over\fR=yes and subtract the overscan
+level.
+.le
+.ls fl_trim = yes
+Trim the image.  If "yes", the image is trimmed to keep only the 
+sections defined by the parameter \fIkey_datasec\fR. For nod-and-shuffle
+images, we suggest against trimming the darks.
+.le
+.ls fl_bias = no
+Subtract the bias image.  If \fIfl_bias\fR=yes, the bias image must be 
+specified by the \fIbias\fR parameter.
+.le
+.ls bias = ""
+Bias calibration image to be subtracted if \fIfl_bias\fR=yes.  
+This image must be in MEF format with the same number of extensions as the 
+\fIinimages\fR. It must also match \fIinimages\fR  in the binning, readout 
+mode and detector section read out. The bias calibration image \fIbias\fR 
+should be created using the GBIAS task. 
+.le
+.ls key_biassec = "BIASSEC"
+Header keyword where the overscan region is defined. 
+.le
+.ls key_datasec = "DATASEC" 
+Header keyword giving the section of the image with useful data (excludes 
+the overscan sections). 
+.le
+.ls key_ron = "RDNOISE"
+Header keyword for the read out noise in electrons.
+.le
+.ls key_gain = "GAIN"
+Header keywords for the gain in electrons per ADU.
+.le
+.ls ron = 3.5
+Default read noise [e] to use if the header keyword is not found.
+.le
+.ls gain = 2.2
+Default gain [e/ADU] to use if the header keyword is not found.
+.le
+.ls gaindb = "default"
+Database file containing the GMOS gain data. The default value for \fIgaindb\fR
+is gmos$data/gmosamps.dat.
+.le
+.ls sci_ext = "SCI"
+Name of the MEF extension containing the science data.
+.le
+.ls var_ext = "VAR"
+Name of the MEF extensions containing the variance frame.
+.le
+.ls dq_ext = "DQ"
+Name of the MEF extensions containing the data quality array.
+.le
+.ls bpm = ""
+The bad pixel mask name is used only if \fIfl_vardq\fR=yes. 
+It is recommended that \fIbpm\fR  be created using the GBPM task.
+.le
+.ls sat = "default"
+Saturation level of raw images in ADU.
+The default value of \fIsat\fR for the EEV CCDs is 65000 ADU. For the GMOS-N
+e2vDD CCDs each individual amplifier has its own saturation value. For more
+information about the saturation levels used as the default please read the
+help file for the task GSAT, as this calculates the default saturation levels
+for the new e2vDD CCDs.
+.le
+.ls nbiascontam = "default"
+Number of columns removed from the overscan region before subtracting.
+The default value of \fInbiascontam\fR for the EEV CCDs is 4. Whereas, a
+default value of 5 is used for the GMOS-N e2vDD CCDs. \fInbiascontam\fR is
+used when \fIfl_over\fR=yes. The overscan regions of GMOS CCDs have some
+photon bleeding from the science frame. \fInbiascontam\fR is the number of
+columns next to the data section that are not used when calculating the
+overscan to subtract.
+.le
+.ls biasrows = "default"
+Rows to use in bias region. If \fIbiasrows\fR = "default", the entire
+length of overscan region is used. Value must be of the form "x1:x2" where 
+x1 is the starting pixel row and x2 is the final pixel row, e.g. "3:64".  
+.le
+.ih
+COLBIAS PARAMETERS
+.sp 1
+Please see the COLBIAS help pages for further details. 
+.le
+.ls fl_inter = no
+Fit the overscan region interactively? 
+.le
+.ls median = no
+Take the median of the bias columns? If no, then the bias columns 
+are averaged. 
+.le
+.ls function = "chebyshev" (legendre|chebyshev|spline1|spline3)
+Function fit to the average bias column. 
+.le
+.ls order = "default"
+Order of the fitting function to the bias column. Where "default" is used,
+\fIgireduce\fR selects a default value appropriate for the relevant GMOS
+detectors.
+.le
+.ls low_reject = 3., high_reject = 3.
+Low and high sigma rejection factor. 
+.le
+.ls niterate = 3
+Maximum number of rejection iterations. 
+.le
+.ih
+GEMCOMBINE PARAMETERS
+.sp 1
+Please see the GEMCOMBINE help pages for further details. 
+.le
+.ls combine = "average" (average|median)
+Type of combining operation. 
+.le
+.ls reject =  "avsigclip" 
+(none|minmax|ccdclip|crreject|sigclip|avsigclip|pclip)
+Type of rejection operation.  Note in general "avsigclip" works 
+well even for a few images.
+.le
+.ls lthreshold = INDEF, hthreshold = INDEF
+Low and high thresholds to be applied to the input pixels.
+.le
+.ls masktype = "goodvalue"   (none|goodvalue)
+Type of pixel masking to use.
+.le
+.ls maskvalue = 0.
+Mask value used with the \fImasktype\fR parameter.
+.le
+.ls scale = "none" (none|mode|median|mean|exposure|@<file>|!<keyword>)
+Multiplicative image scaling to be applied.
+.le
+.ls zero = "none" (none|mode|median|mean|@<file>|!<keyword>) 
+Additive zero level image shifts to be applied.
+.le
+.ls weight = "none" (none|mode|median|mean|exposure|@<file>|!<keyword>)
+Weights to be applied during the final averaging.
+.le
+.ls statsec = "[*,*]" 
+Section of image to use in computing statistics for scaling and weighting.
+.le
+.ls key_exptime = "EXPTIME"
+Image header keyword to be used for scaling the dark calibration image.  
+.le
+.ls nlow = 0, nhigh = 1 (minmax)
+The number of low and high pixels to be rejected.
+.le
+.ls nkeep = 1 (ccdclip, crreject, sigclip, avsigclip, or pclip)
+The minimum number of pixels to retain (\fInkeep\fR > 0) or the maximum 
+number to reject (\fInkeep\fR < 0).
+.le
+.ls mclip = yes (ccdclip, crreject, sigclip, avsigclip)
+Use the median rather than the average with high and low values excluded.
+.le
+.ls lsigma = 3., hsigma = 3. (ccdclip, crreject, sigclip, avsigclip, pclip)
+Low and high sigma clipping factors.
+.le
+.ls snoise = "0.0" (ccdclip, crreject)
+Sensitivity noise as a fraction.
+.le
+.ls sigscale = 0.1 (ccdclip, crreject, sigclip, avsigclip)
+Poisson correction to sigma parameter.
+.le
+.ls pclip = -0.5 (pclip)
+Percentile clipping algorithm parameter.
+.le
+.ls grow = 0.0
+Radius in pixels for additional pixels to be rejected by the rejection 
+algorithms.
+.le
+.ls fl_vardq = no
+Create the variance and data quality images? 
+The dark variance is the sigma squared of the combined pixels. 
+The variance is considered zero for a single dark 
+image.
+If \fIfl_vardq\fR is set to "no", no variance and data quality 
+images will be created.
+.le
+.ls verbose = yes
+Print actions to the screen.
+.le
+.ls status = 0
+Exit  status  will  be  non-zero if the procedure halted with an
+error.  This parameter is always set by  the  task,  and  should
+not be modified by the user.
+.le
+.ih
+DESCRIPTION
+GNSDARK will create a combined GMOS dark image from raw nod and shuffle
+dark images. 
+
+The raw dark images from GMOS have exposure times of the the same
+order as the science images. The dark images are taken with the GMOS 
+shutter closed.
+
+The input images can be raw or prepared with GPREPARE. If they are 
+raw, GNSDARK will call GPREPARE first. The images can be overscan trimmed 
+if the flag \fIfl_trim\fR=yes. The overscan bias level can be 
+subtracted to the input images if
+the flag \fIfl_over\fR=yes. It is suggested to overscan subtract but not 
+trim nod&shuffle images until the last step of the reduction. Therefore,
+for most cases, best results are achieved with \fIfl_over\fR=yes and 
+\fIfl_trim\fR=no. 
+
+The dark images are then combined 
+with the task GEMCOMBINE. They can be averaged if 
+\fIcombine\fR="average" or median combined if 
+\fIcombine\fR="median". Deviant pixels can be rejected using 
+the \fIreject\fR
+and related parameters (see the help pages for GEMCOMBINE for all the
+possibilities). The images can be scaled using \fIscale\fR 
+and weighted using \fIweight\fR.
+
+The variance and data quality planes can be created if the flag
+\fIfl_vardq\fR=yes. The creation of these planes is done within 
+the call to GEMCOMBINE. 
+
+The image header of the output dark is updated
+with the keywords GNSDARK and GEM-TLM (time of last modification).
+.ih
+EXAMPLES
+To derive a mean dark from three raw nod and shuffle dark images
+.nf
+  cl> gnsdark @darklist darkoutfile fl_over=yes fl_vardq=yes
+.fi
+
+.ih
+TIME REQUIREMENTS
+.ih
+BUGS AND LIMITATIONS
+Improvements to the (previously semi-functional) variance and
+data quality propagation in the GMOS package have undergone limited
+testing; the accuracy of the results should still be verified at
+each step by the scientist, particularly for spectroscopic data
+reduction tasks.
+.ih
+SEE ALSO
+gmosinfo, gprepare, gireduce, gemcombine
+.endhelp

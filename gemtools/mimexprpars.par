@@ -1,0 +1,48 @@
+# Copyright(c) 2004-2006 Association of Universities for Research in Astronomy, Inc.
+
+# MIMEXPR parameters
+
+expr,s,h,"",,,expression
+output,f,h,,,,output image
+extname,s,h,"SCI",,,extension name to use as operands
+dims,s,h,"default",,,output image dimensions
+intype,s,h,"default",,,minimum type for input operands
+outtype,s,h,"default",,,output image pixel datatype
+refim,s,h,"default",,,reference image for wcs etc
+bwidth,i,h,0,0,,boundary extension width
+btype,s,h,"nearest","constant|nearest|reflect|wrap|project",,\
+"boundary extension type"
+bpixval,r,h,0,,,boundary pixel value
+rangecheck,b,h,yes,,,perform range checking
+verbose,b,h,yes,,,print informative messages
+exprdb,s,h,"none",,,expression database
+lastout,s,h,"",,,last output image
+
+# Input image operands.
+a,s,h,,,,operand a
+b,s,h,,,,operand b
+c,s,h,,,,operand c
+d,s,h,,,,operand d
+e,s,h,,,,operand e
+f,s,h,,,,operand f
+g,s,h,,,,operand g
+h,s,h,,,,operand h
+i,s,h,,,,operand i
+j,s,h,,,,operand j
+k,s,h,,,,operand k
+l,s,h,,,,operand l
+m,s,h,,,,operand m
+n,s,h,,,,operand n
+o,s,h,,,,operand o
+p,s,h,,,,operand p
+q,s,h,,,,operand q
+r,s,h,,,,operand r
+s,s,h,,,,operand s
+t,s,h,,,,operand t
+u,s,h,,,,operand u
+v,s,h,,,,operand v
+w,s,h,,,,operand w
+x,s,h,,,,operand x
+y,s,h,,,,operand y
+z,s,h,,,,operand z
+

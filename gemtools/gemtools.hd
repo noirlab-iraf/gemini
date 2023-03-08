@@ -1,0 +1,50 @@
+# Copyright(c) 2000-2017 Association of Universities for Research in Astronomy, Inc.
+#
+# Help directory for the gemtools package
+
+$doc = "gemtools$doc/"
+$pkg = "gemtools$pkg/"
+
+addbpm           hlp = doc$addbpm.hlp, src=gemtools$addbpm.cl
+ckcal            hlp = doc$ckcal.hlp, src=gemtools$ckcal.cl
+ckinput          hlp = doc$ckinput.hlp, src=gemtools$ckinput.cl
+cnvtsec          hlp = doc$cnvtsec.hlp, src=pkg$gemutil/t_cnvtsec.x
+gemarith         hlp = doc$gemarith.hlp, src=pkg$gemexpr/t_gemexpr.x
+gemcombine       hlp = doc$gemcombine.hlp, src=gemtools$gemcombine.cl
+gemcrspec        hlp = doc$gemcrspec.hlp, src=gemtools$gemcrspec.cl
+gemcube          hlp = doc$gemcube.hlp, src=pkg$gemcube/t_transcube.x
+gemdate          hlp = doc$gemdate.hlp, src=gemtools$gemdate.cl
+gemdqexpand      hlp = doc$gemdqexpand.cl, src=gemtools$gemdqexpand.cl
+gemexpr          hlp = doc$gemexpr.hlp, src=pkg$gemexpr/t_gemexpr.x
+gemextn          hlp = doc$gemextn.hlp, src=pkg$gemextn/t_gemextn.x
+gemfix           hlp = doc$gemfix.hlp, src=gemtools$gemfix.cl
+gemhead          hlp = doc$gemhead.hlp, src=gemtools$gemhead.cl
+gemhedit         hlp = doc$gemhedit.hlp, src=gemtools$gemhedit.cl
+#gemisnumber      hlp = doc$gemisnumber.hlp, src=pkg$gemutil/t_gisnumber.x
+gemlist          hlp = doc$gemlist.hlp, src=gemtools$gemlist.cl
+gemlog           hlp = doc$gemlog.hlp, src=doc$gemlog.hlp
+#gemlogname       hlp = doc$gemlogname.hlp, src=gemtools$gemlogname.cl
+gemoffsetlist    hlp = doc$gemoffsetlist.hlp, src=gemtools$gemoffsetlist.cl
+gemqa            hlp = doc$gemqa.hlp, src=gemtools$gemqa.cl
+gemscombine      hlp = doc$gemscombine.hlp, src=gemtools$gemscombine.cl
+gemsecchk        hlp = doc$gemsecchk.hlp, src=gemtools$gemsecchk.cl
+gemseeing        hlp = doc$gemseeing.hlp, src=gemtools$gemseeing.cl
+#gemvsample       hlp = doc$gemvsample.hlp, src=gemtools$gemvsample.cl
+#gemwcscopy       hlp = doc$gemwcscopy.hlp, src=gemtools$gemwcscopy.cl
+#getfakeUT        hlp = doc$getfakeUT.hlp, src=gemtools$getfakeUT.cl
+#gextverify       hlp = doc$gextverify, src=gemtools$gextverify.cl
+gimverify        hlp = doc$gimverify.hlp, src=gemtools$gimverify.cl
+gfwcs            hlp = doc$gfwcs.hlp, src=pkg$gemcube/gflib/gfwcs.x
+glogclose        hlp = doc$glogclose.hlp, src=pkg$gemlog/t_glclose.x
+glogextract      hlp = doc$glogextract.hlp, src=pkg$gemlog/t_glextract.x
+glogfix          hlp = doc$glogfix.hlp, src=pkg$gemlog/t_glfix.x
+gloginit         hlp = doc$gloginit.hlp, src=pkg$gemlog/t_glinit.x
+glogpars         hlp = doc$glogpars.hlp, src=gemtools$glogpars.par
+glogprint        hlp = doc$glogprint.hlp, src=pkg$gemlog/t_glprint.x
+growdq           hlp = doc$growdq.hlp, src=gemtools$growdq.cl
+#gsetsec          hlp = doc$gsetsec.hlp, src=gemtools$gsetsec.cl
+imcoadd          hlp = doc$imcoadd.hlp, src=gemtools$imcoadd.cl
+ldisplay         hlp = doc$ldisplay.hlp, src=pkg$ldisplay/t_ldisplay.x
+mgograph         hlp = doc$mgograph.hlp, src=gemtools$mgograph.cl
+#printlog         hlp = doc$printlog.hlp, src=gemtools$printlog.cl
+wmef             hlp = doc$wmef.hlp, src=gemtools$wmef.cl

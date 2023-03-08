@@ -1,0 +1,84 @@
+GEMINI (Mar2002)         Gemini IRAF package v1.3       GEMINI (Mar2002)
+
+Release date: March 5, 2002
+
+This document describes the revisions relative to the Gemini IRAF package v1.2
+
+
+PRIMARY REVISIONS:
+
+1) Tasks for reduction of GMOS data (imaging, longslitand MOS). A new
+   package "gmos" is included.
+2) Bug fixes and performance improvements to the NIRI imaging tasks in
+   the "niri" package.
+3) Support tasks for the "gmos" package included in the "gemtools" package
+
+
+DETAILS OF THE REVISIONS:
+
+gmos.gdisplay
+gmos.gprepare
+gmos.gbias
+gmos.gbpm
+gmos.gmosaic
+gmos.ggain (hidden task)
+gmos.garith
+gmos.giflat
+gmos.gireduce
+gmos.gsappwave
+gmos.gscalibrate
+gmos.gscut
+gmos.gsextract
+gmos.gsflat
+gmos.gsreduce
+gmos.gsskysub
+gmos.gsstandard
+gmos.gstransform
+gmos.gswavelength
+gmos.mostools.app2objt
+gmos.mostools.stsdas2objt
+  A new package "gmos" is released. It contains tasks for reduction of data 
+  from GMOS. The release includes tasks for reduction of imaging, longslit
+  and MOS data. A description of the GMOS data format is available as the 
+  task "gmosinfo". This task also describes tasks that are used for both 
+  imaging and spectroscopy data. The tasks "gmosinfoimag" and "gmosinfspec"
+  describe typical reductions of imaging and spectroscopy data, respectively.
+
+niri
+  All tasks in the "niri" package should be unlearned prior to use in order
+  to implement new parameters and default parameter values.
+
+niri.nprepare
+  Task revised to handle modifications to the NIRI array controller (older
+  data is still handled correctly by nprepare).  nprepare has been 
+  restructured to run much more quickly.
+
+niri.nifastsky
+  Minor modification to automatically generate an output file name.
+
+niri.nisky
+  Bugs fixed to allow nisky to work better on sky flats and images without
+  bad pixel masks.  Minor modification to automatically generate an output 
+  file name.
+  
+niri.niflat
+  Bugs fixed in the sky flat code.  Header information is written all at
+  once to improve speed.  Minor modification to automatically generate
+  output image name.
+
+niri.nireduce
+  Simplified parameters considerably by restricting nireduce to one filter.
+  Now only one flat field image is specified at a time.  Other parameters
+  modified to simplify normal use.
+
+gemtools.imcoadd
+  Generalized for images with different gain/ron.
+
+gemtools.gemhedit
+  Minor bug fixes.
+
+gemtools.gextverify (hidden task)
+gemtools.gemhead
+gemtools.gemcombine
+  Generic tasks for support of tasks in the "gmos" package have been added to
+  the "gemtools" package.

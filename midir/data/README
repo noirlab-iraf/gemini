@@ -1,0 +1,57 @@
+Files in midir/data:
+
+(in main directory)
+
+michelle.badpixels  --  bad pixel mask file for Michelle (a bit out of date)
+trecs.badpixels     --  bad pixel mask file for T-ReCS (a bit out of date)
+standards.list      --  list of all Cohen mid-infrared standard stars, 
+                        and the associated spectral energy distribution 
+                        files used by mstelluric; a small number of 
+                        other standards from other sources are included 
+                        as well
+asteroid.dat        --  this is a spectral energy distribution file for 
+                        a "generic" asteroid; it is based on the ISO 
+                        observations of Ceres.  A blackbody fit to those 
+                        data was scaled so that it is for radius 100 km 
+                        and distance 1.00 AU (so it assuming the same 
+                        emissivity, albedo, etc as Ceres)
+
+The sub-directories allsky, bright, primary, sirtf and timmi2 hold the 
+spectral energy distribution files.  These are the standard format 
+IRAF SED files which can be used with the noao.onedspec.calibrate 
+routine as well as mstelluric.  The objects are split into different 
+sub-directories for "historical" reasons, as these reflect different 
+papers in the Cohen et al. "Spectral Irradiance Calibration In The Infrared"
+series.  Value for stars in the different sets have different levels of
+accuracy.
+
+(in sub-directory michelle)
+
+Here there are a set of files for use with mistdflux, the estimated flux
+density values (in Jy or mJy) for a large group of standard stars
+
+allaltatmos.list -- actual values at 1.0 airmasses assuming a 
+                    particular set of atmospheric conditions
+allatmos.list    -- values as extrapolated to zero airmass
+                    assuming a particular set of atmospheric conditions
+all.list         -- values as predicted to apply outside the atmosphere
+zeromag.tem.flux -- zero magnitude flux densities for all the Michele
+                    filters
+
+(in sub-directory trecs)
+
+Here there are a set of files for use with mistdflux, the estimated flux
+density values (in Jy or mJy) for a large group of standard stars
+
+allaltatmos.list -- actual values at 1.0 airmasses assuming a 
+                    particular set of atmospheric conditions
+allatmos.list    -- values as extrapolated to zero airmass
+                    assuming a particular set of atmospheric conditions
+all.list         -- values as predicted to apply outside the atmosphere
+zeromag.tem.flux -- zero magnitude flux densities for all the T-ReCS
+                    filters
+
+For both T-ReCS and Michelle these are the same standard stars that have 
+spectral energy distribution values in the various sub-directories of 
+midir/data.
+

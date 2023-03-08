@@ -1,0 +1,20 @@
+Generic:
+      nprepare  - Prepare NIRI data for reductions 
+                  (update headers, derive variance and DQ planes)
+      nresidual - Flag saturated pixels in the DQ planes of subsequent
+                  exposures
+  gnirs.nvnoise - Subtract vertical stripe noise and quadrant offsets
+
+Imaging:
+     nifastsky - Derive sky image for NIRI, median or min/max filtering
+        niflat - Derive flat field and bad pixel mask for NIRI images 
+         nisky - Derive sky image for NIRI, includes masking of objects
+      nireduce - Reduce images from NIRI (dark or sky subtraction, flat)
+      nirotate - Use WCS information to de-rotate NIRI images
+    nisupersky - Make deeper object masks for NISKY
+
+Spectroscopy:
+      See the gnirs package
+
+      niriinfo - General help and information for the NIRI package
+  niriexamples - Print examples of reduction scripts to screen

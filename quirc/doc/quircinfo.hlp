@@ -1,0 +1,108 @@
+.help quircinfo June2012 gemini.quirc
+.ih
+NAME
+quircinfo -- Reduction scripts for Hokupa'a/QUIRC data
+.ih
+USAGE
+quircinfo
+.ih
+DESCRIPTION
+
+The QUIRC package contains tasks for processing Hokupa'a/QUIRC data 
+obtained at Gemini North. The specifics of the individual tasks can 
+be found in their help files. This document describes the common 
+features of the tasks and gives a description of the Hokupa'a/QUIRC 
+data format.
+
+The tasks are designed to provide a fast nearly "hands-off" reduction
+as well as the flexibility to optimize the hidden parameters to
+achieve the best possible results.
+
+The tasks produce logfiles of the performed processing steps.
+The name of the logfile may be set in each individual task, or at
+the package level by setting \fIquirc.logfile\fR.
+
+The tasks add header keywords to the output images. These header
+keywords contain information about the performed processing steps
+and the values of the critical parameters for the tasks that were
+used.
+
+All data from Hokupa'a/QUIRC are simple FITS images. The QUIRC 
+package is designed to process the images as simple FITS. It is
+recommended to use \fIimtype\fR="fits". This is set automatically
+when loading the GEMINI package.
+
+.ih
+SHORT DESCRIPTIONS OF THE TASKS
+
+.ls QFLAT - Derive flat field and bad pixel mask for QUIRC
+
+QFLAT is used for deriving normalized flat fields as well as bad
+pixel masks for the Hokupa'a/QUIRC data. The input images are
+dome flat fields (or GCAL flat fields) and darks.
+The output images are the normalized flat field and a bad pixel 
+mask. The user can choose to produce both output images or only
+one of these.
+.le
+.ls QFASTSKY - Derive sky image for QUIRC, median or min/max filtering
+
+QFASTSKY is used for determination of sky images by median or min/max
+filtering. There is made no attempt to specifically flag objects
+in the sky images. The task is mostly used for QuickLook reductions
+at the telescope.
+.le
+.ls QSKY - Derive sky image for QUIRC, includes flagging of objects
+
+QSKY is used for determination of sky images. Objects in the input
+images are flagged using information about the FWHM of the PSF
+and the signal in the objects. It is recommended to use QSKY 
+rather than QFASTSKY for science quality reductions.
+.le
+.ls QREDUCE - Reduce images from QUIRC  (sky, flat)
+
+QREDUCE is used for sky subtraction and flat field correction of the
+science data.
+.le
+.ih
+TYPICAL REDUCTIONS
+
+For typical reductions the user will need appropriate flat fields
+and dark images, on-target science images and sky images.
+If the target is not extended and the field is uncrowded the on-target
+images may be used in place of the sky images. This assumes that
+sufficiently large dither steps were used during the observations.
+
+1. Use QFLAT to derive normalized flat fields and a bad pixel mask.
+
+2. Use QSKY (or alternatively QFASTSKY) to derive sky images.
+The near-IR sky level and structure varies during the night, and 
+care should be taken to combine only sky images that are close enough
+in time to each other and to the relevant science images that such 
+variations are non-significant. This may take some experimentation.
+
+3. Use QREDUCE to subtract the sky images and apply the flat fields.
+Each filter should be processed separately, as QREDUCE takes only
+one sky image at the time as its input.
+.ih
+WHAT TO DO NEXT
+
+The processed images may be co-added with the task GEMTOOLS.IMCOADD.
+
+Photometry may be derived with any suitable photometry package. It 
+should be noted that images from Adaptive Optics systems have PSFs with
+very large wings. The PSF for Hokupa'a/QUIRC images varies slightly
+over the field of view. This variation is more noticeable the further
+adaptive optics guide star was from the observed field.
+Photometry packages like DAOPHOT should be used with caution.
+.ih
+BUGS AND LIMITATIONS
+
+The tasks in the QUIRC package are designed to operate on simple FITS
+images. The tasks will not work on multi-extension FITS files.
+The tasks should be used with \fIimtype\fR="fits". It cannot be 
+guaranteed that all the tasks work as expected if \fIimtype\fR is set to
+any other image type.
+.ih
+SEE ALSO
+qflat, qfastsky, qsky, qreduce
+.endhelp

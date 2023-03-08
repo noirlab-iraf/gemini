@@ -1,0 +1,24 @@
+# Task specific routines for the GEMTOOLS package
+
+$checkout libpkg.a ../
+$update libpkg.a
+#  $call x_gemexpr.e : move under libpkg.a where it should go
+#  b/c/ this doesn't get called by gemtools mkpkg 
+
+$checkin libpkg.a ../
+
+$exit
+;
+
+libpkg.a:
+        @gemcube
+        @gemextn
+        @gemlog
+        @gemutil
+        @ldisplay
+        $call x_gemexpr.e
+        ;
+
+x_gemexpr.e:
+        $call update@gemexpr
+        ;

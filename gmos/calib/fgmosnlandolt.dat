@@ -1,0 +1,15 @@
+#  Declare the new Landolt UBVRI standards catalog variables in the ugriz SDSS system
+
+catalog
+
+u	4		# the u magnitude
+g	5		# the g magnitude
+r	6               # the r magnitude
+i	7		# the i magnitude
+z	8		# the z magnitude
+ug	9		# the (u-g) color
+gr	10		# the (g-r) color
+gi	11		# the (g-i) color
+gz	12		# the (g-z) color
+ri	13		# the (r-i) color
+rz	14		# the (r-z) color

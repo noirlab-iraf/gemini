@@ -1,0 +1,239 @@
+.help mipsstk November2011 gemini.midir
+.ih
+NAME
+mipsstk -- Stack up Stokes parameter images and characterize polarization
+.ih
+USAGE
+mipsstk inimage
+.ih
+PARAMETERS
+.ls inimage
+The input image to be processed by the task.  It must be an output
+file from the MIPSTOKES task.
+.le
+.ls outimage = ""
+The output image name for the transformed file.  If this field is left 
+blank the \fIoutpref\fR string is used to create a new file name from the 
+input file name.  The task tests for whether the output image exists, and 
+exits with an error condition if it does.
+.le
+.ls outpref = "a"
+A prefix string which is prefixed to the input image name to make
+the corresponding output image name, if the output file name is 
+not specified via the \fIoutimage\fR parameter.
+.le
+.ls rawpath = ""
+The path to the directory containing the Michelle image file.  
+If the value is "" (empty string) the current directory is used.
+.le
+.ls fl_register = no
+A boolean variable that flags whether the set of input stokes images 
+should be registered (using the XREGISTER task in the images.immatch 
+package) before the stacking of these images is done.  If the value is "yes" 
+then the \fIregions\fR parameter must be set to whichever part of the 
+images contains a bright source.  If the entire image is used for 
+registration the results may be poor.  Generally it is best to define a 
+small box around a bright object when doing registration.  The Stokes I 
+images are registered, and then the same shifts are applied to the 
+corresponding U and Q images.
+.le
+.ls regions = "[*,*]"
+This parameter specifies an image section to be used for registration of the 
+Stokes I images before the averaging is carried out, provided that the 
+\fIfl_register\fR parameter is set to "yes".
+.le
+.ls fl_variance = no
+The flag determines whether the variance images will be produced and saved 
+to the output file.  If this flag is set to "yes" then when the Stokes I, 
+U, and Q images are combined the corresponding variance images will also be 
+created.  These will then be stored in extensions 8 through 10 of the output 
+file, with extension 8 being the variance in the Stokes I, extension 9 that 
+for Stokes U, and extension 10 that for Stokes Q.
+.le
+.ls fl_stair = yes
+This is a flag for whether or not to try to remove channel to channel offsets
+in the stacked images.  This can only be done properly if the target does 
+not occupy a large fraction of the detector.
+.le
+.ls fl_mask = yes
+A boolean variable marking whether to attempt to mask out pixels with 
+only noise in creating the derived polarization vectors from the 
+Stokes parameter images.  If the flag is "no" then all pixels 
+have the calculations applied, and where the pixels in the Stokes
+U and Q images contain only noise values the polarization fraction 
+and polarization angle that are derived from these will have meaningless 
+values.  This is seen in the form of large percent polarization values as 
+well as random polarization angles from pixel top pixel.  If the flag is 
+"yes" then the U and Q Stokes parameter images will have all values that 
+have too low a signal (and all the negative pixels) to give a percent 
+polarization fraction accuracy given by the \fIthreshold\fR value, or 
+lower than the \fInoise\fR value if this is larger than zero, masked to zero.  
+This is done before calculating the other polarization images Iu, Ip, p, and 
+theta.  The output Stokes U and Q images themselves are not masked.
+.le
+.ls noise = 0.0
+If this value is larger than zero, it is used at the noise value for 
+thresholding instead the value set by the \fIblankarea\fR and \fIthreshold\fR 
+parameters.  If a target fills the field of view (i.e. Orion BN/KL for 
+example) there may not be a blank region from which to estimate the noise, 
+hence the need for this parameter.
+.le
+.ls threshold = 0.5
+This is the desired floor polarization percentage; it is used when 
+\fIfl_mask\fR is "yes".  All positive pixels with a signal-to-noise ratio large
+enough to allow this level of percent polarization will be retained, the other 
+pixels will be masked to zero.  The noise level is estimated from the region of
+the total intensity image defined by the \fIblankarea\fR parameter.
+.le
+.ls blankarea = "[*,*]"
+This region of the I stokes parameter image will be used to estimate the 
+noise per pixel.  The noise value is taken to be the standard deviation 
+of the pixels in this area, which should be part of the image where there 
+is no source emission.  It is used if \fInoise\fR is zero or negative, 
+otherwise that value overrides this parameter.
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes the task use the logfile
+defined by \fImidir.logfile\fR.
+.le
+.ls verbose = yes
+Set this for logging to the screen as well as the log file.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error. 
+This parameter is always set by the task, and should not be modified by 
+the user.
+.le
+.ih
+DESCRIPTION
+.sp
+This task is intended to be applied to a file produced by MIPSTOKES.
+Such a file has a series of Stokes images made from individual AB nod pairs 
+in a polarimetry observation.  What is done here is to average the various 
+inidividual Stokes I, U, and Q images to produce an overall set of Stokes 
+parameter images.  The "final" Stokes images are then used to derive the 
+unpolarized and polarized images, the percent polarization, and the 
+polarization angle in degrees.  The output file will have at least seven 
+extensions, being the Stokes I, U, and Q, the unpolarized image, the 
+polarized intensity image, the percent polarization, and the angle of the 
+poalrization vector in degrees.  If the \fIfl_variance\fR flag is set to 
+"yes" then there are three additional extensions containing the variance 
+image for the Stokes I, U and Q images in extensions 1 to 3.
+.sp
+There is an option to register the Stokes I images (and to apply the same 
+shifts to the associated Stokes U and Q images) before the averaging is 
+carried out.  The registration is done with the XREGISTER task, 
+using the first Stokes I image (i.e. the image in extension 1 of the 
+input MEF file) as the reference image.  It generally needs to be applied 
+to some region of the images where there is a bright object for the 
+registration to be done correctly, so it is necessary to define a 
+region within which the registration will be done.  This is given  
+by the \fIregions\fR parameter.
+.sp
+The sets of images, for Stokes I or U or Q, are combined with the 
+IMCOMBINE task.  If the \fIfl_variance\fR flag is set to "yes" then 
+the pixel by pixel standard deviation images returned by IMCOMBINE 
+are transformed to variance images, and these are stored in the output 
+file.
+.sp
+The \fIfl_stair\fR flag is analogous to that in the MIPSTACK task: 
+if the value is "yes" then this task removes channel to channel offsets 
+from the Stokes I, U, and Q images as these are created.  This is done 
+by finding the medium pixel value for each of the sixteen channels in the 
+detector.  These median values are subtracted off the image sections of 
+the stacked Stokes images.  This will only work if the target object does 
+not fill one or more of the channels.in the detector, which are vertical 
+sections 20 pixels across.  The median levels in the various channels 
+differ by a few ADU in a typical image.  This can have an effect on the 
+polarization signature over the image if it is not removed.  One can run 
+the task with and without the \fIfl_stair\fR option set and subtract the 
+pairs of images that result to see what effect the staircase correction 
+has.  This should be done if the object in the field is large.
+.sp
+In addition, the user can screen out pixels where the noise dominates by 
+setting the \fIfl_mask\fR flag.  If this flag is set then either (a) the 
+masking value is taken to be given by the \fInoise\fR parameter if this is 
+greater than zero, or (b) the masking value is calculated from the desired 
+accuracy in percent polarization given by the \fIthreshold\fR value and an 
+estimate of the noise level from the pixels in the \fIblankarea\fR.  The 
+\fIimstat\fR task is applied to the specified region of the Stokes I image, 
+and the standard deviation of the pixel values is taken to be the noise 
+level.  From this the masking value is calculated such that the signal-to-noise
+ratio per pixel is large enough to give the requested accuracy of polarization 
+fraction.  A S/N of 70.5 is required to give a +/-1% uncertainty in any 
+polarization values.  This value scales as the inverse-square of the 
+\fIthreshold\fR value.  Once the masking value has been found, it is 
+applied to the Stokes U and Q images before these are used in the calculation 
+of the additional polarization images.  All values less than the masking 
+value are set to zero.  This is not done to the Stokes U and Q images that 
+are written to the output file, but only to the unpolarized intensity image, 
+the polarized intensity image, the percent polarization image, and the 
+polarization angle image.
+.sp
+If the masking value is set so large that it would screen out all the pixels 
+then it is re-set to half the maximum value in the Stokes I image.
+.ih
+EXAMPLE
+.sp
+1. Here is an example of using this task with registration. The bright region 
+of the target is located at about [102,132] on the image, so a box of 21 by 21 
+pixels centered on this position is used.  The shifts needed to register the 
+Stokes I images are written to the terminal by the XREGISTER task.  If these 
+shifts are large, it is likely that something is wrong and the Stokes I images 
+should be examined to see what is causing the large shifts.
+.sp
+.nf
+    cl> mipsstk smN20060105S0211 outim="stacked_smN20060105S0211" \
+    >>> fl_register+ region="[92:122,132:152]" fl_variance+ fl_mask- \
+    >>> fl_stair-
+    MISSTK 
+    MISSTK -----------------------------------------------------------------
+    MISSTK Log opened at [Fri 10:31:58 10-Feb-2006]
+    MISSTK 
+    MISSTK --------------------
+    MISSTK Input Parameters:
+    MISSTK      inimage        = stokes_mN20060105S0211
+    MISSTK      outimage       = stacked_stokes_mN20060105S0211
+    MISSTK      outpref        = a
+    MISSTK      rawpath        = 
+    MISSTK      fl_register    = yes
+    MISSTK      regions        = [92:122,132:152]
+    MISSTK      fl_stair       = no
+    MISSTK      fl_variance    = yes
+    MISSTK      fl_mask        = no
+    MISSTK      threshold      = 1.0
+    MISSTK      noise          = 0.0
+    MISSTK      blankarea      = ""
+    MISSTK      logfile        = 
+    MISSTK      verbose        = yes
+    MISSTK --------------------
+    Average shift from tmpwork3150c to tmprefimage3150m is -0.001387835 0.00309968 pixels
+            Shifting image tmpwork3150c to image tmpimage3150n ...
+    Overlap region: [1:319,2:240]
+    Average shift from tmpwork3150c to tmprefimage3150m is -0.003788471 -0.0103519 pixels
+            Shifting image tmpwork3150c to image tmpimage3150o ...
+    Overlap region: [1:319,1:239]
+    Average shift from tmpwork3150c to tmprefimage3150m is 0.01769781 -0.04955626 pixels
+            Shifting image tmpwork3150c to image tmpimage3150p ...
+    Overlap region: [2:320,1:239]
+    Average shift from tmpwork3150c to tmprefimage3150m is -0.02227449 0.007162571 pixels
+            Shifting image tmpwork3150c to image tmpimage3150q ...
+    Overlap region: [1:319,2:240]
+    Average shift from tmpwork3150c to tmprefimage3150m is -0.02732801 -0.04200077 pixels
+            Shifting image tmpwork3150c to image tmpimage3150r ...
+    Overlap region: [1:319,1:239]
+    Average shift from tmpwork3150c to tmprefimage3150m is 0.02870965 -6.198883E-6 pixels
+            Shifting image tmpwork3150c to image tmpimage3150s ...
+    Overlap region: [2:320,1:240]
+    Average shift from tmpwork3150c to tmprefimage3150m is -0.006560802 -0.02129459 pixels
+            Shifting image tmpwork3150c to image tmpimage3150t ...
+    Overlap region: [1:319,1:239]
+.fi
+.ih
+BUGS AND LIMITATIONS
+The registration option is not robust, but rather it seems to depend a lot
+on exactly what region is chosen even around a nice, bright, compact target.
+.ih
+SEE ALSO
+mipstack, images.immatch.xregister, mipstokes
+.endhelp

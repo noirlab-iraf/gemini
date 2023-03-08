@@ -1,0 +1,133 @@
+.help gmskxy May2017 gemini.gmos.mostools
+.ih
+NAME
+gmskxy -- Calculate x,y positions from list of RA, Dec, required field 
+centre and position angle
+.ih
+USAGE
+gmskxy indata instrument rafield decfield pa
+.ih
+PARAMETERS
+.ls indata
+File containing information for spectroscopy candidates and/or objects to use 
+to create pseudo-Gemini image.
+.le
+.ls instrument [gmos-n|gmos-s|flamingos2]
+Gemini Instrument the input image is to be transformed into. The coordinate
+transformations are different for each instrument. Lower-case values are
+valid.
+.le
+.ls rafield
+Right ascension of field centre required for the multi-object spectroscopy 
+observations.  In hours or degrees, see parameter \fIfraunits\fR.
+.le
+.ls decfield
+Declination of field centre required for the multi-object spectroscopy 
+observations.  In degrees.
+.le
+.ls pa
+Position angle required for the multi-object spectroscopy observations. This is 
+the same angle as used to define the observations in the Observing Tool.
+.le
+.ls iraunits = "hours"      [hours|degrees]
+Units of the right ascension values in the input data file, \fIindata\fR.
+.le
+.ls fraunits = "hours"      [hours|degrees]
+Units for \fIrafield\fR.
+.le
+.ls outcoords = ""
+Output ASCII file for x,y positions.
+.le
+.ls outtab = ""
+Output binary FITS table for GMMPS Object Table.
+.le
+.ls slitszx = 1.0
+Default slit width in arcsecs  (In a F2 mask, the width becomes slitsize_y)
+.le
+.ls slitszy = 5.0
+Default slit length in arcsecs (In a F2 mask, the length becomes slitsize_x)
+.le
+.ls logfile = ""
+Name of the logfile.  If empty, the default value is taken from 
+\fImostools.logfile\fR.
+.le
+.ls glogpars = ""
+Logging preferences.
+.le
+.ls verbose = yes
+Print actions to the screen.
+.le
+.ls fl_debug = no
+Print debugging information.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error.  This
+parameter is always set by the task, ans should not be modified by the user.
+.le
+.ih
+DESCRIPTION
+.sp
+GMSKXY is called by GMSKCREATE, and should not be used as a standalone task.  
+GMSKXY calculates x,y positions in a field with parameters given by 
+\fIinstrument\fR, given input RA and Dec of the objects, and the required RA 
+and Dec of the field centre and position angle of the field.
+.sp
+Before any coordinate transformations are done, the script will do a check on 
+the input file to make sure the required parameters of ID, RA, Dec, and MAG are
+present. There is also the option for entering the optional parameters, priority,
+slit size x, slit size y, slit tilt, and slit position y. These must be entered 
+in the order listed. The script will automatically fill in default values for 
+any missing parameters: priority=1, slittilt=0, slitpos_y=0,and slitsize_x and 
+slitsize_y as given in the input parameters \fIslitszx\fR and \fIslitszy\fR.
+Any objects marked as a acquisition object (priority = 0), the slit size in 
+X and Y will be set to 2" and the tilt and slit Y-position will be set to 0.
+.sp
+The calculation is carried out using known transformations between the standard 
+coordinates 'xi' and 'eta' and the \fIinstrument\fR x,y coordinates. These 
+transformations were found by observing astrometric fields in the North and South. 
+More details are given on the GMOS web pages.
+.sp
+The transformation from RA, Dec -> x,y was designed to fit in with the 
+current philosophy for designing Gemini MOS masks from pre-imaging.  Therefore 
+the distortions introduced by the telescope and by the instrument are 
+considered together, and no correction is made for observations at different 
+airmasses.
+.sp
+The standard coordinates are calculated from the input RA and Dec and then 
+multiplied by 1e6 and rotated to the frame defined by the detector x-y axes 
+(this assumes that the distortions introduced by the telescope are radially 
+symmetric whereas those introduced by the instrument are not).
+.sp
+The transformation equations are:
+.nf
+    xgemini = xcfs0        + xcfs1*peta         + xcfs2*peta**2
+          + xcfs3*peta**3  + xcfs4*peta**4      + xcfs5*pxi
+          + xcfs6*pxi*peta + xcfs7*pxi*peta**2  + xcfs8*pxi*peta**3
+          + xcfs9*pxi**2   + xcfs10*pxi**2*peta + xcfs11*pxi**2*peta**2 
+          + xcfs12*pxi**3  + xcfs13*pxi**3*peta + xcfs14*pxi**4
+.fi
+.sp
+.nf
+    ygemini = ycfs0        + ycfs1*peta         + ycfs2*peta**2
+          + ycfs3*peta**3  + ycfs4*peta**4      + ycfs5*pxi
+          + ycfs6*pxi*peta + ycfs7*pxi*peta**2  + ycfs8*pxi*peta**3 
+          + ycfs9*pxi**2   + ycfs10*pxi**2*peta + ycfs11*pxi**2*peta**2 
+          + ycfs12*pxi**3  + ycfs13*pxi**3*peta + ycfs[14]*pxi**4
+.fi
+.sp
+where 'peta' and 'pxi' are the rotated standard coordinates. A
+3rd order polynomial provided the best fit for GMOS-N, GMOS-S and F2, 
+so the (x|y)cfs4, (x|y)cfs8, (x|y)cfs11, (x|y)cfs13 and (x|y)cfs14 
+coordinates are equal to 0.
+.sp
+See the help page for GMSKCREATE for further information.
+.ih
+EXAMPLES
+Please refer to GMSKCREATE.
+.ih
+BUGS AND LIMITATIONS
+None known.
+.ih
+SEE ALSO
+gmskcreate, gmskimg
+.endhelp

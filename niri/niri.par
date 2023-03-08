@@ -1,0 +1,6 @@
+# Copyright(c) 2000-2017 Association of Universities for Research in Astronomy, Inc.
+#
+# Package parameters for the niri package
+ 
+logfile,s,h,"niri.log",,,"Logfile for tasks in the niri package"
+version,s,h,"20Jul2017",,,"Package version date"

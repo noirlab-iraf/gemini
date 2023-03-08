@@ -1,0 +1,288 @@
+.help nfsdist November2011 gemini.nifs
+.ih
+NAME
+nfsdist -- Establish S-distortion calibration
+.ih
+USAGE
+nfsdist inimages
+.ih
+PARAMETERS
+.ls inimages
+Input spectra. If multiple images are specified, they are combined
+before the distortion is measured (useful for spectra of a star stepped
+along a slit). 
+The task is designed for Multi-Extension FITS images.
+\fIinimages\fR may be given as a comma separated list, a
+@filelist, or using wildcards.
+.le
+.ls outsuffix = "_sdist"
+Output filename is the first input file with \fIoutsuffix\fR
+appended.  If the input is a single file that has already been
+run through NFSDIST, no new output file is written.  Only the database
+is modified.  If the input is multiple files, then the output file
+must not exist.
+.le
+.ls pixscale = 1.
+Pixel scale to use if the header keyword \fInsheaders.key_pixscale\fR is 
+not found.
+.le
+.ls dispaxis = 1
+Dispersion axis, if not defined from the header.
+.le
+.ls database = ""
+Directory for files containing output feature data.  If undefined, 
+\fInifs.database\fR is used.
+.le
+.ls firstcoord = 0.
+When a list of star spectra are entered, the coordinate of the star
+spectrum in the first input image is used to find them automatically
+in all the others.  If \fIfl_inter\fR=yes, this parameter is ignored.
+.le
+.ls coordlist = "nifs$data/coords.dat"
+Coordinate list for the slit spectra in the Ronchi calibration mask. 
+The coordinate list gives
+the approximate position in pixels for the Ronchi slits.
+\fIcoordlist\fR is only used if \fIfl_inter\fR=no and a single
+.le
+.ls aptable = "nifs$data/apertures.fits"
+A table that defines the aperture shift for each order (column
+apshift).  Table rows are selected using prism, decker, slit and order
+values.
+.sp
+The table also includes values used by NSFLAT.
+.le
+.ls glshift = 0.
+Apply a global shift to the coordinate positions.
+.le
+.ls fl_inter = no
+Identify spectra and examine fits interactively.
+.le
+.ls fl_dbwrite = yes
+Automatically  write  or  update  the  database  with  the  line 
+identifications and dispersion function (and overwrite, if already
+present)?
+.le
+.sp
+The following parameters are passed to AUTOIDENTIFY, IDENTIFY and/or 
+REIDENTIFY.
+.ls section = "default"
+The section defines the one dimensional spectrum to use for 
+AUTOIDENTIFY or IDENTIFY. \fIsection\fR=default means that 
+"middle column" will be used for dispaxis=1 and "middle line" 
+will be used for dispaxis=2. See the help page for IDENTIFY
+for other choices.
+.le
+.ls nsum = 30
+Number of lines or columns to sum. 
+.le
+.ls ftype = "emission"  (emission|absorption)
+Feature type. 
+.le
+.ls fwidth = 10.
+Full-width at the base (in pixels) of features to be identified.
+.le
+.ls cradius = 10.
+The maximum distance, in pixels, allowed between a line position
+and the initial estimate when defining a new line.
+.le
+.ls threshold = 50.
+In  order  for a line center to be determined, the range of pixel
+intensities around the line must exceed this threshold.
+.le
+.ls minsep = 10.
+The  minimum  separation,  in  pixels,  allowed   between   line 
+positions when defining a new line.
+.le
+.ls  match = -6.
+The  maximum  difference for a match between the line coordinate
+derived from the dispersion function and  a  coordinate  in  the
+coordinate  list.   Positive values are in user coordinate units
+and negative values are in units of pixels.
+.le
+.ls function = "chebyshev"
+The function to be fit to user coordinates as a function of  the
+pixel  coordinates.   The  choices  are "chebyshev", "legendre",
+"spline1", or "spline3".
+.le
+.ls order = 2
+Order of the fitting function.   The  order  is  the  number  of
+polynomial terms (coefficients) or the number of spline pieces.
+.le
+.ls sample = ""
+Sample regions for fitting specified in in pixel coordinates.
+.le
+.ls niterate = 3
+Number of rejection iterations.
+.le
+.ls low_reject = 5., high_reject = 5.
+Lower  and  upper  residual rejection in terms of the RMS of the fit.
+.le
+.ls grow = 0.
+Distance from a rejected point within which additional points are
+automatically rejected, regardless of their residuals.
+.le
+.ls refit = yes
+Refit the coordinate function when using REIDENTIFY.
+.le
+.ls step = 10
+The step in pixels in the spatial direction between each
+established coordinate function. If the pinhole or star spectra are highly
+distorted, \fIstep\fR should be smaller than the default.
+.le
+.ls trace = no
+Use the solution for the last step to fit the current step.
+If \fItrace\fR=no, then the reference spectrum is used for all steps.
+.le
+.ls nlost = 10
+Maximum allowed number of lost features.
+If \fItrace\fR=yes and more than \fInlost\fR features are not 
+found, the reidentification record is not written to the database. 
+.le
+.ls aiddebug = ""
+Debug parameter for aidpars. \fIaiddebug\fR="s" gives useful
+diagnostic debug printouts for troubleshooting. See the
+help page for AIDPARS for other possible settings.
+If \fIverbose\fR=no, \fIaiddebug\fR="" will be used independently
+of the user supplied value.
+.le
+.ls logfile = ""
+Name of logfile. If empty, the package logfile
+\fInifs.logfile\fR is used. If neither is defined, then 
+\fIlogfile\fR="nifs.log" is used.
+.le
+.ls verbose = yes
+Print actions to screen.
+.le
+.ls debug = no
+Print detailed actions to the screen.
+.le
+.ls force = no
+The GEMOFFSETLIST task may not work on versions of IRAF before 2.12.2a.
+Setting this flag ignores a test for those versions when that task is
+called.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error.
+This parameter is always set by the task, and should not be modified
+by the user.
+.le
+
+.ce
+Parameters from NSHEADERS
+.sp
+The following values are read from GNIRS.NSHEADERS
+.ls sci_ext
+Name of science extension
+.le
+.ls var_ext
+Name of variance extension
+.le
+.ls dq_ext
+Name of data quality extension
+.le
+.ls key_decker
+Header keyword for decker
+.le
+.ls key_dispaxis
+Header keyword for dispersion axis
+.le
+.ls key_exptime
+Header keyword for exposure time
+.le
+.ls key_fpmask
+Header keyword for focal plane mask (slit)
+.le
+.ls key_gain
+Header keyword for gain (e-/ADU)
+.le
+.ls key_pixscale
+Header keyword for dispersion axis
+.le
+.ls key_prism
+Header keyword for prism
+.le
+.ls key_ron
+Header keyword for read noise (e-)
+.le
+.ls key_xoff
+Header keyword for storing gemoffsetlist x offset (in arcsec)
+.le
+.ls key_yoff
+Header keyword for storing gemoffsetlist y offset (in arcsec)
+.le
+.ih
+DESCRIPTION
+NFSDIST is used for establishing the spatial rectification for NIFS IFU 
+spectra, ie. the spatial distortion as a function of wavelength.
+.sp
+Multiple input spectra may be specified, and the spectra are all
+combined before measuring the distortion. 
+The relative positions of the spectra will be known from the
+coordinate file. 
+.sp
+The coordinate parameters describe where the spectra should be.
+The actual positions of the spectra can be identified interactively or
+automatically.  The relative positions are stored in \fIdatabase\fR
+(if \fIfl_dbwrite+\fR) for later use by NSFITCOORDS.
+.sp
+NFSDIST will write the combined output image (if more than one input
+image is given) as the name of the first input spectrum with
+\fIoutsuffix\fR appended.  Multiple NFSDIST calls will not overwrite
+the combined spectrum, but will overwrite the database entries.
+.sp
+All input images should have been pre-processed with NFPREPARE and
+NSCUT. 
+.sp
+NFSDIST performs the following actions:
+.sp
+.nf
+1) Combine the input images using GEMCOMBINE if n>1
+2) Run IDENTIFY or AUTOIDENTIFY on the section 
+   defined by \fIsection\fR.
+3) Run REIDENTIFY on the full spectrum to establish the location 
+   of the features for all wavelengths.
+.fi
+.sp
+\fIfl_interactive\fR=yes makes it possible to to inspect the
+automatic feature identifications and resolve any misidentifications
+manually.  Parameters \fIfwidth\fR, \fIthreshold\fR,
+and \fIminsep\fR control the automatic identification.
+.sp
+The parameter \fImatch\fR is the "leeway" used when associating
+the identified lines with their reference positions.
+.sp
+When several science extensions are present in the data,
+\fIaptables\fR is used to provide relative offsets from one extension
+to the next (the APSHIFT column).  This shift is added to the values
+described above to find the appropriate position for that extension.
+.sp
+If \fIverbose\fR=yes, diagnostic output will be printed to the
+screen.  If \fIverbose\fR=no, only warnings and errors are printed
+to the screen, and \fIaiddebug\fR="" will be used.
+.sp
+The database files will be named
+\fIdatabase\fR/id\fIoutspectra\fR_\fIsci_ext\fR_\fIorder\fR_.
+.ih
+EXAMPLES
+1. Establish the spatial rectification using Ronchi calibration mask
+spectra, automatically getting positions from the coords file:
+.sp
+.nf
+   ge> nfsdist @listfile fl_inter-
+.fi
+.sp
+2. Establish the spatial rectification using stellar or pinhole spectra
+interactively:
+.sp
+.nf
+   ge> nfsdist sdist.fits fl_inter+
+.fi
+.ih
+BUGS AND LIMITATIONS
+When run on standard NIFS "Ronchi" calibration masks, NFSDIST seems to work
+very well.  No bugs are presently known.
+.ih
+SEE ALSO
+identify, autoidentify, reidentify, aidpars, nsappwave, nfprepare, 
+nswavelength, nstransform
+.endhelp

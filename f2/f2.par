@@ -1,0 +1,7 @@
+# Copyright(c) 2010-2017 Association of Universities for Research in Astronomy, Inc.
+#
+# Package parameters for the f2 package
+ 
+database,s,h,"database",,,"Directory for files containing feature data"
+logfile,s,h,"f2.log",,,"Logfile for tasks in the f2 package"
+version,s,h,"20Jul2017",,,"Package version date"

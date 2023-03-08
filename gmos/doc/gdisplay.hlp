@@ -1,0 +1,280 @@
+.help gdisplay January2015 gemini.gmos
+.ih
+NAME
+gdisplay -- Display GMOS images
+.ih
+USAGE
+gdisplay image frame
+.ih
+PARAMETERS
+.ls image
+Image to display. If image is from the current UT
+date, this can be just the image number (e.g. 100).  If for any other
+date, should be of the format [N/S]20060421S0100 or use
+\fIprefix\fR = N20060421S and \fIimage\fR = 100
+.le
+.ls frame = 1
+Display frame to be loaded.
+.le
+.ls output = ""
+When \fIfl_paste\fR is set to yes, save pasted file to this name.
+If left blank, the pasted file will not be kept.
+.le
+.ls fl_paste = no
+Paste extensions into one image and start imexamine when image
+has been displayed. Outer CCDs are not transformed like they would be in
+GMOSAIC.
+.le
+.ls fl_bias = no
+Do a rough bias subtraction using the overscan value type defined by
+\fIbias_type\fR.
+.le
+.ls rawpath = "adata$"
+Path for the directory where the GMOS images are located.  One may
+set this parameter if the raw data are not located in the current
+working directory, or specify a path in the input image file names.
+If \fIrawpath\fR!="" (ie. not an empty string) it will be combined
+with any path given as part of the input image names.
+.le
+.ls gap = "default"
+Gap between CCDs in unbinned pixels. The default value for \fIgap\fR is 37 for
+unbinned data, 36/Xbin for binned data. Xbin is the binning in the x direction.
+.le
+.ls z1 = 0., z2 = 0.
+Lower and upper limit for display if not autoscaling.
+If \fIfl_paste\fR=no and autoscaling is used, then each extension is
+autoscaled separately. This may lead to a less useful display of
+the image. To resolve this problem, either set \fIz1\fR and \fIz2\fR
+to force the same scaling on all extensions, or use the task with
+\fIfl_paste\fR=yes.
+.le
+.ls fl_sat = no
+Flag saturated pixels as red on the display. This flag is useful for checking
+standard star observations or arc spectra for saturation.
+.le
+.ls satvalue = "default"
+For EEV CCDs, pixels above 58000 [ADU] (45000 [ADU] for images with 1x1
+binning) are flagged as saturated. These values are slightly reduced from the
+detector controller limit of 65535 [ADU]. In the case of e2vDD CCD data from
+GMOS-N and Hamamatsu CCD data from GMOS-S, each individual amplifier has its
+own saturation limit. The specific values used for each amplifier for each of
+these CCDs can be found in value for the satdb parmeter in GSAT which
+calculates the saturation values for the these CCD types. One limitation in the
+case of e2vDD GMOS-N and Hamamatsu GMOS-S data is that saturated pixels will
+not be flagged if the input image has been GMOSAIC'ed or GTILE'd.
+.le
+.ls fl_imexam = yes
+If possible, run imexam.
+.le
+.ls signal = INDEF
+Flag pixels with counts above bias of \fIsignal\fR or higher as green on
+the display. This is useful for checking standard star observations
+for sufficient signal.
+.le
+.ls fl_pretty = no
+This parameter is only for use during acquisitions / observations and is only
+available internally to GEMINI as it is not entirely scientifically
+valid. Remove any additional bias levels near amplifier boundaries and level
+amplifiers according to the ratio the amplifier gain and the average of all
+amplifiers in the output image.
+.le
+.ls ret_roi = yes
+Return only data within ROIs defined by the DETRO?X, DETRO?XS, DETRO?Y and
+DETRO?YS keywords in the PHU of the input image.
+.le
+.ls req_roi = 0
+Which ROI(s) to return. A value of 0 means all ROIs will be returned. If not 0,
+then the value must be between 1 and the value defined by the keyword DETNROI
+in the PHU of the input image; only one value is allowed.
+.le
+.ls bias_type = "default" (default|calc|static)
+Which type of overscan value to use if image is not already overscan
+corrected. By default \fIbias_type\fR will be set according to the detector
+type. For e2vDD CCDs it will be set to "calc" else it will be set to
+"static". A value of "calc" means GOVERSUB will use the "midpt" of the
+bias section of the input image. A value of "static" means it will read the
+static bias value recorded in the file defined by the parameter \fIgaindb\fR.
+.le
+.ls sci_ext = "all"
+Extensions to display. If \fIsci_ext\fR="all" the task will display
+the SCI extensions if defined, or otherwise attempt to display all
+the extensions. The SCI extensions are not defined in raw GMOS images,
+thus raw images should be displayed using \fIsci_ext\fR="all".
+.le
+.ls observatory = ")_.observatory"
+Observatory name.  Normally set by the gmos package.
+Current valid values are gemini-north or gemini-south.
+.le
+.ls prefix = "auto"
+File name prefix, format is (N/S)YYYYMMDDS. Default value of "auto" will use
+today's UT date for YYYYMMDD.
+.le
+.ls key_detsec = "DETSEC"
+Header keyword for detector section.
+.le
+.ls key_datasec = "DATASEC"
+Header keyword for data section.
+.le
+.ls key_biassec = "BIASSEC"
+Header keyword for overscan section.
+.le
+.ls key_ccdsec = "CCDSEC"
+Header keyword for CCD section.
+.le
+.ls key_ccdsum = "CCDSUM"
+Header keyword for CCD binning.
+.le
+.ls gaindb = "default"
+Database file containing the GMOS gain data. The default value for \fIgaindb\fR
+is gmos$data/gmosamps.dat.
+.le
+.ls verbose = no
+Verbose.
+.le
+.ls logfile = ""
+Name of the logfile.  If empty, the package logfile gmos.logfile is used.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error.
+This parameter is always set by the task, and should not be modified by
+the user.
+.le
+.ih
+DESCRIPTION
+GDISPLAY is designed to display GMOS MEF images (including images with custom
+ROIs / greater than one ROI) as one image. If the input
+image is a GMOS image that has been
+processed with GMOSAIC, GTILE (if tiled into the entire detector)
+then GDISPLAY sets \fIfl_paste\fR=no and
+\fIfl_bias\fR=no and displays the input image. Images that have been processed
+with GMOSAIC can also be displayed using the task DISPLAY and defining the
+extension to display, e.g.
+
+.nf
+   display gmosimage[1] 1
+.fi
+
+If \fIfl_paste\fR=no the extensions will be displayed as one
+image but they are not pasted together which means that the user
+cannot interact with the output with, i.e. IMEXAMINE is not run.
+
+Any processing of the input image with for examples the flags \fIfl_paste\fR
+and \fIfl_bias\fR (\fIfl_pretty\fR too), will call the task GMULTIAMP to
+perform the processing. This task calls a number of tasks to perform the
+requested operation(s). In addition, if \fIret_roi\fR=yes or \fIreq_roi\fR!=0
+then GMULTIAMP will also be called to return the requested
+information. Finally, requesting saturation or signal masks will also invoke
+GMULTIAMP.
+
+If \fIfl_paste\fR=yes the extensions are pasted together, this is done using
+the task GTILE (via GMULTIAMP) (\fIfl_paste\fR=yes)
+assuming gaps between the CCDs of \fIgap\fR unbinned pixels.
+When the image has been displayed, IMEXAMINE is started and the
+user may use this task to examine the image. When the user exits
+IMEXAMINE the temporary files created by GDISPLAY are deleted.
+
+If \fIfl_bias\fR=yes a rough bias subtraction is done by calling GOVERSUB with
+the \fIbias_type\fR parameter set. \fIbias_type\fR="static" uses the static
+bias values stored in the database file defined by 
+\fIggaindb\fR. \fIbias_type\fR="calc" calculates the "midpt" of the region
+defined by the header keyword \fIkey_biassec\fR. \fIbias_type\fR="default"
+means in the call to GOVERSUB for e2vDD CCDs, \fIgoversub.bias_type\fR will be
+set to "calc" and static for other CCD types. 
+It is recommended to use \fIfl_paste\fR=yes and \fIfl_bias\fR=yes
+when examining raw GMOS images. Images that have been bias subtracted
+by other means should not be displayed using \fIfl_bias\fR=yes.
+
+Using GDISPLAY with \fIfl_paste\fR=yes or \fIfl_bias\fR=yes requires
+that the user has write permission in the current directory.
+The task requires stdimage to be imtgmos, imtgmos2, imtgmos4 or
+imtgmos8. imtgmos allows full resolution display of unbinned GMOS
+images. The display buffer for imtgmos2 is half the size of imtgmos,
+imtgmos4 a quarter of the size, and imtgmos8 an eighth of the size
+of imtgmos.
+
+The flag \fIfl_sat\fR and the signal level \fIsignal\fR are primarily
+used for quality assessment of raw data at the telescope.
+The offline user may also find this functionality useful for checking
+raw observational data.
+
+.ih
+EXAMPLES
+1. To display a raw GMOS image
+
+.nf
+    cl> gdisplay rawimage 1
+.fi
+
+2. To display a raw GMOS image, subtracting off the bias and pasting the
+image together
+
+.nf
+    cl> gdisplay rawimage 1 fl_bias+ fl_paste+
+.fi
+
+The user is left with an active IMEXAMINE on the image. When
+exiting from IMEXAMINE the temporary images created by GDISPLAY are
+deleted.
+
+3. To display a raw GMOS image, subtracting off the bias and pasting the
+image together, as well as checking for saturated pixels and a sufficient
+signal level
+
+.nf
+    cl> gdisplay rawimage 1 fl_bias+ fl_paste+ fl_sat+ signal=1800.
+.fi
+
+Saturated pixels appear red, pixels with signal above 1800 counts but not
+saturated appear green.
+The user is left with an active IMEXAMINE on the image. When
+exiting from IMEXAMINE the temporary images created by GDISPLAY are
+deleted.
+
+4. To display a processed GMOS image that has already been bias
+subtracted, pasting the image together. The image in this example does
+not contain variance (VAR) and data quality (DQ) planes.
+
+.nf
+    cl> gdisplay processedimage 1 fl_paste+
+.fi
+
+5. To display the science extensions (SCI) of a processed GMOS image
+
+.nf
+    cl> gdisplay gmosimage 1 fl_paste+ sci_ext="SCI"
+.fi
+
+6. To display the variance plane (VAR) of a processed GMOS image
+
+.nf
+    cl> gdisplay gmosimage 1 fl_paste+ sci_ext="VAR"
+.fi
+
+7. To display the data quality plane (DQ) of a processed GMOS image
+
+.nf
+    cl> gdisplay gmosimage 1 fl_paste+ sci_ext="DQ"
+.fi
+8. To display today's gmos image number 18
+
+.nf
+    cl> gdisplay 18 1
+.fi
+
+.ih
+TIME REQUIREMENTS
+
+Full frame readout unbinned raw GMOS images are 58Mb. It is recommended
+to use workstations with a minimum of 512Mb RAM if more than one
+frame in ximtool (or equivalent) is used with stdimage=imtgmos
+.ih
+BUGS AND LIMITATIONS
+
+GDISPLAY can display cut out MOS data. In this case the image sections
+will be placed approximately in their original location, but they
+cannot be pasted back together, ie. GDISPLAY sets fl_paste=no.
+.ih
+
+SEE ALSO
+gmultiamp, goversub, gsat, gtile, imexamine, display
+.endhelp

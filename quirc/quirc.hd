@@ -1,0 +1,11 @@
+# Copyright(c) 2000-2011 Association of Universities for Research in Astronomy, Inc.
+#
+# Help directory for the quirc package
+
+$doc = "quirc$doc/"
+
+qflat        hlp = doc$qflat.hlp, src=quirc$qflat.cl
+qfastsky     hlp = doc$qfastsky.hlp, src=quirc$qfastsky.cl
+qsky         hlp = doc$qsky.hlp, src=quirc$qsky.cl
+qreduce      hlp = doc$qreduce.hlp, src=quirc$qreduce.cl
+quircinfo    hlp = doc$quircinfo.hlp

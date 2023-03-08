@@ -1,0 +1,173 @@
+.help gemcrspec April2017 gemini.gemtools
+.ih
+NAME
+gemcrspec -- LA Cosmic wrapper for cleaning cosmic rays from spectra
+.ih
+USAGE
+gemcrspec inimages outimages
+.ih
+PARAMETERS
+.ls inimages
+Input multi-extension FITS image, or list of images, to process.
+.le
+.ls outimages
+Cleaned output image or list of images, matching \fIinimages\fR.
+.le
+.ls xorder = 9
+Order of fit, along the dispersion axis, used to subtract object continuum
+before performing cosmic ray detection (LACOS_SPEC). If a value of 0 is
+given, no object fit is performed.
+.le
+.ls yorder = -1
+Order of fit, perpendicular to the dispersion axis, used to subtract sky
+lines before performing cosmic ray detection (LACOS_SPEC). If a value of 0
+is given, no sky fit is performed. With the default value of -1, GEMCRSPEC
+automatically selects a value (of 2, 3 or 5) appropriate for GMOS spectra,
+depending on the y dimension of each image extension (for <50, 50-79 or
+>79 pixels, respectively).
+.le
+.ls sigclip = 4.5
+Detection threshold for cosmic rays, in standard deviations (LACOS_SPEC).
+The existing implementation of LA Cosmic uses its own noise model for this
+(estimated from the counts of a 5x5 running median), rather than the values
+from any variance planes available in the input files.
+.le
+.ls sigfrac = 0.5
+Fractional detection limit for neighbouring pixels (LACOS_SPEC). After
+initial detection of cosmic rays using the more stringent \fIsigclip\fR,
+the detection limit is lowered according to \fIsigfrac\fR in neighbouring
+pixels only, to grow the detections into any surrounding, lower-level
+contamination.
+.le
+.ls objlim = 1.0
+Contrast limit between cosmic rays and the underlying object flux
+(LACOS_SPEC). Only cosmic ray candidates that are at least \fIobjlim\fR
+times as bright as the underlying flux (estimated from the surrounding
+pixels) are flagged and rejected.
+.le
+.ls niter = 4
+Maximum number of detection and cleaning iterations for each input image
+extension (LACOS_SPEC). If any earlier iteration results in no additional
+contaminated pixels being identified, the loop will stop there, before
+reaching \fIniter\fR.
+.le
+.ls fl_vardq = no
+Create or propagate variance and data quality planes? Though the default is
+"no" for consistency with other steps, it is recommended that this parameter
+be set to "yes" so a record exists in the output of which pixels were
+identified as cosmic rays (DQ=8) and so that they can be re-cleaned later if
+necessary (eg. by GEMFIX). Any variance extensions in the input file
+currently get copied unmodified, while any existing data quality extensions
+get updated with the cosmic ray identifications. If the input file has no
+variance or data quality then only the latter will be created in the output
+(which might lead to later processing steps failing with \fIfl_vardq\fR=yes; 
+to solve this the flag should be enabled throughout the process).
+.le
+.ls sci_ext = "SCI"
+Name of the MEF extension containing the science data.
+.le
+.ls var_ext = "VAR"
+Name of the MEF extensions containing the variance frame(s).
+.le
+.ls dq_ext = "DQ"
+Name of the MEF extensions containing the data quality array(s).
+.le
+.ls key_ron = "RDNOISE"
+Header keyword for the detector read noise (in electrons).  This value has 
+precedence over \fIron\fR.
+.le
+.ls key_gain = "GAIN"
+Header keyword for the detector gain (in electrons/ADU).  This value has 
+precedence over \fIgain\fR.
+.le
+.ls ron = 3.5
+Detector read noise (in electrons) to use if not found from the header 
+keyword \fIkey_ron\fR.  
+.le
+.ls gain = 2.2 
+Detector gain (in electrons/ADU) to use if not found from the header 
+keyword \fIkey_gain\fR. 
+.le
+.ls logfile = ""
+Name of the output logfile. When this is blank (as by default), the value of
+\fIgemtools.log\fR is used. If the package log parameter is also blank, the
+name will be "gemtools.log".
+.le
+.ls verbose = yes
+Print messages to the screen as well as the log? Errors will be printed
+regardless.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error. This
+parameter is set by the task and should not be modified by the user.
+.le
+
+.ih
+DESCRIPTION
+
+GEMCRSPEC runs the widely-used cosmic ray cleaning task LACOS_SPEC (for
+spectroscopic data) on each extension of Gemini MEF files. The IRAF script
+lacos_spec.cl must first be obtained separately from 
+http://www.astro.yale.edu/dokkum/lacosmic and defined in your IRAF 
+environment before running GEMCRSPEC, by adding the following line to your
+login.cl, loginuser.cl or extern.pkg:
+
+.nf
+  task lacos_spec = /path/to/wherever/you/put/it/lacos_spec.cl
+.fi
+
+It is usually recommendable to identify and/or clean bad pixels early in
+the data reduction process, eg. immediately after bias (& optionally
+scattered light) subtraction, before operations such as image interpolation
+or sky subtraction can spread the contamination to additional pixels.
+Further improvement can sometimes be achieved by using GEMFIX to re-clean
+the pixels identified here, substituting LACOS_SPEC's median replacement
+with FIXPIX interpolation (which requires that \fIfl_vardq\fR be enabled here,
+to record which are the bad pixels).
+
+It should be noted that the steps taken by LA Cosmic to protect real features
+from erroneous rejection are less generally optimal for spectroscopy than for
+imaging (depending on the instrument mode). In practice the algorithm works
+well for faint spectra, but for GMOS IFU spectra in particular, care should
+be taken when observing bright targets (such as standard stars) that the
+algorithm does not erroneously reject the wings of absorption lines (where
+scientifically-useful information tends to be concentrated), due to the
+strong fibre modulation pattern. Such systematic rejection patterns can be
+identified by comparing the output DQ plane with the input science array;
+avoiding them may require very conservative sigma clipping values. 
+
+Large, spurious replacement values are occasionally observed due to an
+assumption in LACOS_SPEC (around L277) that is invalid in the presence of
+negative values. Re-cleaning with GEMFIX, or clipping with imreplace, may
+rectify this (LACOS_SPEC can also be patched easily to solve the problem,
+but we have not yet discussed this with the author).
+
+GEMCRSPEC has been tested with GMOS data and (like LACOS_SPEC) currently
+requires that the dispersion direction is along the first/x axis (which is
+not the case for other Gemini instruments). It has nevertheless been renamed
+and generalized slightly with respect to its stand-alone predecessor,
+GSCRSPEC, with the intention of addressing transposition later.
+
+For more detailed information on the algorithm, see "Cosmic Ray Rejection by
+Laplacian Edge Detection", vanDokkum (2001), PASP 113, 1420.
+
+.ih
+EXAMPLES
+1. Run LA Cosmic on a list of bias- and scattered-light subtracted GMOS IFU
+spectra:
+
+.nf
+  cl> gemcrspec brg@sci.lis xbrg@sci.lis sigfrac=0.32 niter=5 fl_vardq+
+.fi
+
+.ih
+BUGS AND LIMITATIONS
+Although this task has been generalized slightly from the earlier GSCRSPEC
+(which was available separately on the Gemini Web page), it is currently only
+known to work for GMOS data and requires the dispersion direction to be x.
+There is no option to generate the output filename using a prefix.
+
+.ih
+SEE ALSO
+addbpm, gemfix, growdq, gscrrej, lacos_spec (distributed separately)
+.endhelp

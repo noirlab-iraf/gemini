@@ -1,0 +1,95 @@
+.help gmskimg May2017 gemini.gmos.mostools
+.ih
+NAME
+gmskimg -- Create a pseudo-GMOS/F2 image for use with GMMPS
+.ih
+USAGE
+gmskimg inimage gprgid instrument rafield decfield pa
+.ih
+PARAMETERS
+.ls inimage
+Image to be transformed (if MEF, specify extension).
+.le
+.ls gprgid
+Gemini program ID.
+.le
+.ls instrument [gmos-n|gmos-s|flamingos2]
+Gemini Instrument the input image is to be transformed into. The coordinate
+transformations are different for each instrument. Lower-case values are
+valid.
+.le
+.ls rafield
+Right ascension of field centre required for the multi-object spectroscopy 
+observations.  In hours or degrees, see parameter \fIfraunits\fR.
+.le
+.ls decfield
+Declination of field centre required for the multi-object spectroscopy 
+observations.  In degrees.
+.le
+.ls pa
+Position angle required for the multi-object spectroscopy observations. This is
+the same angle as used to define the observations in the Observing Tool.
+.le
+.ls fraunits = "hours" [hours|degrees]
+Units for \fIrafield\fR.
+.le
+.ls outimage = ""
+Name of output pseudo-Gemini image.  
+.le
+.ls fl_inter = no
+Toggle interactive mode for GEOMAP.  GEOMAP finds the transformation 
+coefficients used to produce pseudo-GMOS image.
+.le
+.ls logfile = ""
+Name of the logfile.  If empty, the default value is taken from 
+\fImostools.logfile\fR.
+.le
+.ls verbose = yes
+Print actions to the screen.
+.le
+.ls fl_debug = no
+Print debugging information.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error.  This
+parameter is always set by the task, ans should not be modified by the user.
+.le
+.ih
+DESCRIPTION
+.sp
+GMSKIMG is called by GMSKCREATE, and should not be used as a standalone task. 
+GMSKIMG creates a pseudo-Gemini image for use in GMMPS. 
+.sp
+The transformation from input image to pseudo-Gemini image is found by 
+generating a grid of x-y coordinates based on the RA and Dec of the field 
+center and the transformation specified by \fIinstrument\fR. These x-y 
+coordinates are mapped to the x-y of the input image calculated from the WCS 
+information in the input image header.
+.sp
+The required WCS header keywords are CRPIX1, CRPIX2, CRVAL1, CRVAL2, CD1_1, 
+CD1_2, CD2_1 and CD2_2. The above procedure assumes that the WCS given by 
+these keywords and the astrometry of the objects in the \fIindata\fR file 
+correspond reasonably well. If this is not the case then the slits plotted by 
+GMMPS will not lie on top of the objects in the pseudo-Gemini image.  This is 
+not a problem for the mask creation, but may make it more difficult to design 
+the best mask. 
+.sp
+The RA and Dec grid are a set of nested 3x3 object grids with the indicated 
+field center as the center of each grid. The grids are of a size chosen to 
+evenly cover the entire field of view for the \fIinstrument\fR indicated in 
+the parameters.  The RA grid coordinates are corrected using a cos(DEC) 
+correction to create a grid projected on to the instrument field of view which 
+is square. The RA and Dec object grid is transformed to \fIinstrument\fR x,y 
+positions using the transformations in GMSKXY.
+.sp
+See the help page for GMSKCREATE and GMSKXY for further information.
+.ih
+EXAMPLES
+Please refer to GMSKCREATE.
+.ih
+BUGS AND LIMITATIONS
+None.
+.ih
+SEE ALSO
+gmskcreate, gmskxy
+.endhelp

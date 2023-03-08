@@ -1,0 +1,225 @@
+.help nftelluric August2014 gemini.nifs
+.ih
+NAME
+nftelluric -- remove telluric features from 2D spectra in MEF format
+.ih
+USAGE
+nftelluric inimages calspec
+.ih
+PARAMETERS
+.ls inimages
+MEF input data images containing 2 dimensional spectra to be
+corrected.  Spectra in each row (aperture) are corrected.
+The spectra need to be processed through NSTRANSFORM.
+Input may be a string of images separated by commas, a
+single image, or a list (@list).
+.le
+.ls calspec  
+A single, one dimensional telluric calibration image.
+.le
+.ls outimages = ""
+List of corrected image for output. These images must not exist
+already.
+.le
+.ls outprefix = "a"
+Prefix to use for output image. The outprefix is used only if
+\fIoutimages\fR is empty.
+.le
+.ls fl_inter = yes
+Enter an interactive graphical mode to search for the best shift
+and scale between the input spectra and calibration spectra?  This
+is done after the optional automatic cross-correlation and RMS minimization
+step. 
+.le
+.ls fl_xcorr = yes
+Cross-correlate extracted input spectrum with the calibration spectrum to
+determine a shift for the calibration spectrum?  Only regions specified by
+the sample regions parameter will be used in the cross-correlation.
+.le
+.ls fl_tweakrms = yes
+Search for the minimum RMS in the corrected spectrum by adjusting the
+shift and scale between the input spectrum and the calibration spectrum?
+The RMS is minimized in the specified sample regions.
+.le
+.ls sample = "*"
+Sample regions to use for cross-correlation, automatic RMS minimization,
+and RMS values.  The sample regions are specified by a list of comma
+separated ranges.  The ranges are colon separate coordinate values.
+For dispersion calibrated spectra, the coordinate values are in the
+dispersion units otherwise they are in pixel coordinates.  The string "*"
+selects the entire spectrum.  The sample regions may be changed
+interactively either with the cursor or with a colon command.
+.le
+.ls threshold = 0.5
+Since the calibration consists of division by the scaled calibration data
+it is possible for totally saturated lines to have zero or negative values.
+The task will quit if detects negative or zero calibration values.  This
+parameter allows applying a minimum threshold to the calibration
+values so the task may continue.
+.le
+.ls shift = 0., dshift = 0.5
+The initial shift and shift step in pixels.  This
+initializes the shift search parameters.  If \fIdshift\fR is
+zero then there will be no search for a new shift and the
+'x' interactive function is disabled.  These parameters may
+be changed interactively.
+.le
+.ls scale = 1., dscale = 0.1
+The initial scale and scale step.  This initializes the
+scale search parameters.  If \fIdscale\fR is zero then there
+will be no search for a new scale and the 'y' interactive
+function is disabled.  These parameters may be changed
+interactively.
+.le
+.ls lag = 20
+The cross-correlation lag to use when \fIfl_xcorr\fR = yes.  The lag
+is given in pixels.   This is the distance to either side of the
+initial shift over which the cross-correlation profile is computed.
+If a value of zero is given then the cross-correlation step is not done.
+.le
+.ls database = "database"
+The database used if NFEXTRACT is called (if not specified, the value is
+taken from the NIFS package parameters).
+.le
+.ls dispaxis = 1
+Axis along which the spectrum runs. If \fIdispaxis\fR=1, spectra run along
+rows, if \fIdispaxis\fR=2, along columns.  This is used only if no value
+is found in the header.
+.le
+.ls logfile = ""
+Name   of   logfile.    If   empty,  then  the  package  logfile is used.
+.le
+.ls verbose = yes
+Print actions to screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error.
+This parameter is always set by the task, and should not be modified
+by the user.
+.le
+
+.ce
+Parameters from NSHEADERS
+.sp
+The following values are read from gnirs.nsheaders.
+.ls key_airmass
+Header keyword for the airmass.
+.le
+.ls key_dispaxis
+Header keyword for the dispersion axis.
+.le
+.ls sci_ext
+Name of the science extensions.
+.le
+.ls var_ext
+Name of the variance extensions.
+.le
+.ls dq_ext
+Name of the data quality extensions.
+.le
+
+.ih
+DESCRIPTION
+NFEXTRACTed telluric calibration spectrum is shifted
+and scaled to best divide out telluric features from the
+input data. A featureless star spectrum (typically, fast
+rotating B-A stars) is used as a calibration spectrum to
+determine the amount of telluric absorption. The wavelength
+shift between the object and calibration spectra are first
+determined with the native IRAF task TELLURIC.  The
+normalized and shifted calibration spectrum is then divided
+from the object spectrum.
+.sp
+It is important to understand the normlization process to
+use this task, otherwise the correct values of some
+parameters (e.g. \fIthreshold\fR) are not obvious.  The
+calibration spectrum is first normalised by dividing its
+median flux value.  Science input spectra are not
+normalized. The normalized calibration spectrum and input
+science spectra are then passed to TELLURIC for
+cross-correlation.  
+.sp
+So parameters passed to the TELLURIC task like
+\fIthreshold\fR refer to a normalised function with a
+typical continuum value of 1.
+.sp
+After the shift is measured, the normalized calibration
+spectrum is shifted and scaled before being used to correct
+the object spectra.
+.sp
+The telluric calculation requires both a calibration
+spectrum and an object spectrum. This task accept only 2D
+spectral image frame as input for object spectra which is
+already processed through NSTRANSFORM. From the 2D
+input spectra, 1D spectrum is extracted using
+NFEXTRACT.
+.sp
+All extensions receive the same correction, calculated using
+calibration and object spectra.  This correction may not be
+correct if the wavelength solutions of the different science
+extensions vary, so the task requires an input frame which
+is already NSTRANSFORM processed.
+.sp
+As mentioned above, typically, a calibration spectrum is
+obtained by observing fast rotating B or A-type stars
+because they are bright and easily accessible. However,
+these B-A stars have strong Hydrogen lines (e.g., Bracket
+gamma line in the K-band) which need to be removed first
+before it is being used as a calibration spectrum. NFEXTRACT
+does not provide a way to eliminate this feature
+interactively, so it is upto each individual user to correct any stellar
+features in the calibration spectra. See example #2 for more
+details.
+.sp
+Since object spectra are divided by a calibration spectrum,
+NFTELLURIC processed spectra will have a too blue (steep)
+slope.  In order to retrieve a true spectral shape, one has
+to multiply back a black-body shape to the NFTELLURIC
+corrected object spectra. Black-body temperature should be
+corresponding to that of the calibration star. One possible
+way to make a black-body shape is listed below for a
+calibration star with Teff=10,000K and for the K-band. Exact
+WCS related values (CD1_1 etc.) should be copied from user's
+wavelength corrected spectra.
+.sp
+.nf
+   ni> mkspec blackbody ncols=2048 nlines=1 func=3 \
+              start_wave=20000, end_wave=25000, temp=10000
+   ni> hedit blackbody CTYPE1 'linear' add+ ver-
+   ni> hedit blackbody CD1_1 2.1340415478 add+ ver-
+   ni> hedit blackbody CRVAL1 20005.32031 add+ ver-
+   ni> hedit blackbody WAT1_001 "wtype=linear axtype=wave" add+ ver-
+   ni> imarith object * blackbody object_with_correct_shape
+.fi
+.ih
+EXAMPLES
+1.  Correct the science spectrum, science.fits, with the telluric standard,
+std.fits interactively controlling TELLURIC process.
+.sp
+.nf
+   ni> nftelluric science.fits std.fits fl_inter+
+.fi
+
+2.  Manually eliminating strong stellar features in the
+calibration spectrum and use it with NFTELLURIC.
+.sp
+.nf
+   (1) first SPLOT the SCI extension of the calibration spectrum
+   and removing stellar features by using 'x' keystroke and
+   save the edited spectrum (see SPLOT help file for details).
+   
+   (2) then, change the edited calibration spectrum to MEF format
+   so that it can be accepted to NFTELLURIC.
+
+   ni> wmef calib calib-mef extname="SCI"
+   ni> imcopy calib[VAR] calib-mef[2,append]
+   ni> imcopy calib[DQ] calib-mef[3,append]
+   ni> nftelluric object calib-mef
+   ...
+.fi
+.ih
+BUGS AND LIMITATIONS
+.ih
+SEE ALSO
+telluric, nfextract, splot
+.endhelp

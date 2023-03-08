@@ -1,0 +1,193 @@
+.help gmosinfo June2012 gemini.gmos
+.ih
+NAME
+gmosinfo -- Generic information of GMOS data
+.ih
+USAGE
+gmosinfo
+.ih
+DESCRIPTION
+
+The GMOS package contains tasks for processing GMOS imaging, 
+long-slit, multi-object (MOS) and integral-field (IFU) spectroscopy 
+data. The specifics of the individual tasks can 
+be found in their help files. This document describes the common 
+features of the generic tasks and gives a description of the GMOS 
+data format.
+
+The tasks are designed to provide a fairly complete and flexible
+reduction for the purpose of assessing data quality at the time
+of observation.  Real-time reductions may not be optimal for a 
+particular science application.  The GMOS package scripts can be
+optimized for a particular application using the hidden parameters to
+achieve the best possible results.
+
+The tasks produce logfiles of the performed processing steps.
+The name of the logfile may be set in each individual task, or at
+the package level by setting \fIgmos.logfile\fR.
+
+The tasks add header keywords to the output images. These header
+keywords contain information about the performed processing steps
+and the values of the critical parameters that were used.
+
+All GMOS images are written as multi-extension FITS (MEF) files.
+Raw data can have up to six unnamed extensions.  
+For full frame read-outs the number of pixel extensions match the 
+number of amplifiers used. Thus, the images have either three
+or six pixel extensions. Most science observations will be done 
+using the amplifiers with the lowest noise and therefore have
+three pixel extensions.  Most of the header
+information is written to the primary header unit (PHU) which is
+extension [0].  
+
+After being processed with GPREPARE, GMOS data extensions will be 
+named as defined by the parameters and several additional header 
+keywords will be added.  
+The default is to name the pixel extensions using the keywords EXTNAME
+and EXTVER:
+
+.nf
+    Extension in raw image        EXTNAME   EXTVER
+    [0]
+    [1]                           SCI       1
+    [2]                           SCI       2
+    [3]                           SCI       3
+    etc.
+.fi
+
+The named extensions can be accessed as, e.g., gmosimage[SCI,1],
+gmosimage[SCI,2], gmosimage[SCI,3] etc.
+
+Additional information and ways to handle MEF files can be found in:
+.ce
+http://www.gemini.edu/sciops/data/dataFormat.html
+
+GMOS data can be binned in both axis. The header keyword CCDSUM in
+each pixel extension shows the type of binning. The region on the 
+detector that is read can be changed to any section on the array. The
+region read out is contained in the keyword DETSEC in the pixel
+extensions. The content of DETSEC refers to unbinned pixels.
+
+Each amplifier has its own bias level, gain
+value, and read out noise (RON), therefore, the count levels of each
+extension will not match when these are in units of ADU. 
+To match the count levels between each
+CCD, the images can be bias subtracted and multiplied by the gains.
+This is incorporated in the reduction tasks described in GMOSINFOIMAG,
+GMOSINFOSPEC, and GMOSINFOIFU.
+
+There are four display buffer sizes, imtgmos, imtgmos2, imtgmos4, and
+imtgmos8, available to display the GMOS images. The display task
+GDISPLAY requires that one of these buffer sizes is used.
+The buffer size to use is set by setting the IRAF parameter stdimage, e.g.
+
+    set stdimage=imtgmos
+
+The sizes of the buffers are as follows
+
+.nf
+    Name       Size         Notes
+    ----------------------------------------------------------
+    imtgmos    6400x4644    Full size display of unbinned full 
+                            frame images from GMOS
+    imtgmos2   3200x2322    Full size display of full frame 
+                            images from GMOS binned 2x2
+    imtgmos4   1600x1161    Full size display of full frame 
+                            images from GMOS binned 4x4
+    imtgmos8    800x581     Full size display of full frame 
+                            images from GMOS binned 8x8
+    ----------------------------------------------------------
+.fi
+
+It is recommended to use \fIimtype\fR="fits". This is set automatically
+when loading the GEMINI package.
+
+.ih
+ABBREVIATIONS USED IN THE GMOS HELPFILES
+
+.nf
+    Abbreviation   Explanations
+    ---------------------------------------------------------------
+    GMOS           Gemini Multi-Object Spectrograph
+    IFU            Integral field unit
+    MDF            Mask definition file (a binary FITS table)
+    MEF            Multi-extension FITS
+    MOS            Multi-object spectroscopy
+    PHU            Primary header unit (extension [0] of a MEF file)
+    ---------------------------------------------------------------
+.fi
+
+
+.ih
+SHORT DESCRIPTIONS OF THE GENERAL USE TASKS
+
+.ls GDISPLAY - Display GMOS images.
+GDISPLAY displays GMOS MEF images with three extensions as a single
+image. The user has the option to examine the image using imexam if
+the flag \fIfl_paste\fR=yes.  An approximate bias subtraction may
+also be performed by setting \fIfl_bias\fR=yes.
+.le
+.ls GPREPARE - Prepare raw data for reduction.
+All data must be processed with GPREPARE before further processing.
+The other tasks in the GMOS package will call GPREPARE as needed
+if the input data has not already been GPREPAREd.
+GPREPARE adds certain essential header keywords to the PHU. 
+Spectroscopic data (Longslit, MOS and IFU) should be processed with 
+\fIfl_addmdf\fR=yes in order to add a mask definition file (MDF) to the
+MEF file . 
+.le
+.ls GMOSAIC - Mosaic 3 GMOS CCDs into one image.
+GMOSAIC will create a MEF file with a single pixel extension that 
+contains the a mosaic of the 3 CCDs.
+Because GMOSAIC correctly accounts for the gaps between the CCDs, and
+with the default parameters it interpolates the data on fractional pixel 
+scales.  For full-frame raw data with three extensions, the data from 
+the first and third extensions are interpolated, the central is not.
+It is possible to avoid interpolating the data by using
+\fIgeointer\fR="nearest". This will lead to a small loss in the accuracy of the
+mosaicing and is only recommended if the data are oversampled (e.g. unbinned
+data) or it is essential that the data are not interpolated at this stage.
+.le
+.ls GGAIN - Update headers with ron and gain; Multiply extensions by gain (hidden task)
+GGAIN can be used to update the headers with the correct read-noise
+and gain, and to multiply each pixel extension by their gains to remove
+chip-to-chip variations. This task is used by GPREPARE to update the
+headers. GSREDUCE and GIREDUCE call GGAIN to multiply the extensions 
+with the gains. GIFLAT and GSFLAT multiply with the gains if flatfielding, 
+but do not use GGAIN. GGAIN is not normally used by the user.
+.le
+.ls GBIAS - Create combined bias image
+GBIAS takes a list of raw bias images and creates an average bias
+image. The user has the option to trim and subtract the overscan level
+with GIREDUCE to each individual bias image before combining 
+them.  
+.le
+.ls GBPM - Create a bad pixel mask from GMOS flat field and bias images
+GBPM takes flat field and bias images and creates a bad pixel mask
+(BPM). 
+
+.le
+.ih
+BUGS AND LIMITATIONS
+
+The tasks in the GMOS package have been tested with up to three extension
+MEF files. 
+
+The tasks in the GMOS package are designed to operate on MEF FITS
+images that have been processed using GPREPARE.  GPREPARE will not
+run on data from instruments other than GMOS.  The GMOS tasks will
+not run on simple FITS files.
+
+Input image names should in general not contain directory paths as not
+all tasks have been tested in this mode.
+
+Improvements to the (previously semi-functional) variance and
+data quality propagation in the GMOS package have undergone limited
+testing; the accuracy of the results should still be verified at
+each step by the scientist, particularly for spectroscopic data
+reduction tasks.
+.ih
+SEE ALSO
+gdisplay, gprepare, gmosaic, ggain, gbias, gbpm, gmosinfoimag, gmosinfospec,
+gmosinfoifu, gmosexamples
+.endhelp

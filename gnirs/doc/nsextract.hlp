@@ -1,0 +1,373 @@
+.help nsextract March2012 gemini.gnirs
+.ih
+NAME
+nsextract -- Extract spectra
+.ih
+USAGE   
+nsextract inimages
+.ih
+PARAMETERS
+.ls inimages
+List of input spectra.
+.le
+.ls outspectra = ""
+List of output spectra.  There must be an equal number of input 
+and output spectra. 
+.le
+.ls outprefix = "x"
+Prefix  for  output spectra. Names of output files are the names
+of the input images with a prefix attached.  \fIoutprefix\fR  is  used
+if \fIoutspectra\fR="".
+.le
+.ls dispaxis = 1
+Dispersion axis, if not defined in the header.
+.le
+.ls database = ""
+Directory for files containing calibration files (feature input data 
+and fitting output).  If undefined, \fIgnirs.database\fR is used.
+.le
+.ls line = 500
+Line or column in the spatial direction to use for defining the apertures for
+APALL (if \fIfl_apall\fR=yes) or APFIND (if \fIfl_apall\fR=no and
+\fIfl_project\fR=yes). For cross-dispersed data, if \fIfl_apall\fR=yes, the
+value given by the \fIline\fR parameter is not used. Instead, the value
+specified in the apline column in \fIaptable\fR is used. Alternatively, the
+value can be set interactively. 
+.le
+.ls nsum = 10
+Number of columns around \fIline\fR to sum for display and aperture tracing.
+.le
+.ls ylevel = 0.1
+Aperture width selection.  For more information, see APALL (the additional
+APALL parameters \fIpeak\fR and \fIbkg\fR are both "yes").  If \fIylevel\fR is
+set to INDEF, the \fIlower\fR and \fIupper\fR parameter values will define the
+aperture in APALL. 
+.le
+.ls upper, lower = 10, -10
+Aperture limits relative to the center for APALL (if \fIfl_apall\fR=yes) or
+APFIND (if \fIfl_apall\fR=no and \fIfl_project\fR=yes). If \fIfl_apall\fR=yes,
+these values are used for both \fIupper\fR/\fIlower\fR and
+\fIulimit\fR/\fIllimit\fR in APALL. For cross-dispersed data, if
+\fIfl_apall\fR=yes and \fIfl_usetabap\fR=yes, the values given by the
+\fIupper\fR and \fIlower\fR parameters are not used. Instead, the values
+specified in the apupper and uplower columns in \fIaptable\fR are used. If
+\fIfl_apall\fR=yes and \fIfl_usetabap\fR=no, the values given by the
+\fIupper\fR and \fIlower\fR parameters are used. If \fIfl_apall\fR=no and
+\fIfl_project\fR=yes, the values given by the \fIupper\fR and \fIlower\fR
+parameters are used to cut the region from \fIinimages\fR that will be used
+to project the spectra to 1D (the values in \fIaptable\fR are not used at all
+in this case).
+.le
+.ls background = "average" (none|average|median|minimum|fit)
+Type of background to subtract. Cannot be "none" if \fIfl_addvar\fR and
+\fIfl_apall\fR are set.
+.le
+.ls fl_vardq = yes
+Should variance and data quality extensions be generated? Other tasks in the 
+Gemini package attempt to maintain these values. They appear as FITS 
+extensions with the names VAR and DQ.
+.le
+.ls fl_addvar = yes
+Add (smoothed) variance to data to improve error estimates during
+extraction with APALL?
+.le
+.ls fl_skylines = yes
+Allow the smoothed variance (\fIfl_addvar\fR) to vary with wavelength,
+giving error estimates that more accurately reflect sky lines?
+.le
+.ls fl_inter = no
+Extract interactively?
+.le
+.ls fl_apall = yes
+Use APALL for 1D extractions?
+.le
+.ls fl_trace = no
+Force APALL to re-trace aperture reference, even if it already exists in the
+database.
+.le
+.ls aptable = "gnirs$data/apertures.fits"
+Table of aperture definitions for apall.  This allows parameters to be
+changed order by order for cross-dispersed data. The upper and lower aperture
+values in the default \fIaptable\fR include the majority of the slit, which may
+not be appropriate when extracting spectra. In this case, a new table can be
+created and specific upper and lower aperture values can be supplied for each
+order. See the description below for more details.
+.le
+.ls fl_usetabap = no
+If \fIfl_usetabap\fR is set to no, the upper and lower apertures specified in
+\fIaptable\fR will be ignored. This allows the \fIupper\fR and \fIlower\fR
+parameters to be used instead to specify the upper and lower apertures. Note
+that for cross-dispersed data, the same upper and lower aperture values will be
+used for each order. 
+.le
+.ls fl_flipped = yes
+If data have negative dispersion (GNIRS, NIRI) then NSTRANSFORM will
+flip the data along the dispersion axis.  This means that the aperture
+line and sample defined in \fIaptable\fR will be incorrect.  If this
+flag is set then these values are also flipped.
+.le
+.ls fl_project = no
+Project spectra to 1D if not using APALL?
+.le
+.ls fl_findneg = no
+Extract the negative spectrum and add it to the positive one?
+.le
+.ls bgsample = "*"
+Default background sample region for APALL. For cross-dispersed data, if
+\fIfl_apall\fR=yes, the value given by the \fIbgsample\fR parameter is not
+used. Instead, the value specified in the bgsample column in \fIaptable\fR is
+used. 
+.le
+.ls trace = ""
+Reference image for tracing the image in APALL (the input image is used if
+this parameter is not specified).
+.le
+.ls tr_nsum = 10
+Number of dispersion lines to sum in trace.
+.le
+.ls tr_step = 10
+Tracing step size for APALL.
+.le
+.ls tr_nlost = 3
+Number of consecutive tracing failures before APALL fails.
+.le
+.ls tr_function = "legendre"
+Function used for tracing apertures in APALL.
+.le
+.ls tr_order = 5
+Order of the function used for tracing apertures in APALL. For cross-dispersed
+data, if \fIfl_apall\fR=yes, the value given by the \fItr_order\fR parameter is
+not used. Instead, the value specified in the aporder column in \fIaptable\fR
+is used. 
+.le
+.ls tr_sample = "*"
+Sample area for tracing the aperture in APALL. For cross-dispersed data, if
+\fIfl_apall\fR=yes, the value given by the \fItr_sample\fR parameter is not
+used. Instead, the value specified in the apsample column in \fIaptable\fR is
+used. 
+.le
+.ls tr_naver = 1
+Number of pixels to average while tracing.
+.le
+.ls tr_niter = 0
+Number of iterations to use rejecting outliers when tracing the aperture 
+in APALL.
+.le
+.ls tr_lowrej = 3.
+Lower rejection threshold for outliers when tracing the 
+aperture in APALL.
+.le
+.ls tr_highrej = 3.
+Upper rejection threshold for outliers when tracing the 
+aperture in APALL.
+.le
+.ls tr_grow = 0.
+Growing radius for outliers when tracing the aperture in APALL.
+.le
+.ls weights = "variance" (none|variance)
+Type of extraction weighting. The choices are: 
+.ls "none"
+The pixels are summed without weights except for partial pixels at the end.
+.le
+.ls "variance"
+The extraction is weighted by the variance based on the data values and a
+Poisson model using the header values of the \fIkey_gain\fR and \fIkey_ron\fR
+keywords or the \fIgain\fR and \fIron\fR parameters if the keywords are not
+found. 
+.le
+.le
+.ls logfile = ""
+Name of logfile.  If empty, then the package logfile (gnirs.logfile) is used.
+.le
+.ls verbose = yes
+Verbose output.
+.le
+.ls status = 0
+Exit status.  Equal to 0 for proper completion, greater than 0 if an error 
+occurred.
+.le
+
+.ce
+Parameters from NSHEADERS
+
+The following values are read from gnirs.nsheaders
+.ls key_dispaxis
+Header keyword for dispersion axis.
+.le
+.ls sci_ext
+Name of science extension.
+.le
+.ls var_ext
+Name of variance extension.
+.le
+.ls dq_ext
+Name of data quality extension.
+.le
+.ls key_arrayid
+Header keyword for the array ID
+.le
+.ls key_prism
+Header keyword for prism.
+.le
+.ls key_decker
+Header keyword for decker.
+.le
+.ls key_fpmask
+Header keyword for focal plane mask (slit).
+.le
+
+.ih 
+DESCRIPTION 
+
+NSEXTRACT extracts spectra.  The input spectra should have the sky
+subtracted with NSREDUCE or NSRESSKY and (optionally for extraction
+with APALL) be rectified with NSTRANSFORM.  Output spectra are in MEF
+format and can be either 1D or 2D.
+
+If the object is nodded along the slit, then the sky-subtracted
+spectra from NSREDUCE could have both positive and negative spectra.
+Setting \fIfindneg\fR=yes will cause NSEXTRACT to find both the
+positive and negative spectra and add them together. Normally,
+however, after running NSREDUCE, all the spectra will be combined
+using NSSTACK and NSCOMBINE, and the result will have the entire
+signal in the positive spectrum.
+
+The apertures will be found automatically unless \fIinteractive\fR=yes.  If
+\fIapall\fR=yes the task APALL is used to trace the spectra, using the
+parameters \fIylevel\fR, \fIlower\fR and \fIupper\fR.  Otherwise, if
+\fIfl_apall\fR=no and \fIproject\fR=yes, then the spectra will be projected to
+1D by summing the rows / columns between \fIlower\fR and \fIupper\fR.
+
+.ce
+Multiple Extensions
+
+For data with more than one science frame, it may be necessary to vary
+the APALL parameters for each extension.  This can be done
+interactively in the normal way, or by specifying a table using the 
+\fIaptable\fR parameter.
+
+Entries are selected from the table using the columns \fIprism\fR,
+\fIdecker\fR, \fIslit\fR and \fIorder\fR.  These must match the header
+values corresponding to \fIkey_prism\fR, \fIkey_decker\fR and
+\fIkey_slit\fR (\fIorder\fR matches the extension version). If no entry is
+found, the parameter values specified by the user are used for all extensions.
+
+.nf
+         Table column           Parameter
+
+         apline                 line
+         apthresh               (not used - see NSFLAT)
+         aporder                tr_order
+         florder                (not used - see NSFLAT)
+         apsample               tr_sample
+         apupper                upper
+         aplower                lower
+         sdsample               (not used - see NSFLAT)
+         bgsample               bgsample
+         apshift                (not used - see NSFLAT)
+.fi
+
+To create a personalised table starting with the values in
+gnirs$data/apertures.fits, use the ttools.tselect task:
+
+.nf
+    cl> tselect gnirs$data/apertures.fits my_table.fits \
+    >>>     "prism == 'prism' && decker == 'decker' && slit == 'slit'"
+.fi
+
+replacing the prism, slit and decker within the single quotes with the value
+corresponding to \fIkey_prism\fR, \fIkey_decker\fR and \fIkey_slit\fR. The
+output table can then be modified (if required) using ttools.tedit:
+
+.nf
+    cl> tedit my_table.fits
+.fi
+
+Ensure that the \fIfl_usetabap\fR parameter is set to yes if supplying a
+personalised table with specific upper and lower aperture values to the
+\fIaptable\fR parameter.
+
+Please note that if \fIfl_apall\fR=no and \fIfl_project\fR=yes, the values in
+\fIaptable\fR are not used at all.
+
+.ce
+Error Estimates
+
+Spectral extraction routines in IRAF do not support variance arrays
+directly, but can estimate values from readout noise and gain.  The
+flags \fIfl_addvar\fR and \fIfl_skylines\fR control a simple hack that
+attempts to carry the information from the VAR MEF extension into the
+spectral error estimate.
+
+If \fIfl_addvar\fR is enabled and \fIfl_skylines\fR disabled, then the
+median value of the variance array is added to the data just before
+extraction.  Since this value is a constant it does not directly alter
+the shape of the extracted spectrum, but it does alter the variance
+calculated within APALL.  A model with a gain of unity and no readout
+noise is used, giving variance estimates equal to the data values.
+For most IR data this is a reasonable estimate because the variance is
+dominated by sky emission.  In other words, we have used the VAR
+extension to add a featureless sky level back into the data, giving
+suitable error estimates.
+
+A similar procedure is used if \fIfl_skylines\fR is enabled, but the
+value added varies along the dispersion direction.  For a particular
+(spatial) row/column, the constant added to the data is the average
+(\fIimproject\fR does not support median values) variance at that
+wavelength.  This gives an error estimate that varies with wavelength,
+which is a better model when the sky is dominated by emission lines.
+
+Error estimates generated depend both on the accuracy of the
+approximations described above and on the reliability of the values in
+the VAR extension.  If the VAR array contains incorrect values (e.g., if
+the SCI array has been scaled by some factor, without modifying the
+VAR values) then the estimates will be incorrect.
+
+If \fIfl_vardq\fR is enabled and \fIweights\fR is set equal to "variance", the 
+output variance plane is derived using APALL rather than from the input 
+variance plane. If \fIfl_vardq\fR is enabled and \fIweights\fR is set equal to 
+"none", the input variance plane is used to determine the output variance 
+plane by extracting the same aperture used for the science frame. Finally, if 
+\fIfl_vardq\fR is enabled, the input DQ plane is used to determine the output 
+DQ plane by extracting the same aperture used for the science frame. If more 
+than 50% of the pixels in the aperture are bad, the output pixel in the 1D DQ 
+plane is marked as bad.
+
+.ce
+Signal to Noise Calculations
+
+The task displays the S/N for each spectrum.  This is calculated in
+two ways.
+
+First, using the variance array, by generating a S/N spectrum,
+dividing the science data by the square root of the variance.  The
+midpt statistic (median) is then calculated for the spectrum.
+
+Second, by generating a smooth spectrum with a median filter, dividing
+the original by the smoothed spectrum and measuring the noise in the
+result (using IMSTAT with \fInclip\fR=1).
+
+.ih
+EXAMPLES
+
+1. Interactively extract a spectrum using APALL.
+
+.nf
+    cl> nsextract spectrum.fits fl_inter+ fl_apall+
+.fi
+
+2. Run non-interactively on a set of spectra, not using APALL:
+
+.nf
+    cl> nsextract @filelist fl_inter- fl_apall- fl_project+
+.fi
+.ih
+REVISIONS
+
+.ih
+LIMITATIONS
+The input images must be in multi-extension FITS format.
+.ih
+SEE ALSO
+apall, nstransform, nsreduce, nsstack, nscombine
+.endhelp

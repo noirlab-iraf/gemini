@@ -1,0 +1,81 @@
+# This file contains the full-well depeths (saturation) values for the
+# individual amplifiers for each detector type (CCD; any detector upgrades
+# included defined by the 'detector' keyword) for each instrument.
+
+# The full-well depths are for 1x1 binning, are in electrons and do not include
+# any bias values
+
+# Only the GMOS-N e2vDD CCDs have information in here currently.
+
+# Column information:
+# saturation value | ampname | dettype | detector | instrument
+---------------------
+
+# GMOS-N, EEV CCDs
+==================
+
+# GMOS-N, e2vDD CCDs
+====================
+110900.0 | e2v 10031-23-05, left  | SDSU II e2v DD CCD42-90 | GMOS + e2v DD CCD42-90 | GMOS-N
+105100.0 | e2v 10031-23-05, right | SDSU II e2v DD CCD42-90 | GMOS + e2v DD CCD42-90 | GMOS-N
+115500.0 | e2v 10031-01-03, left  | SDSU II e2v DD CCD42-90 | GMOS + e2v DD CCD42-90 | GMOS-N
+108900.0 | e2v 10031-01-03, right | SDSU II e2v DD CCD42-90 | GMOS + e2v DD CCD42-90 | GMOS-N
+115700.0 | e2v 10031-18-04, left  | SDSU II e2v DD CCD42-90 | GMOS + e2v DD CCD42-90 | GMOS-N
+109200.0 | e2v 10031-18-04, right | SDSU II e2v DD CCD42-90 | GMOS + e2v DD CCD42-90 | GMOS-N
+
+# GMOS-N, Hamamatsu CCDs
+========================
+# Values from JS. 2017-06-29 
+========================
+129000.  | BI13-20-4k-1, 4 | S10892-N | GMOS-N + Hamamatsu | GMOS-N
+129000.  | BI13-20-4k-1, 3 | S10892-N | GMOS-N + Hamamatsu | GMOS-N
+129000.  | BI13-20-4k-1, 2 | S10892-N | GMOS-N + Hamamatsu | GMOS-N
+129000.  | BI13-20-4k-1, 1 | S10892-N | GMOS-N + Hamamatsu | GMOS-N
+123000.  | BI12-09-4k-2, 4 | S10892-N | GMOS-N + Hamamatsu | GMOS-N
+123000.  | BI12-09-4k-2, 3 | S10892-N | GMOS-N + Hamamatsu | GMOS-N
+121000.  | BI12-09-4k-2, 2 | S10892-N | GMOS-N + Hamamatsu | GMOS-N
+124000.  | BI12-09-4k-2, 1 | S10892-N | GMOS-N + Hamamatsu | GMOS-N
+126000.  | BI13-18-4k-2, 4 | S10892-N | GMOS-N + Hamamatsu | GMOS-N
+124000.  | BI13-18-4k-2, 3 | S10892-N | GMOS-N + Hamamatsu | GMOS-N
+125000.  | BI13-18-4k-2, 2 | S10892-N | GMOS-N + Hamamatsu | GMOS-N
+123000.  | BI13-18-4k-2, 1 | S10892-N | GMOS-N + Hamamatsu | GMOS-N
+
+
+
+# GMOS-S, EEV CCDs
+==================
+
+# GMOS-S, Hamamatsu CCDs with C-boards
+======================================
+# 2014-06-24 MS These numbers are temporary and conservative; requires updating
+# once the CCDs are characterised.
+========================
+106558.0 | BI5-36-4k-2, 4  | S10892 | GMOS + Hamamatsu | GMOS-S
+111421.0 | BI5-36-4k-2, 3  | S10892 | GMOS + Hamamatsu | GMOS-S
+113419.0 | BI5-36-4k-2, 2  | S10892 | GMOS + Hamamatsu | GMOS-S
+108289.0 | BI5-36-4k-2, 1  | S10892 | GMOS + Hamamatsu | GMOS-S
+113986.0 | BI11-33-4k-1, 4 | S10892 | GMOS + Hamamatsu | GMOS-S
+110155.0 | BI11-33-4k-1, 3 | S10892 | GMOS + Hamamatsu | GMOS-S
+110814.0 | BI11-33-4k-1, 2 | S10892 | GMOS + Hamamatsu | GMOS-S
+109060.0 | BI11-33-4k-1, 1 | S10892 | GMOS + Hamamatsu | GMOS-S
+105683.0 | BI12-34-4k-1, 4 | S10892 | GMOS + Hamamatsu | GMOS-S
+98813.4  | BI12-34-4k-1, 3 | S10892 | GMOS + Hamamatsu | GMOS-S
+98963.6  | BI12-34-4k-1, 2 | S10892 | GMOS + Hamamatsu | GMOS-S
+99539.4  | BI12-34-4k-1, 1 | S10892 | GMOS + Hamamatsu | GMOS-S
+
+# GMOS-S, Hamamatsu CCDs with E-boards
+======================================
+# 2015-09-10 GG final values for the new video boards.
+========================
+118871.  | BI5-36-4k-2, 4  | S10892 | GMOS + Hamamatsu_new | GMOS-S
+121652.  | BI5-36-4k-2, 3  | S10892 | GMOS + Hamamatsu_new | GMOS-S
+121390.  | BI5-36-4k-2, 2  | S10892 | GMOS + Hamamatsu_new | GMOS-S
+120435.  | BI5-36-4k-2, 1  | S10892 | GMOS + Hamamatsu_new | GMOS-S
+123307.  | BI11-33-4k-1, 4 | S10892 | GMOS + Hamamatsu_new | GMOS-S
+125719.  | BI11-33-4k-1, 3 | S10892 | GMOS + Hamamatsu_new | GMOS-S
+119157.  | BI11-33-4k-1, 2 | S10892 | GMOS + Hamamatsu_new | GMOS-S
+121234.  | BI11-33-4k-1, 1 | S10892 | GMOS + Hamamatsu_new | GMOS-S
+118424.  | BI12-34-4k-1, 4 | S10892 | GMOS + Hamamatsu_new | GMOS-S
+112054.  | BI12-34-4k-1, 3 | S10892 | GMOS + Hamamatsu_new | GMOS-S
+114605.  | BI12-34-4k-1, 2 | S10892 | GMOS + Hamamatsu_new | GMOS-S
+106966.  | BI12-34-4k-1, 1 | S10892 | GMOS + Hamamatsu_new | GMOS-S

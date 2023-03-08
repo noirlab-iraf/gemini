@@ -1,0 +1,223 @@
+.help gbpm August2015 gemini.gmos
+.ih
+NAME
+gbpm -- Derive bad pixel mask for GMOS
+.ih
+USAGE
+gbpm flatlong flatshort biaslist bpmfile
+.ih
+PARAMETERS
+.ls flatlong
+Input raw GMOS flat field images. It is assumed
+that the images used as \fIflatlong\fR have higher signal level than those used
+as \fIflatshort\fR. 
+\fIflatlong\fR can be only one image, a list of images, a template
+form (using the ? or * wildcards) or a list file with the
+individual file names given on separate lines (using the @list input). 
+Directory names should not be included as part of the image names.
+The images must be multi-extension FITS (MEF) images.
+.le
+.ls flatshort
+Input raw GMOS flat field images. It is assumed
+that the images used as \fIflatlong\fR have higher signal level than those used
+as \fIflatshort\fR. 
+\fIflatshort\fR can be only one image, a list of images, a template
+form (using the ? or * wildcards) or a list file with the
+individual file names given on separate lines (using the @list input). 
+Directory names should not be included as part of the image names.
+The images must be multi-extension FITS (MEF) images.
+.le
+.ls biaslist
+Input raw GMOS bias images. 
+\fIbiaslist\fR can be only one image, a list of images, a template
+form (using the ? or * wildcards) or a list file with the
+individual file names given on separate lines (using the @list input). 
+Directory names should not be included as part of the image names.
+The images must be multi-extension FITS (MEF) images.
+.le
+.ls bpmfile
+The output bad pixel mask. The output is MEF, with the same number of
+extensions as the input images.
+.le
+.ls rawpath = ""
+Path of the directory containing the raw GMOS images.
+.le
+.ls gp_outpref = "g"
+Prefix for GPREPARE'd images.
+.le
+.ls title = "BPM"
+Title for \fIbpmfile\fR.
+.le
+.ls sci_ext = "SCI"
+Name of the MEF extension containing the science data.
+.le
+.ls dq_ext = "DQ"
+Name of the MEF extension containing the data quality data.
+.le
+.ls gaindb = "default"
+Database file containing the GMOS gain data. The default value for \fIgaindb\fR
+is gmos$data/gmosamps.dat.
+.le
+.ls key_ron = "RDNOISE"
+Header keyword for the read noise.
+.le
+.ls key_gain = "GAIN"
+Header keyword for the gain.
+.le
+.ls ron = 3.5
+Default read noise to use if the header keyword is not found.
+.le
+.ls gain = 2.2
+Default gain to use if the header keyword is not found.
+.le
+.ls key_biassec = "BIASSEC"
+Header keyword containing the overscan image section.
+.le
+.ls key_datasec = "DATASEC"
+Header keyword containing the CCD data section.
+.le
+.ls fl_trim = yes
+Trim the image. If this flag is set to "yes", the overscan sections will be 
+trimmed off the output image. 
+.le
+.ls fl_over = no
+Reduce images using overscan subtraction. It is not recommended
+to use \fIfl_over\fR = yes.
+.le
+.ls fl_inter = no
+Set the cut levels for bad pixels interactively. If this flag is set to yes, 
+the user is presented with histograms of the pixel values in the combined flat 
+and dark images and can define the upper and lower thresholds for selecting 
+bad pixels using the graphics cursor.
+.le
+.ls bhigh_cut = 20.
+Threshold in ADU above the median bias level for hot pixels in the combined 
+bias image. This threshold can be set interactively if \fIfl_inter\fR=yes.
+.le
+.ls fdead_cut = 0.85
+Threshold for low-sensitivity pixels in the combined flat derived from 
+\fIflatlong\fR. The default value means that pixels with lower than 0.85 
+quantum efficiency are considered dead pixels.
+.le 
+.ls flow_cut = 0.95   fhigh_cut = 1.05
+The lower and upper thresholds, respectively, 
+for non-linear pixels in the normalized ratio of the 
+combined flats derived from \fIflatlong\fR and \fIflatshort\fR.
+The default values mean that pixels that are 5 percent or more non-linear are
+flagged as bad.
+These thresholds can be set interactively if \fIfl_inter\fR=yes.
+.le
+.ls sat = "default"
+Saturation level of raw images in ADU.
+The default value of \fIsat\fR for the EEV CCDs is 65000 ADU. For the GMOS-N
+e2vDD CCDs each individual amplifier has its own saturation value. For more
+information about the saturation levels used as the default please read the
+help file for the task GSAT, as this calculates the default saturation levels
+for the new e2vDD CCDs.
+.le
+.ls inter = no
+Fit the overscan levels interactively.
+.le
+.ls median = no
+Use the median instead of the average when using COLBIAS for overscan 
+subtraction.
+.le
+.ls function = "chebyshev" (legendre|chebyshev|spline1|spline3)
+Overscan fitting function.
+.le
+.ls order = 1
+Order of overscan fitting function. The default value is a constant.
+.le
+.ls low_reject = 3.  high_reject = 3.
+Low and high rejection limits in sigmas for the overscan fitting.
+.le
+.ls niterate = 3
+Number of iterations for the overscan fitting.
+.le
+.ls fl_qecorr = no
+Quantum efficiency (QE) correct your input data? If "yes" and the input data
+are spectroscopic, a wavelength reference image (\fIqe_refim\fR) or QE
+correction image (\fIqe_corrimages\fR) must be supplied. For imaging data
+(Hamamatsu CCDs only) no reference or correction images are required. Images
+must have been or about to be BIAS or DARK subtracted for them to be QE
+corrected. For more detailed information please read the gmos example for
+your given observation mode (type 'gmosexamples' at the IRAF or PyRAF prompt).
+.le
+.ls qe_data = "gmosQEfactors.dat"
+Database file that contains the QE fit coefficients and factors to be used when
+creating the QE correction image (spectroscopy) or QE correcting the data
+directly (imaging only).
+.le
+.ls qe_datadir = "gmos$data/"
+Directory containing the file given in \fIqe_data\fR.
+.le
+.ls logfile = ""
+Name of logfile. The default value makes the task use the
+logfile defined by gmos.logfile.
+.le
+.ls verbose = yes
+Print actions in the screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error. 
+This parameter is always set by the task, and should not be modified by the 
+user.
+.le
+.ih
+DESCRIPTION
+
+The task will create a GMOS bad pixel mask from flat fields and bias images. 
+The input data can either be raw images or GPREPARE'd images.
+The output image will have the same number of extensions as the input
+images. The output image may be mosaiced using GMOSAIC. 
+
+The input images are GPREPARE'd if not already done.
+The GPREPARE'd images are not deleted after the execution of the task.
+Then the bias images are processed with GBIAS and the two sets of flat fields
+are processed with GIFLAT.
+The GIREDUCE'd individual flats are not deleted after the execution of the
+task. GBPM can be rerun with the input files defined and it will reuse
+the existing GPREPARE'd and/or GIREDUCE'd images.
+
+Bad pixels are identified as follows:
+.ls
+Hot pixels are identified from the combined bias image as pixels with 
+a signal higher than \fIbhigh_cut\fR.
+.le
+.ls
+Dead pixels are identified from the combined flat field derived from
+\fIflatlong\fR. Pixels with a quantum efficiency below \fIfdead_cut\fR
+are considered dead pixels.
+.le
+.ls
+Non-linear pixels are identified from the ratio of the combined normalized 
+flats. Pixels in the ratio with values below \fIflow_cut\fR or above 
+\fIfhigh_cut\fR are considered non-linear.
+.le
+
+If GBPM is run interactively, \fIfl_inter\fR=yes, the user is 
+presented with histograms of the distributions of the pixel values
+of the flat fields and the bias images and prompted to define the
+thresholds from the histograms. This mode of the task is useful for
+experimenting with the best setting of the parameters.
+
+.ih
+EXAMPLES
+1. Create a bad pixel mask from lists of raw flat fields and raw bias images.
+The raw data are located in the directory defined by "rawgmoss".
+
+.nf
+   cl> gbpm S20031031S0108,S20031031S0109,S20031031S0110 \
+       S20031031S0112,S20031031S0113,S20031031S0114 \
+       S20031030S0029,S20031030S0030,S20031030S0031 \
+       gmossbpm11 rawpath=rawgmoss$
+.fi
+.ih
+TIME REQUIREMENTS
+.ih
+BUGS AND LIMITATIONS
+GBPM has not yet been modified to work with spectral flat fields.
+.ih
+SEE ALSO
+gmosinfo, gmosinfoimag, gprepare, gbias, gmosaic, gemcombine, gireduce
+.endhelp

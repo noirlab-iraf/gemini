@@ -1,0 +1,32 @@
+# Draw F2 mask frame
+location 0.2 0.9 0.2 0.9
+limits -125 125 -125 125
+lweight 2
+relo -119.2 -42.27 ; draw -119.2 67.3 ; draw -75.72 67.3 ; draw -75.72 42.27
+draw 119.2 42.47 ; draw 119.2 -42.47 ; draw -119.2 -42.27
+
+lweight 1
+relo -110.02 -38; draw 110.02 -38
+relo -110.02 38; draw 110.02 38
+
+
+
+
+lweight 1
+ltype 1
+ptype 25 0
+expand 0.3
+relo -116.17 -39.09 ; dot
+relo -35.54 -40.14 ; dot
+relo 35.54 -40.14 ; dot
+relo 116.17 -39.09 ; dot
+relo 116.17 39.09 ; dot
+relo 35.54 40.14 ; dot
+relo -35.54 40.14 ; dot
+relo -116.17 39.09 ; dot
+relo -116.17 -32.73 ; dot
+ptype 25 3
+relo 116.57 -32.73 ; dot
+expand 44
+ptype 25 0
+relo 0 0 ; dot

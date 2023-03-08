@@ -1,0 +1,145 @@
+.help gnscombine December2012 gemini.gmos
+.ih
+NAME
+gnscombine - Combine Nod-and-Shuffle GMOS data frames into a master frame
+.ih
+USAGE
+gnscombine inimages offsets outimage
+.ih
+PARAMETERS
+.ls inimages
+List of input images to process. 
+These images will be sky subtracted, shifted, and combined to create
+the output frame. Input images must first be pre-processed
+using the GPREPARE task (to embed necessary header information)
+before running them through GNSCOMBINE. This is the only
+step needed before running this task to produce a final
+cosmic-ray-rejected data frame. (However, if you want to work with
+bias frame subtracted data, these input images should first be 
+bias subtracted using GSREDUCE).  The input images can have
+been processed with GMOSAIC, however this not recommended (see Note 1 in 
+DESCRIPTION). Input can given as a list of images. Wildcards are 
+supported. The image names may include the directory path. The 
+images must be in multi-extension FITS (MEF) format.
+.le
+.ls offsets
+Text file with x,y offsets. Each row in the file should
+give the x and y offsets for a single frame. The x and y
+offsets should be separated by a space character. There
+should be one offset for each input frame, specified
+in the same order as the input frames are
+specified to the task.
+.le
+.ls outimage
+Output sky-subtracted, registered, and combined MEF image.
+.le
+.ls outcheckim = ""
+An optional output image produced without cosmic-ray rejection.
+Inspection of this frame can be a useful diagnostic to ensure
+that stacking is occurring reliably and cosmic-ray rejection is
+working correctly.
+.le
+.ls outmedsky = ""
+An optional data frame created as an intermediate
+step by GNSCOMBINE. This is the median sky frame as computed
+by the algorithm described below. This is useful for subsequent
+noise estimates.
+.le
+.ls sci_ext = "SCI"
+Name of the MEF extension containing the science data.
+.le
+.ls var_ext = "VAR"
+Name of the MEF extensions containing the variance frame.
+.le
+.ls dq_ext = "DQ"
+Name of the MEF extensions containing the data quality array.
+.le
+.ls mdf_ext = "MDF"
+Name of the MEF extension containing the Mask Definition File.
+.le
+.ls fl_vardq = no
+Create or propagate the variance and data quality images?
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes the task use the logfile
+defined by gmos.logfile.
+.le
+.ls verbose = yes
+Print actions to the screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error. 
+This parameter is always set by the task, and should not be modified by 
+the user.
+.le
+.ih
+DESCRIPTION
+
+GNSCOMBINE is a high-level script that attempts to create a combined,
+cosmic-ray rejected master sky-subtracted frame from gprepared, 
+nod & shuffled GMOS spectroscopy frames.  Frames need to be
+be grepared before being run through this script.  See the
+documentation for GNSSKYSUB for information on how nod & shuffle sky
+subtraction works.
+
+It is easy to make a master combined frame by simply running GNSSKYSUB
+on each input frame data, shifting each frame to line it up to a
+common system, and then calling GEMCOMBINE to stack all the
+frames. This works OK, but in practise this is slightly non-optimal
+because the correct weights to use with GEMCOMBINE depend on sky
+values, and the sky has already been removed.  So GNSCOMBINE tries to
+be a little more clever (and very close to optimal) by adopting the
+following procedure:
+
+0. Shift the input frames by a (user-specified) offset in x and y using 
+imshift.
+
+1. Compute a median sky frame using GEMCOMBINE.
+
+2. Sky subtract each shifted input frame using GNSSKYSUB.
+
+3. Add the median sky frame back to each shifted, sky-subtracted frame 
+so GEMCOMBINE will be able to combine these with the correct weights.
+
+4. Combine frames from previous step using GEMCOMBINE and cosmic ray
+rejection using the 'ccdclip' algorithm.
+
+5. Subtract the median sky frame from the combined frame.
+
+Notes:
+
+1. gnscombine should not be run on frames which have been processed with
+GMOSAIC because this can introduce rotations and the sky is assumed to be in
+the same column as the object. Rather any mosaicking should come later.
+
+2. Currently gnscombine gives all frames equal weights in the combination.
+So they should all have the same exposure setting, grating setting & 
+cloud+seeing conditions. 
+
+.ih
+EXAMPLES
+
+1. Sky subtract and stack a list of images:
+
+.nj
+   cl> gnscombine @inlist offsets.dat finalframe
+.ju    
+    
+.ih
+TIME REQUIREMENTS
+An unloaded 800Mhz Athlon PC (640Mb of RAM)
+running Redhat 7.1 Linux 
+takes about 7 minutes to create
+a master frame from 5 gprepared GMOS
+frames.
+.ih
+BUGS AND LIMITATIONS
+Improvements to the (previously semi-functional) variance and
+data quality propagation in the GMOS package have undergone limited
+testing; the accuracy of the results should still be verified at
+each step by the scientist, particularly for spectroscopic data
+reduction tasks.
+.ih
+SEE ALSO
+gprepare, gsreduce, gnsskysub, gmosexamples
+.endhelp

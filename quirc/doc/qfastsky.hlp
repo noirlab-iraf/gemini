@@ -1,0 +1,102 @@
+.help qfastsky Jun2006 gemini.quirc
+.ih
+NAME
+qfastsky -- Derive sky image for QUIRC, median or min/max filtering
+.ih
+USAGE
+qfastsky inimages outimage
+.ih
+PARAMETERS
+.ls inimages 
+Images to combine. \fIinimages\fR can be a comma-separated
+list of image names or defined by using the * wild card.  QSKY also
+accepts @filename to point to a file containing the names of the
+input images.
+.le
+.ls outimage
+Output sky image.
+.le
+.ls outtitle = "default"
+The outtitle string will be written in the output image header 
+under the keyword specified by i_title (see help page for
+HEDIT).  If set to "default", QSKY will write
+"SKY IMAGE from gemini.quirc.qfastsky" in the output image header.
+.le
+.ls key_exptime = "EXPTIME"
+Header keyword for the exposure time.
+.le
+.ls combtype = "default"   [default,median,average]
+Type of combine operation.
+.le
+.ls rejtype = "minmax"     [minmax,none]
+Type of rejection.
+.le
+.ls logfile = ""
+Name of logfile. If empty, then the package logfile (\fIquirc.logfile\fR) is used.
+If neither is defined, then \fIlogfile\fR=quirc.log is used.
+.le
+.ls nlow = 0
+Number of low pixels to reject, when using \fIrejtype\fR=minmax.
+.le
+.ls nhigh = 1
+Number of high pixels to reject, when using \fIrejtype\fR=minmax.
+.le
+.ls verbose = no
+Print actions to the screen.
+.le
+.ls status
+This flag is non-zero after execution of QFASTSKY if a fatal error was
+encountered.
+.le
+.ih
+DESCRIPTION
+.le
+QFASTSKY makes a sky image from a list of input images.
+QFASTSKY is designed to do a fast (but not necessarily) optimal
+job of combining sky images and rejecting the pixels affected by
+signal from objects.
+
+With \fIcombtype\fR="default" the type of combination and rejection 
+is chosen based on the number of input images. 
+Two to four images are combined by averaging after rejecting the
+highest pixel.  Five to seven images are median combined after
+rejecting the highest and lowest pixels.  Eight and more images
+are median combined rejecting the two highest and one lowest pixels.
+
+QFASTSKY warns the user if the exposure times of the input images 
+differ by more than 0.1 sec.
+
+\fIcombtype\fR, \fIrejtype\fR, \fInlow\fR and \fInhigh\fR can also
+be set by the user. However, the choices are limited since the
+purpose of this task is to provide a fast determination of 
+a sky image. For more advanced determinations, use QSKY.
+.le
+.ih
+EXAMPLES
+
+1. To combine a list of images to a sky image
+
+.nf
+      cl> qfastsky image1,image2,image3,image4,image5 skyimage
+.fi
+
+2. To combine a list of images given in the file inputfile to a 
+sky image
+
+.nf
+      cl> qfastsky @inputfile skyimage
+.fi
+
+3. To combine all fits images starting with "q" in the current directory
+to a sky image
+
+.nf
+      cl> qfastsky q*fits skyimage
+.fi
+
+.ih
+BUGS
+.ih
+SEE ALSO
+qsky, imcombine
+.endhelp

@@ -1,0 +1,53 @@
+.help ggdbhelper March2012 gemini.gmos
+.ih
+NAME
+ggdbhelper -- Using date info in image, select appropriate gaindb file.
+.ih
+USAGE
+ggdbhelper inimage
+.ih
+PARAMETERS
+.ls inimage
+Input GMOS image to which a \fIgaindb\fR file needs to be associated.
+.le
+.ls gaindb = ""
+This an output parameter.  This parameter will be set to the appropriate 
+file name.  The value is available to another task as \fIggdbhelper.gaindb\fR.
+This parameter is always set by the task and should not be modified by the 
+user.
+.le
+.ls logfile = ""
+The name of the logfile. The default value makes the task use the logfile
+defined by gmos.logfile.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error.  This
+parameter is always set by the task and should not be modified by the user.
+.le
+.ih
+DESCRIPTION
+The gain values for the GMOS instruments can change following work on the
+detectors and their amplifiers.  The gain values used by the data reduction
+software are stored in the files gmos$data/gmosamps*.dat.  Which file should be
+used for a given is determined by the date at which the observation was
+obtained.  The observation date is found in the header keyword DATE-OBS found 
+in the Primary Header Unit (PHU) of a GMOS MEF file.
+.sp
+Currently, all images taken before August 31, 2006 will be assigned the
+'gmosamps-20060831.dat' file, and all images taken after that date will be
+assigned the default data file: 'gmosamps.dat'.
+.ih
+EXAMPLES
+1.  Select the correct gmosamps file for image N20010829S120.fits.
+.sp
+.nf
+    cl> ggdbhelper N20010829S120.fits[0]
+    cl> =ggdbhelper.gaindb
+    gmosamps-20060831.dat
+.fi
+.ih
+BUGS AND LIMITATIONS
+.ih
+SEE ALSO
+ggain
+.endhelp

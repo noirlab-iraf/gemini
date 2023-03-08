@@ -1,0 +1,119 @@
+.help mistack December2011 gemini.midir
+.ih
+NAME
+mistack -- Performs a straight average of the nod images within a given 
+data file
+.ih
+USAGE
+mistack inimages
+.ih
+PARAMETERS
+.ls inimages
+The input image(s) to be processed by the task. It can be an image name, 
+a list of image names, a wild-card image name, or the "@" syntax can be 
+used to direct the task to read a list of file names.  These all must be 
+files that have been made by the TPREPARE or MPREPARE tasks.
+.le
+.ls outimages = ""
+The output image name(s) for the registered files.  If this field is left 
+blank the \fIoutpref\fR string is used to create new file names from the 
+input file names.  Otherwise the number of output file names must match 
+the number of input file names or an error condition occurs.  The field 
+must contain either a list of output file names or use the "@" syntax to 
+direct the task to read a list of file names.  The task tests for whether 
+the output images exist and exits with an error condition if any of them 
+do exist.
+.le
+.ls outpref = "s"
+A prefix string which is prefixed to each input image name to make
+the corresponding output image name if the output file name(s) are 
+not specified via the \fIoutimages\fR parameter.
+.le
+.ls rawpath = ""
+The path to the directory containing the T-ReCS or Michelle image files.  
+If the value is "" (empty string) the current directory is used.
+.le
+.ls frametype = "dif"
+A variable to mark which type of images are to be combined: the default is 
+"dif" for the difference frames, but it can also be "src" for the on-source 
+frames or "ref" for the sky reference frames.
+.le
+.ls combine = "average"
+A variable which can have the values "average" or "sum".  This determines 
+whether the combination of images is done via averaging or by summation. 
+This variable is passed to the IMCOMBINE task as its \fIcombine\fR 
+parameter.  Any value aside from "average" or "sum" produces an error.
+.le
+.ls fl_variance = no
+If this flag is set to "yes" then when the images from the individual nod 
+pair images are combined the variance is also calculated and written to the 
+output file as a second extension.
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes the task use the logfile
+defined by \fImidir.logfile\fR.
+.le
+.ls verbose = yes
+Print actions to the screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error. 
+This parameter is always set by the task, and should not be modified by 
+the user.
+.le
+.ih
+DESCRIPTION
+This task, which may be called as part of the standard reduction pipeline 
+in MIREDUCE, takes one or more input midir image files and either averages 
+or sums the individual frames from the various nods using the IMCOMBINE task. 
+One can choose, with the \fIframetype\fR parameter, to sum any of the 
+three image planes of the standard midir file: the on-source images, 
+the reference sky images, or the difference images.  The latter is 
+the default case.  The resulting output MEF file contains one or two 
+extensions depending on the \fIfl_variance\fR flag.  If this flag is 
+"no" then the output image has a single extension in which the 
+combined frame is stored.  This image has dimension [320,240].  
+All input images have equal weight in the averaging or summation.  
+If the \fIfl_variance\fR flag is set to "yes" then there is an 
+additional second extension in the output file which contains 
+the variance image.
+.sp
+Any NOD images that are marked as BAD using MIBACKGROUND, 
+MBACKGROUND, MIVIEW, or TVIEW are omitted from the 
+averaging.  It is assumed that at least one frame in the file is good.
+.sp
+The task will exit with an error if the specified output file already exists 
+or if the input file is not the output of TPREPARE or MPREPARE.
+It will also fail with a system level error if there are no good frames in 
+a given input file.
+.sp
+If the input file specified has already been either combined (via MISTACK 
+or MIREGISTER), then no output file is produced.  In this case a message is 
+printed to the logfile but no error is flagged.
+.sp 
+The \fIcombine\fR parameter is passed to the IMCOMBINE task and 
+determines whether the individual nod position images are averaged (the 
+default) or summed.  The output images for the two different "combine" 
+parameter values are identical except for a factor of 2 times the 
+number of nod cycles in the image.
+.ih
+EXAMPLE
+1. Stack a T-ReCS image locate in the directory "/home/user/data":
+.sp
+.nf
+    cl> mistack tS20030916S0101 rawpath="/home/user/data"
+.fi
+.sp
+This command would look in directory "/home/user/data" for input file, which 
+would have been previously produced using TPREPARE.  It will produce an
+output file named "stS20030916S0101" in the current directory.  All the 
+difference images in the original file that are not flagged as "BAD" 
+in the header are averaged with IMCOMBINE using weight of 1 and 
+no rejection of frames.
+.ih
+BUGS AND LIMITATIONS
+.ih
+SEE ALSO
+miregister, mireduce, tprepare, mprepare, imcombine
+.endhelp
+

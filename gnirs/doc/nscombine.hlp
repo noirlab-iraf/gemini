@@ -1,0 +1,216 @@
+.help nscombine November2011 gemini.niri
+.ih
+NAME
+nscombine -- Shift and combine images.
+.ih
+USAGE
+nscombine inimages
+.ih
+PARAMETERS
+.ls inimages
+Input images to shift and combine. 
+The input frames can be entered as a comma separated
+list or from a file using the @ character.
+.le
+.ls tolerance = 0.5
+Frames separated by a distance smaller than \fItolerance\fR are 
+combined without
+shifting. The separations are calculated from the world-coordinates
+system information in the headers. The tolerance is in units of arcseconds.
+.le
+.ls output = ""
+File name for output shifted and combined spectra. The default value 
+will take the first frame in the input \fIframes\fR and add the 
+suffix \fIoutput_suffix\fR to it. 
+.le
+.ls output_suffix = "_comb"
+Suffix for the output shifted and combined image.
+.le
+.ls bpm = ""
+Name of bad pixel mask file. Used with GEMCOMBINE. 
+.le
+.ls dispaxis = 1
+The dispersion axis, if not present in the image headers (see 
+\fIkey_dispaxis\fR below).
+.le
+.ls pixscale = 1.
+The pixel scale is taken from the header of the images. If it is not in the
+header under the name \fIkey_pixscale\fR (see below), its value is taken from
+\fIpixscale\fR. The units are arcsec/pixel.
+.le
+.ls fl_cross = no
+Use the task NSOFFSET to measure the offset via cross-correlation?
+.sp
+NOTE - this will not work on all IRAF versions.  See "Known Problem
+With fl_apply" in help for NSOFFSET.  In such cases the task will
+continue as if \fIfl_cross-\fR.
+.le
+.ls fl_keepshift = no
+The shifted frames are not deleted on completion when this flag is yes.
+Shifted files have the suffix "_shift". 
+.le
+.ls fl_shiftint = yes
+Integer shifts are done when this flag is yes. For subpixel shifts, set this
+flag to no.
+.le
+.ls interptype = "linear" (nearest|linear|poly3|poly5|spline3|sinc|drizzle)
+Interpolation type for shifting. See IMSHIFT.
+.le
+.ls boundary = "nearest" (constant|nearest|reflect|wrap)
+Boundary type for shifting. See IMSHIFT.
+.le
+.ls constant = 0.
+Constant value for boundary extension when shifting. See IMSHIFT
+.le
+.ls combtype = "average" (average|median)
+Combination operation used with GEMCOMBINE.
+.le
+.ls rejtype = "sigclip" (none|minmax|ccdclip|crreject|sigclip|avsigclip|pclip)
+Rejection algorithm used when combining the frames. See GEMCOMBINE.
+.le
+.ls masktype = "goodvalue"  (none|goodvalue)
+Type of pixel masking to use.  See GEMCOMBINE.
+.le
+.ls maskvalue = 0.
+Mask value used with the \fImasktype\fR parameter. See GEMCOMBINE.
+.le
+.ls statsec = "[*,*]"
+Section in frames from where the statistics for scaling, weighting, and
+normalizing are computed. If no section is given, the statistics in the entire 
+image are computed. 
+.le
+.ls scale = "none" (none|mode|median|mean|exposure|!<keyword>)
+Input frames can be scaled before combining. See GEMCOMBINE.
+.le
+.ls zero = "none" (none|mode|median|mean|!<keyword>)
+Input frames can be shifted in intensity before combining. See GEMCOMBINE.
+.le
+.ls weight = "none" (none|mode|median|mean|exposure|!<keyword>)
+Weights to be applied during the final combination. See GEMCOMBINE.
+.le
+.ls lthreshold = INDEF, hthreshold = INDEF
+Low  and  high  thresholds  to  be  applied to the input pixels.
+This is done before scaling, rejecting, and  combining.   If
+INDEF the thresholds are not used. See GEMCOMBINE.
+.le
+.ls nlow = 1,  nhigh = 1 (minmax)
+The  number  of  low  and  high  pixels  to  be  rejected by the
+"minmax" algorithm. See GEMCOMBINE.
+.le
+.ls nkeep = 0
+The minimum number of pixels to retain or the maximum number  to
+reject  when  using  the clipping algorithms (ccdclip, crreject,
+sigclip, avsigclip, or pclip). See GEMCOMBINE.
+.le
+.ls mclip = yes (ccdclip, crreject, sigclip, avsigclip)
+Use the median as the estimate for  the  true  intensity  rather
+than  the  average  with  high  and  low  values excluded in the
+"ccdclip", "crreject", "sigclip", and "avsigclip" algorithms? See GEMCOMBINE.
+.le
+.ls lsigma = 5., hsigma = 5. (ccdclip, crreject, sigclip, avsigclip, pclip)
+Low  and  high  sigma  clipping  factors  for   the   "ccdclip", 
+"crreject", "sigclip", "avsigclip", and "pclip" algorithms. See GEMCOMBINE.
+.le
+.ls ron = 0.0, gain = 1.0 
+CCD  readout noise in electrons and gain in electrons/DN.  These
+parameters  are  used  with   the   "ccdclip"   and   "crreject" 
+algorithms.   They are used only if values do not appear in the
+data headers.
+.le
+.ls snoise = "0.0" (ccdclip, crreject)
+Sensitivity noise as a fraction. See GEMCOMBINE
+.le
+.ls sigscale = 0.1 (ccdclip, crreject, sigclip, avsigclip)
+This parameter determines when poisson corrections are  made  to
+the  computation  of  a  sigma  for  images with different scale
+factors. See GEMCOMBINE.
+.le
+.ls pclip = -0.5 (pclip)
+Percentile clipping algorithm parameter. See GEMCOMBINE.
+.le
+.ls grow = 0.0
+Radius in pixels for additional pixels to be rejected in an
+image with a rejected pixel selected by one of the rejection 
+algorithms. See GEMCOMBINE.
+.le
+.ls nrejfile = ""
+Base name of output file with number of rejected pixels for each science 
+extension within a group.  
+This is intended for debugging/investigating the rejection behaviour.
+The extension indices within the file are sequentially numbered from 
+zero and correspond to the output science frames.  
+There are no extension names or versions and the file does not 
+contain a PHU.
+See \fIimcombine.nrejmasks\fR.
+.le
+.ls fl_vardq = yes
+Make variance and data quality planes?
+.le
+.ls fl_inter = no
+Find cross-correlation peak interactively (if \fIfl_cross+\fR)?  See 
+the NSOFFSET help for a discussion of when this may be necessary.
+.le
+.ls logfile = ""
+Name of logfile.
+.le
+.ls verbose = yes
+Print actions to the screen.
+.le
+.ls debug = no
+Print detailed actions to the screen.
+.le
+.ls force = no
+The GEMOFFSETLIST task may not work on versions of IRAF before 2.12.2a.
+Setting this flag ignores a test for those versions when that task is
+called.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an
+error. This parameter is always set by the task, and should
+not be modified by the user.
+.le 
+
+.ih
+DESCRIPTION
+This task shifts and combines the input frames \fIinimages\fR taken at
+different positions. The relative positions are calculated from the
+WCS information in the image PHUs.  These are calculated with the task
+GEMOFFSETLIST which also writes them to the header. NSCOMBINE takes
+the offsets from the header and the pixel scale as defined by the
+parameters \fIkey_pixscale\fR or \fIpixscale\fR.
+.sp
+If \fIfl_cross+\fR then, after grouping the images with GEMOFFSETLIST,
+an observation from each group is cross-correlated with the first
+image listed (taken as the reference position) to provide a more
+accurate (hopefully) offset.  See the help for NSOFFSET for more
+details, including current limitations with IRAF and when to use the
+\fIfl_inter\fR parameter.
+.sp
+With the offsets in detector units, the images are shifted with the
+task IMSHIFT. The task IMSHIFT requires the parameters
+\fIinterp_type\fR, \fIboundary\fR, and \fRconstant\fR. Once all images
+are shifted, they are combined with GEMCOMBINE.
+.sp
+Frames can be shifted by subpixels if the parameter \fIfl_shiftint\fR
+is set to "no". The default is to shift the images by integer
+pixels.
+.sp
+The shifted frames are saved if \fIfl_keepshift\fR is yes and the name
+of the shifted frames is the name of the input frame with the suffix
+"_shift" added. 
+.ih
+EXAMPLES
+1. Shift and combine frames in input.lst. Frames closer than 1 arcsec are 
+not shifted.
+.sp
+.nf
+      ni> nscombine @input.lst tolerance=1
+.fi
+.ih
+TIME REQUIREMENTS
+.ih
+BUGS AND LIMITATIONS
+.ih
+SEE ALSO
+nsstack, gemoffsetlist, gemcombine, imshift, nschelper
+.endhelp

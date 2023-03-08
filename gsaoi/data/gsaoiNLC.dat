@@ -1,0 +1,33 @@
+####
+# Database file containing non-linear correction coefficients for the GSAOI
+# instrument 
+####
+
+# These are the non-linear parameters for each array as derived using
+# the GNIRS equivalent method - the correction is a quadratic fit
+# a+b*cts+c*cts*cts - no normalization applied (not using irlincor).
+# Note that the applied correction is actually a third order poly.
+
+# NOTE: If separate NLC is required below 2000 ADU, then add more lines with a
+# distinguishing column (that should be also added to the lines below)
+
+# RANGE designates the ADU range to which the coefficients should be
+# applied. ALL is all; LOW is < 2000 ADU; HIGH is >= 2000 ADU.
+
+####
+# NLC coefficients
+# first version - using H data only
+# CCDNAME  RANGE    COEFF1       COEEF2        COEFF3
+# G1       ALL   0.9958457  8.126145E-7  2.308761E-11
+# G2       ALL   0.9942604  1.034286E-6  2.895072E-11
+# G3       ALL   0.9950389  9.421460E-7  1.526977E-11
+# G4       ALL   0.9963830  7.414786E-7  2.152741E-11
+
+####
+# NLC coefficients
+# second version - using H and Z data
+# CCDNAME  RANGE    COEFF1       COEEF2        COEFF3
+  G1       ALL   0.9947237  7.400241E-7  2.539787E-11
+  G2       ALL   0.9944842  6.748257E-7  3.679960E-11
+  G3       ALL   0.9947278  7.067051E-7  2.177223E-11
+  G4       ALL   0.9958842  5.670857E-7  2.718377E-11

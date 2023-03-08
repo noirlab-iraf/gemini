@@ -1,0 +1,329 @@
+.help gareduce October2013 gemini.gsaoi
+.ih
+NAME
+gareduce -- Reduce images from GSAOI
+.ih
+USAGE
+gareduce inimages
+.ih
+PARAMETERS
+.ls inimages
+List of raw or prepared GSAOI images to reduce. All types of images except
+mosaiced images can be input at once - they will be sorted into their various
+types. \fIinimages\fR Can be a list of image names or numbers (comma separated
+or @ lists), or a range of images numbers - wild cards are supported. The image
+names may include the directory path. The images must be in multi-extension
+FITS (MEF) format and not be mosaiced. The file extension ".fits" may or may
+not be included. See help for GAIMCHK for examples of all syntax allowed.
+.le
+.ls rawpath = ""
+Path to the directory where the images are located. One may
+set this parameter if the raw data are not located in the current
+working directory, or specify a path in the input image file names.
+If \fIrawpath\fR is supplied it will be prefixed to any path given as part of
+the input image names.
+.le
+.ls outpref = "r"
+Prefix for output images. The names of output images will be the names of
+the input images (without any paths included) with the prefix attached. If
+\fIoutpref\fR is used and does  not contain a directory path, the prepared
+images are written in the current working directory. \fIoutpref\fR may contain
+a directory path, in which case this defines where the prepared images are
+written relative to the current directory.
+.le
+.ls rootname = ""
+Root name of image(s) if supplying image number(s); blank for today's UT. For
+example, rootname="S20120101S".
+.le
+.ls fl_dark = no
+Dark subtract inputs images?
+.le
+.ls fl_flat = no
+Flat divide input images?
+.le
+.ls fl_sky = no
+Sky subtract input images?
+.le
+.ls fl_autosky = yes
+After sky subtraction (\fIfl_sky\fR=yes) add back the median of the sky image
+to the sky subtracted image?
+.le
+.ls fl_mult = yes
+Multiply the input image by it's GAIN to convert from ADU to electrons?
+.le
+.ls fl_vardq = no
+Create variance and data quality frames for the output image? If
+\fIfl_vardq=yes\fR, variance and data quality planes are required to be present
+in all prepared input frames.
+.le
+.ls darkimg = "" (""|find|<filename>)
+Image to use for dark subtraction. If \fIdarkimg\fR=find, GACALFIND is called
+to find an appropriate dark image. See help for GACALFIND for more information.
+.le
+.ls flatimg = "" (""|find<{DOME|TWLT|GCAL}>|<filename>)
+Image to use for flat division. If \fIflatimg\fR=find, GACALFIND is called
+to find an appropriate flat frame. When \fIflatimg\fR=find as specific type of
+flat can requested by appending "{<type>}" to the string, e.g.,
+\fIflatimg\fR="find{DOME}". See help for GACALFIND for more information.
+.le
+.ls skyimg = "" (""|time|distance|both|<filename>)
+Image to use for sky subtraction. If \fIskyimg\fR="time" or
+\fIskyimg\fR="distance", the input files for the current unique METACONF value
+are used as inputs for GASKY. \fIskyimg\fR="time" uses the \fImaxtime\fR to
+filter the current list for images that are within \fImaxtime\fR of the image
+currently being reduced. Likewise for \fIskyimg\fR="distance", expect images
+are filtered by their distance from the image using the \fIminoffs\fR
+parameter. When \fIskyimg\fR="both" frames are selected both by time and
+distance as described for the individual cases.
+.le
+.ls calpath = "./"
+Path to where master dark and flat frames exist, only is used when
+\fIdarkimg\fR="find" or \fIflatimg\fR="find".
+.le
+.ls caltable = "gsaoical.fits"
+Table created by GACALFIND containing calibrations files. Only is used when
+\fIdarkimg\fR="find" or \fIflatimg\fR="find".
+.le
+.ls fl_calrun = no
+When finding calibrations, if \fIcaltable\fR already exists re-create it?
+.le
+.ls cal_maxtime = INDEF
+Maximum time difference between calibration observation and current image to be
+reduced. Used to select closest in time calibrations if more than one suitable
+calibration of a given type is found.
+.le
+.ls badpix = "gsaoi$data/gsaoibpm_high_full.fits"
+Static MEF bad pixel mask.
+.le
+.ls lsigma = 3.
+Lower sigma clipping factor when calculating median sky (\fIfl_autosky\fR=yes)
+.le
+.ls hsigma = 3.
+Upper sigma clipping factor when calculating median sky (\fIfl_autosky\fR=yes)
+.le
+
+GAPREARE PARAMETERS:
+.ls gaprep_pref = "g"
+Output prefix for GAPREPARE.
+.le
+.ls fl_trim = yes
+Trim the images? This will remove the non-illuminated regions of the
+arrays. The non-illuminated regions are a boarder of 4 pixels around the
+outside of each physical array. For some observing modes no physical trimming
+will take place.
+.le
+.ls fl_nlc = yes
+Apply non-linearity correction to each array?
+.le
+.ls fl_sat = yes
+Flag non-linear and saturated pixels in data quality frames?
+.le
+.ls arraysdb = "gsaoi$data/gsaoiAMPS.dat"
+Database file containing characteristic information about the individual
+arrays. This file contains the readnoise, gain, saturation values and
+percentages of saturation where the counts depart >5% and >2% from linearity,
+before and after non-linearity correction, respectively.
+.le
+.ls non_lcdb = "gsaoi$data/gsaoiNLC.dat"
+Database file containing the coefficients for the 2nd order non-linearity
+correction
+.le
+
+SKY CREATION PARAMETERS:
+.ls sky_sufx = "sky"
+Output suffix to use when creating sky frames from input science data.
+\fIsky_sufx\fR is used in conjunction with the name of the input science file
+that the current sky frame is being created for.
+.le
+.ls maxtime = 900.
+For sky="time", combine frames within this time interval given in seconds
+.le
+.ls minoffs = 90.
+For sky="distance", combine frames with offsets larger than this, given in
+arc seconds.
+.le
+.ls minsky = 5
+Minimum number of images to combine to form a sky frame.
+.le
+.ls combine = "default" (default|average|median)
+Type of combining operation performed on the final set of pixels (after
+offsetting, masking, thresholding, and rejection). The choices are
+"average" or "median". The median uses the average of the two central
+values when the number of pixels is even. When \fIcombine\fR="default", then
+both \fIcombine\fR and \fIreject\fR parameters passed to GEMCOMBINE are set
+internally by GASKY. The default setting of \fIcombine\fR and \fIreject\fR when
+combining 3 or more images are "average" and "avsigclip", receptively.
+However, should the number of images to be combined be less than 3 and
+\fIcombine\fR=default \fIcombine\fR="average", \fIreject\fR="minmax",
+"\fInlow\fR"=1 and \fInhigh\fR=1.
+.le
+.ls reject = "minmax" (none|minmax|avsigclip)
+Type of rejection operation performed on the pixels remaining after offsetting,
+masking and thresholding. The algorithms are described in the help for
+IMCOMBINE.
+.le
+.ls nlow = 1, nhigh = 1
+The number of low and high pixels to be rejected by the "minmax" algorithm.
+.le
+.ls statsec = "[5%]"
+Section of images to use in computing image statistics
+and when scaling, weighting, and normalizing with GEMCOMBINE. If no section is
+given then the entire region of the input is sampled. \fIstatsec\fR is relative
+to an individual array but is applied to all arrays - assuming all arrays are
+of the same size. Allowed syntax, i.e., standard and non-standard IRAF syntax,
+can be found in the help for GEMSECCHK.
+.le
+.ls masktype = "goodvalue" (none|goodvalue)
+Type of pixel masking to use. Note that not all IMCOMBINE options are
+currently available. See the IMCOMBINE help page for more details.
+.le
+.ls maskvalue = 0.
+Mask value to use with the \fImasktype\fR parameter. See the IMCOMBINE help
+page for a complete description.
+.le
+.ls datename = "DATE-OBS"
+PHU keyword that specifies date of observation. Used when
+\fIskyimg\fR="time".
+.le
+.ls timename = "UT"
+PHU keyword that specifies the time of the observation. Used when
+\fIskyimg\fR="time".
+.le
+.ls expname = "EXPTIME"
+Image header keyword to be used with the exposure scaling and weighting
+options.
+.le
+.ls key_ron = "RDNOISE", key_gain = "GAIN", ron = 0.0, gain = 1.0
+CCD readout noise in electrons and gain in electrons/DN.
+These parameters are used with the "ccdclip" and "crreject"
+algorithms. \fIron\fR and \fIgain\fR are only used if the keywords
+\fIkey_ron\fR and \fIkey_gain\fR are set to "".
+.le
+.ls lthreshold = 3.
+Threshold in sigma above which a object is deemed and object. Used as the
+value for the \fIhsigma\fR parameter to NPROTO.OBJMASKS.
+.le
+.ls ngrow = 3
+Number of iterations to grow objects into the wings. Used as the
+value for the \fIngrow\fR parameter to NPROTO.OBJMASKS.
+.le
+.ls agrow = 3.
+Area limit for growing objects into the wings. Used as the
+value for the \fIagrow\fR parameter to NPROTO.OBJMASKS.
+.le
+.ls minpix = 6
+The  minimum  number  of  neighboring  pixels  which  define  an acceptable
+object. Used as the value for the \fIminpix\fR parameter to NPROTO.OBJMASKS.
+.le
+.ls fl_mask = yes
+Mask non-good pixels during source detection and calculation of sky statistics?
+Good pixels are assumed to have a value of 0 in the data quality planes. In the
+case when calculating statistics, if there are no data quality planes present
+and \fIbadpix\fR is not "", this will be used to mask bad pixels during the
+calculation.
+.le
+.ls qreduce_gasky = yes
+Quickly flat divide and sky subtract (using a rough and ready sky frame from
+GAFASTSKY) the input images? If already flat divided the input images will not
+be flat divided again. If not and \fIflatimg\fR is provided, this will be used
+to flat divide the input frames. If not flat divided and \fIflatimg\fR="", then
+a rough and ready flat frame will be created from the rough and ready GAFASTSKY
+image. This parameter is also used when calculating the median sky value to add
+back in when \fIfl_autosky\fR=yes.
+.le
+.ls minflat_val = INDEF
+Minimum allowed absolute pixel value in flat image. Used during flat division
+and supplied to gasky if \fIskyimg\fR is "time" or "distance". This can be set
+to INDEF. \fIminflat_val\fR is in place to stop segmentation / floating
+point errors when dividing by the flat frame. Should the user see such errors,
+adjust this value to see if this fixes the problem. Pixels within the
+flat image with and absolute value below \fIminflat_val\fR value are replaced
+by \fIminflat_val\fR correct for by the input pixels sign.
+.le
+.ls fl_keepsky = no
+Keep the sky frames created in this pass through gareduce?
+.le
+.ls fl_dqprop = yes
+Propagate data quality values to the combined frame data quality extensions? If
+\fImasktype\fR="none" all input data quality values will be propagated. If
+\fImasktype\fR="goodvalue" only the data quality values for those output pixels
+that have no data in will be propagated.
+.le
+
+GENERAL PARAMETERS:
+.ls sci_ext = "SCI"
+Name of the MEF extension containing the science data.
+.le
+.ls var_ext = "VAR"
+Name of the MEF extensions containing the calculated variance planes.
+.le
+.ls dq_ext = "DQ"
+Name of the MEF extensions containing the data quality information.
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes use of the logfile
+defined by gsaoi.logfile.
+.le
+.ls verbose = yes
+Print actions to screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted
+with an error. This parameter is set by the task and should not be
+modified by the user.
+.le
+.ih
+DESCRIPTION
+
+GAREDUCE will reduce raw / prepared (in most reduction states) GSAOI images. It
+will dark subtract, sky subtract, flat divide and multiply by the GAIN, when
+asked to and when appropriate. GAREDUCEd images can be ran through GAREDUCE
+more than once.
+
+GAPREARE is called to prepare all non-prepared inputs.
+
+The prepared input images are reverse sorted by unique METACONF keyword values
+into lists to be reduced. Each input image is acted upon individually - meaning
+the reduction step could change between each step. However, due to the fact
+that the METACONF keyword gets updated with the processing that occurs files
+with different processing states will not be grouped together.
+
+Calibrations can be specified explicitly or can be found using
+GACALFIND. Images taken in ARRAY or DETECTOR mode can use full frame
+calibration files; GACALFIND will find an appropriate calibration file of the
+requested type and GACALTRIM will create a temporary file that matches the
+dimensions of the current science image.
+
+Sky images can be specified explicitly or can be created using the input images
+if \fIskyimg\fR="time" or "distance" or "both"
+
+If \fIfl_autosky\fR is true and sky subtraction is performed for the given
+input image GAREDUCE will calculate the median of the sky frame using the
+entire detector and apply this one value to all arrays. The calculation is done
+in electrons and added back into the output image in the correct units. If the
+sky image is not flat divided but the the output image has been flat divided in
+this pass, then the sky image is flat divided by the flat used to flatten the
+output image before the calculation is performed.
+.ih
+EXAMPLES
+
+.nf
+   cl> gareduce @science.list fl_flat+ flatimg="find" \
+           calpath="../cals/" skyimg="time" maxtime=600
+.fi
+
+This will call to GAREDUCE will prepare the raw GSAOI files (observed in the
+same way but with a small offset pattern) listed in science.list, then create
+sky frames using the input list. Each input file will have a sky frame
+consisting of images observed within 600s of it. GACALFIND will be called to
+find an appropriate flat frame in the directory "../cals/", this will create a
+table named "gsaoical.fits" in the current working directory. Finally,
+each input images will by sky subtracted, flat divided, have the sky median
+added back in and gain multiplied.
+.ih
+SEE ALSO
+
+GASTAT, GADIMSCHK, GAIMCHK, GEMCOMBINE, GASKY, GEMARITH, GACALFIND, GACLTRIM,
+and GEMOFFSETLIST.
+
+.endhelp

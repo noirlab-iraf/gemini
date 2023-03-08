@@ -1,0 +1,60 @@
+GEMINI (Oct2001)         Gemini IRAF package v1.2       GEMINI (Oct2001)
+
+Release date: October 15, 2001
+
+This document describes the revisions relative to the Gemini IRAF package v1.1
+
+
+PRIMARY REVISIONS:
+
+1) Tasks for reduction of NIRI imaging data. A new package "niri" is included.
+2) Tasks for reduction of Flamingos-I imaging data. A new package "flamingos" 
+   is included. 
+3) Support tasks for NIRI imaging data included in the "gemtools" package
+4) Updates of the tasks gemtools.imcoadd and gemtools.gemseeing to handle
+   NIRI imaging data
+5) Smaller bug fixes in the "quirc" package.
+
+
+DETAILS OF THE REVISIONS:
+
+niri.nprepare
+niri.nifastsky
+niri.nisky
+niri.niflat
+niri.nireduce
+niri.niriinfo
+  A new package "niri" is released. It contains tasks for reduction of imaging
+  data from NIRI. The release includes tasks for construction of sky frames 
+  and flat fields, as well as a task for applying these frames to science 
+  data. A description of the NIRI data format and how to reduce NIRI data is 
+  available as the task "niririnfo".
+
+flamingos.fprepare
+flamingos.flamingosinfo
+  A new package "flamingos" is released. It contains only one real task, 
+  fprepare, which is used to turn the Flamingos-I imaging data into a format
+  that can be reduced with the tasks in the "niri" package.
+
+quirc.qsky
+  Small fixes that makes the task more stabel.
+
+gemtools.gemseeing
+  Updates to handle NIRI and Flamingos-I data.
+
+gemtools.imcoadd
+  Updates to handle NIRI and Flamingos-I data.
+  In addition more error trapping is done and the script is now more stable.
+  In preparation for handling of GMOS data the coding for the calculation of
+  the badpixel masks for the case growthrad=1 has been changed. The output
+  is consistent with the previous version, but the new version runs slightly
+  faster.
+
+gemtools.gemhedit
+  Improved handling of high precision reals.
+
+gemtools.wmef
+gemtools.gimverify (hidden task)
+gemtools.gsetsec   (hidden task)
+  Generic tasks for support of tasks in the "niri" package have been added to
+  the "gemtools" package.

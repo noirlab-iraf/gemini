@@ -1,0 +1,163 @@
+.help gscalibrate March2014 gemini.gmos
+.ih
+NAME
+gscalibrate -- Apply flux calibration and extinction correction to GMOS spectra
+.ih
+USAGE
+gscalibrate input
+.ih
+PARAMETERS
+.ls input
+Input GMOS spectra to be calibrated. Lists and wildcards are supported. 
+Directory names should not be included as part of the image names.
+.le
+.ls output = ""
+Output GMOS calibrated spectra. Lists are supported. 
+The number of output spectra must match the number of input spectra.
+.le
+.ls outpref = "c"
+Prefix for output spectra. Names of output spectra will be the names of
+the input spectra with the prefix attached.  The parameter \fIoutpref\fR
+is used if \fIoutput\fR="".
+.le
+.ls sfunction = "sens"
+The root name for the sensitivity spectra produced by GSSTANDARD.
+The parameter is used by CALIBRATE.
+.le
+.ls sci_ext = "SCI"
+Name of the MEF extension containing the science data.
+.le
+.ls var_ext = "VAR"
+Name of the MEF extension containing the variance frame.
+.le
+.ls dq_ext = "DQ"
+Name of the MEF extension containing the data quality array.
+.le
+.ls key_airmass = "AIRMASS"
+The image header airmass keyword.  If the airmass is not in the header
+the procedure halts with an error.
+.le
+.ls key_exptime = "EXPTIME"
+The image header exposure time keyword.  If the airmass is not in the
+header the procedure halts with an error.
+.le
+.ls fl_vardq = no
+Propagate the variance and data quality planes to the output images.
+.le
+.ls fl_ext = no
+Apply extinction correction if a spectrum has not been previously
+corrected.  When applying an extinction correction, an extinction file
+is required.
+.le
+.ls fl_flux = yes
+Apply a flux calibration if a spectrum has not been previously calibrated.
+When applying a flux calibration, sensitivity spectra are required.
+.le
+.ls fl_scale = yes
+Multiply the output spectra with \fIfluxscale\fR, 
+to avoid floating point errors when using the spectra.
+.le
+.ls fluxscale = 1.0E15
+Multiplicative factor for the flux scale if \fIfl_scale\fR=yes.
+.le
+
+.ih
+PARAMETERS USED BY CALIBRATE
+.le
+.ls ignoreaps = yes
+Ignore aperture numbers and apply a single flux calibration to all
+apertures.
+.le
+.ls fl_fnu = no
+The default calibration is into units of flux per unit wavelength
+(F-lambda). If \fIfl_fnu\fR = yes then the calibrated spectrum will be in
+units of flux per unit frequency (F-nu).
+.le
+.ls extinction = ""
+Extinction file for the observation.  Standard extinction files
+are available in the "onedstds$" directory.
+.le
+.ls observatory = "Gemini-North"
+Observatory at which the spectra were obtained if not specified in the
+image header by the keyword OBSERVAT.  See OBSERVATORY for additional 
+information.
+.le
+
+.ih
+GENERAL PARAMETERS
+.sp 1
+These general parameters are applicable to all GMOS tasks. 
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes the task use the logfile
+defined by gmos.logfile.
+.le
+.ls verbose = yes
+Print actions to the screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error. 
+This parameter is always set by the task, and should not be modified by 
+the user.
+.le
+
+.ih
+DESCRIPTION
+
+The GMOS input spectra are corrected for extinction and calibrated to a 
+flux scale using sensitivity spectra produced by the task GSSTANDARD.
+GSCALIBRATE uses the task CALIBRATE in the package NOAO.IMRED.SPECRED.
+The user is encouraged to read the help pages for CALIBRATE before 
+using GSCALIBRATE. This help page for GSCALIBRATE concentrates on the 
+issues specific to GMOS data. The user is refered to help pages for 
+CALIBRATE for a description of the methods and algorithms used in this task.
+
+The input spectra may have been processed through 
+GSSKYSUB, but this is not a requirement. The input spectra may or
+may not have been processed with GSEXTRACT, i.e. the input spectra
+may be 1D or 2D format. One or both calibrations may be performed by
+selecting the appropriate parameter flags (\fIfl_ext\fR and
+\fIfl_flux\fR). It is an error if no calibration is specified. 
+
+When applying an extinction correction the AIRMASS keyword is sought.
+If the airmass is not in the header then the procedure halts with
+an error.
+
+The image header keywords DC-FLAG (or the dispersion type field in the
+"multispec" world coordinate system), EX-FLAG, and CA-FLAG are checked for
+dispersion solution (required), previous extinction correction, and
+previous flux calibration. If previously calibrated the spectrum is
+skipped and a new output image is not created. 
+
+In order to avoid floating points errors when using the spectra, the 
+output spectra may be mulitplied with \fIfluxscale\fR (if \fIfl_scale\fR=yes). 
+
+The variance calculation was changed in v1.22 (Sept 2014) to process a
+sqrt(variance) spectrum in exactly the same way as the science array, ie.
+using CALIBRATE rather than separate arithmetic. For IFU data the previous
+method was crashing due to a header buffer overflow and was then found to
+have numerical problems leading to the input variance being propagated
+unmodified. As well as resolving these issues, the new method accounts for
+second-order terms, such as extinction, that were not included in the
+previous estimate.
+
+.ih
+EXAMPLES
+1.  Flux calibrate a GMOS multi-object observation using the default values.
+The sensitivity function is in the file sens.fits. The output image will
+be named using the value of \fIoutpref\fR.
+
+	cl> gscalibrate input_mos 
+
+2. Flux calibrate a long slit spectrum.
+The sensitivity function is in the file sens.fits. 
+
+.nf
+	cl> gscalibrate input_long output=cal_long
+.fi
+
+.ih
+SEE ALSO
+gmosinfo, gmosinfospec, calibrate, observatory, gsskysub, gsextract,
+gsstandard, standard, sensfunc
+.endhelp

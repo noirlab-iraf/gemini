@@ -1,0 +1,321 @@
+GEMINI (May2005)        Gemini IRAF package v1.8        GEMINI (May2005)
+
+Release date: May 6, 2005
+
+This document describes the revisions relative to the Gemini IRAF package v1.7.
+
+Users working on GNIRS data are strongly advised to update to this
+release, Gemini v1.8.
+
+This version of the Gemini IRAF package is compatible with, and requires, 
+the IRAF patch release V2.12.2a.
+
+The upgrade to the March 2005 version of the FITSUTIL external package is 
+mandatory.  The FITSUTIL package can obtained from the IRAF website 
+(iraf.noao.edu).
+
+This release is likely the last one in which we will distribute the
+Redhat Linux 7.3 binaries.  Future releases will include Redhat Linux 9
+binaries instead.
+
+PRIMARY REVISIONS:
+1) Major revision of the GNIRS package and GNIRS IFU support
+2) More new tasks
+3) More new functionalities/parameters
+4) Bug fixes.
+
+DETAILS OF THE REVISIONS:
+
+1) The GNIRS package has gone through a major revision.  Most of the changes
+   are internal to the code, but the user will notice several changes in the
+   way the tasks are called.
+   
+   Also, the GNIRS package now offers support for the IFU mode.
+
+   WARNING: The tasks NSTELLURIC and NSCALIBRATE have been removed from 
+            the GNIRS package pending further review.  We hope to be able
+            to offer those tasks again in the next release.
+   
+   (i) New tasks in GNIRS
+    
+       - gnirs.nfcube
+       - gnirs.nsedge
+       - gnirs.nfflt2pin
+       - gnirs.gnirsinfoifu
+       - gnirs.nsmdfhelper  (hidden task)
+       - gnirs.peakhelper   (hidden task)
+       
+   (ii) Retired tasks
+   
+       - gnirs.nfxshift
+       - gnirs.nscalibrate  (temporary; see note above)
+       - gnirs.nstelluric   (temporary; see note above)
+   
+   (iii) New functionalities/parameters in GNIRS
+   
+       gnirs.gnirsexamples:
+          - New examples for the reduction of IFU data.
+          - Major revision of the example for the reduction of cross-dispersed 
+            calibration data.
+    
+       gnirs.nfquick:
+          - New functionalities:
+              * User interface rewritten to use a source directory, a prefix, 
+                and a range of file numbers
+              * Uses mapping directly from the new MDF format
+              * Support for both dispersion axes
+              * User specified frames for display
+              * Modified graphical output
+          - New parameters:
+              * prefix
+              * datadir
+              * dispaxis
+              * fl_compress
+              * raw_frame
+              * img_frame
+          - Modified parameters:
+              * image replaces inimages
+              * mdf replaces table
+       
+       gnirs.nsappwave:
+          - New functionalities:
+              * Improved efficiency for IFU data
+              * Improved WCS quality
+       
+       gnirs.nschelper:
+       gnirs.nscombine:
+       gnirs.nssdist:
+       gnirs.nsstack:
+       gnirs.nstransform:
+          - New parameter:
+              * debug
+       
+       gnirs.nscut:
+          - New functionalities:
+              * Support for new MDF format
+              * PIXSCALE header name obtained from the NSHEADERS configuration
+          - New default value:
+              * fl_corner = yes
+          - New parameter:
+              * debug
+       
+       gnirs.nsflat:
+          - New/Improved functionalities:
+              * Several improvements to the messages logged or printed to the 
+                screens.
+              * More reliable data quality checks.
+          - New default value:
+              * normstat = "midpt"
+          - New parameter:
+              * traceproc
+          - Modified parameters:
+              * thr_flo replaces thresh_flo
+              * thr_fup replaces thresh_fup
+              * thr_dlo replaces thresh_dlo
+              * thr_dup replaces thresh_dup
+    
+       gnirs.nsheaders:
+          - New parameters:
+              * key_date
+              * key_mode
+              * key_obstype
+         
+       gnirs.nsoffset:
+          - New functionalities:
+              * Allows projection along the dispersion direction
+              * Interactive peak fitting simplified
+              * Support for both dispersion axes
+          - New parameters:
+              * sigma
+              * fl_project
+
+       gnirs.nsprepare:
+          - New functionalities:
+              * Shifts can be obtained from a previously prepared reference 
+                frame. (shiftimage parameter)
+              * Automatic selection of the frame to measure shift against
+              * Use of nsheaders.key_camera to select the MDF
+              * Support for both dispersion axes
+              * Additional checks for missing nod offsets
+          - New default value:
+              * offsetsec = "none"
+          - New parameters:
+              * shiftimage
+              * obstype
+          - Retired parameter:
+              * sigma
+
+       gnirs.nsreduce:
+          - New default value:
+              * skyrange = INDEF
+       
+       gnirs.nssdist:
+          - New functionalities:
+              * Additional checks and warnings to help ensure that the task is 
+                used correctly
+              * Generate default coordinates list at the center of the image
+                (used for IFU)
+       
+       gnirs.nssky:
+          - New functionality:
+              * If the 'age' is left undefined, the task tries to find a 
+                suitable value that will include a single neighbouring image.
+          - New default values:
+              * distance = 3.
+              * verbose = yes
+          - New parameter:
+              * debug = no
+       
+       gnirs.nsslitfunction:
+          - New functionalities:
+              * Support for a separate set of files if the sky and lamp
+                flats are not aligned due to flexure
+              * Improved normalization
+              * Additional checks for exposure times
+          - New default values:
+              * combine = "median"
+              * reject = "none"
+              * scale = "median"
+              * zero = "none"
+          - New parameters:
+              * flexflat
+              * fl_gemarith
+
+       gnirs.nstransform:
+          - New functionality:
+              * Propagate the MDF to the output file
+       
+       gnirs.nswavelength:
+          - New parameters:
+              * xorder
+              * yorder
+
+       gnirs.nswedit:
+          - New default value:
+              * order = -1
+
+   (iv) New or revised supporting data in GNIRS
+   
+        Note about the MDFs: A new format is used for the MDFs.  The old
+           format is still in used for backward compatibility.  Messages
+           regarding the use of the old format will be issued for information
+           purposes only.  This should not otherwise affect the user.
+        
+        gnirs/data/config.fits:
+            - New columns: 'mode' and 'camera'.
+            - New configuration for IFU-short-111.
+        
+        gnirs/data/gnirs-ifu-short-111-mdf2.fits:   (New)
+        gnirs/data/gnirs-ifu-short-32-mdf2.fits:    (New)
+            - New data files for IFU support.
+
+        gnirs/data/gnirs.dat:
+        gnirs/data/niri.dat:
+        gnirs/data/trecs.dat:
+            - Configuration of 'key_date', 'key_mode' and 'key_obstype'.
+        
+        gnirs/data/michelle.dat:
+            - Configuration of 'key_airmass', 'key_date', 'key_mode', and
+              'key_obstype'.
+            
+        gnirs/data/sky.dat:
+            - Added Q-band lines.
+        
+        gnirs/data/lowresargon.dat:
+        gnirs/data/nearIRsky.dat:
+            - New line lists for low resolution spectra (see the help page
+              for NSWAVELENGTH for more details).
+            
+2) More new tasks.
+
+   (i) NIRI
+   
+       - nirotate
+           Use the WCS information to de-rotate NIRI images.
+
+3) More new functionalities
+
+   (i) GEMTOOLS
+   
+      (a) New functionalities:
+      
+          gemtools.gemexpr:
+             - The limitation that the operands had to be MEF files was
+               removed.  They can be header values and literal constants
+               in addition to appearing in the expression itself.
+          
+          gemtools.gemextn:
+             - The "replace" string can use the special character '^' to 
+               represent the start of a string.
+          
+          gemtools.mgograph:
+             - Allows plotting from MDF found in MEF files 
+               (e.g. image.fits[MDF])
+   
+   (ii) GMOS
+   
+      (a) New functionalities:
+      
+          gmos.gnscombine:
+             - Can now work on GMOSAIC'ed images.
+
+          gmos/data/NS1.5arcsec.fits
+          gmos/data/NS2.0arcsec.fits
+             - New MDFs for longslit nod & shuffle.
+
+
+4) Bug fixes.
+
+   This list is not exhaustive.
+   
+   gemtools.gemarith:
+   gemtools.gemexpr:
+      - Fix a bug that caused GEMARITH to crash when the MDF was the first
+      extension in the MEF file.
+      - Improved error handling.
+   
+   gemtools.gemoffsetlist:
+      GEMOFFSETLIST can now time select data taken across midnight UT.  This
+      bug affected, in particular, the GNIRS.NSSKY automatic sky selection.
+   
+   gmos.giflat:
+   gmos.gifringe:
+      Set the default 'statsec' and 'normsec' correctly for GMOS data binned
+      4 by 4.
+   
+   gmos.giflat:
+      Better handling when the number of files is 2.
+   
+   gmos.gmosaic:
+      Detect if the inputs have already been mosaiced. 
+   
+   gmos.gnscombine:
+      - Correct handling of data binned in Y.
+      - More robust IMSHIFT calls.
+   
+   gnirs.nsflat:
+      Fix bugs with data quality verification.  In particular, use the
+      correct nonlinear level and propagate all input quality data.
+      
+   gnirs.nsprepare:
+      - Fix bugs with data quality verification.  In particular, use the
+      correct nonlinear level and propagate all input quality data.
+      - Correct PA calculation.  This bug affected the WCS at non-paralactic
+      angles.
+      - Fix problem when faced with WCS with negative jacobians.
+   
+   gnirs.nssdist:
+      Fix bug with database names and trailing slashes.
+   
+   gnirs.nstransform:
+      Fix bug in the DQ plane propagation (was being zeroed).
+   
+   midir.mstelluric:
+      Fix the way the normalization was done.  It now takes into account
+      the band/wavelength of the observations.
+   
+   niri.nireduce:
+      Fix a typo that would make NIREDUCE crash when fl_autosky=no.  This
+      bug was only found in v1.7, prior to the November 8 re-release.
+ 
+ 

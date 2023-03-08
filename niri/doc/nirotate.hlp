@@ -1,0 +1,99 @@
+.help nirotate December2011 gemini.niri
+.ih
+NAME
+.nf
+nirotate -- Rotate NIRI images based on WCS information in the
+            headers, rather than by identifying objects.  This
+            is most useful for Altair data taken with the cass
+            rotator fixed.
+.fi
+.ih
+USAGE
+nirotate inimages
+.ih
+PARAMETERS
+.ls inimages
+NIRI images that need to be de-rotated based in WCS information
+in the headers.  Images should have been NPREPAREd first.  This 
+string can be an image name, a list of image names, a wild-card
+file name, or the "@" syntax can be used to direct the task to read
+a list of file names. 
+.le 
+.ls outimages = ""
+The output, rotated image names.  If this field is left blank the
+\fIoutprefix\fR string is used to create new file names from the 
+input file names.  Otherwise the number of output file names must
+match the number of input file names or an error condition occurs.
+The allowed syntax for this field is the same as for \fIinimages\fR.
+The output images must not exist already; an error condition occurs
+if they do.
+.le
+.ls outprefix = "rot"
+Prefix for output images.  This field is used if \fIoutimages\fR is
+empty.  The names of output images are the names of the input images 
+with this prefix attached.
+.le 
+.ls interpolant = "linear"
+Interpolation algorithm used by the ROTATE task.  The allowed
+algorithm are: nearest, linear, poly3, poly5, spline3, sinc,
+lsinc, drizzle.  See the help page for ROTATE for complete 
+description of each algorithm.
+.le
+.ls fl_vardq = yes
+Propagate the variance and data quality planes.  Note that the 
+variance and data quality planes must be present in all the
+input images.  If they are not and \fIfl_vardq\fR is set to 'yes',
+\fIfl_vardq\fR will be re-set to 'no' and a warning will be issued.
+.le
+.ls logfile = ""
+Name of the logfile.  If left empty, the task will use the logfile
+name defined by niri.logfile, or "niri.log" if the latter is also
+not defined. 
+.le
+.ls glogpars = ""  (pset)
+The name of the text file containing the Gemini logging preferences
+parameters.  The parameters relating to the entry levels to be
+written are found here.  If \fIglogpars\fR is undefined then the default
+parameters set in the uparm directory are used.
+.le
+.ls verbose = yes
+Print actions to the screen.
+.le
+.ls sci_ext = "SCI"
+Name of the MEF extension containing the science data.
+.le
+.ls var_ext = "VAR"
+Name of the MEF extension containing the variance frame.
+.le
+.ls dq_ext = "DQ"
+Name of the MEF extension containing the data quality frame.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an 
+error.  This parameter is always set by the task, and should
+not be modified by the user.
+.le
+.ih
+DESCRIPTION
+.le
+NIROTATE uses the WCS information to "blindly" de-rotate
+NIRI images.  This is most useful for NIRI/Altair AO data
+taken with the cass rotator fixed, in which there may not
+be two objects to determine the rotations directly.
+NIROTATE uses the regular IRAF task SKYMAP to determine
+the angles, and ROTATE to perform the transformation.
+.le
+.ih
+EXAMPLES
+.sp
+1. Rotate a series of NIRI images using the WCS:
+.sp
+.nf
+    cl> nirotate @filelist
+.fi
+.ih
+BUGS AND LIMITATIONS
+.ih
+SEE ALSO
+images.immatch.skymap, rotate, glogpars
+.endhelp

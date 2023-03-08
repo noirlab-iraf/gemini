@@ -1,0 +1,381 @@
+.help nifsinfo December2011 gemini.nifs
+.ih
+NAME
+nifsinfo -- Generic information on NIFS data and reduction
+.ih
+USAGE
+nifsinfo
+.ih
+DESCRIPTION
+
+The NIFS package contains tasks for processing NIFS integral-field 
+(IFU) spectroscopy data.  The specifics of the individual tasks can 
+be found in their help files. This document describes the common 
+features of the generic tasks and gives a description of the NIFS data 
+format.  NIFSEXAMPLES provides sample "recipes" (processing
+scripts). 
+
+NIFS REDUCTION
+
+Because some of the routines for proper reduction of infrared spectral
+data already exist within the Gemini IRAF package, reduction of NIFS data
+uses some tasks that are inherent in the Gemini IRAF package for GNIRS
+data reduction.  These GNIRS scripts have the prefix "ns".  Tasks that 
+are NIFS-specific and will work only with NIFS IFU data have the 
+prefix "nf".
+
+All of the tasks used for NIFS reduction produce logfiles of the 
+performed processing steps. The name of the logfile may be set in 
+each individual task, or at the package level by setting \fInifs.logfile\fR.
+
+The tasks add header keywords to the output images. These header
+keywords contain information about the performed processing steps
+and the values of the critical parameters that were used.
+
+All NIFS images are written as multi-extension FITS (MEF) files.
+Raw data have two unnamed extensions.  Most of the header
+information is written to the primary header unit (PHU) which is
+extension [0].  The data read from the array is in extension [1].
+
+DATA FORMAT AND PREPARATION
+
+Processing with NFPREPARE (this task is used only for NIFS data - see
+below - but other instruments have their own preparation tasks with
+similar actions) will rename the data extension and add
+variance and data quality extensions.  By default (see NSHEADERS) the
+extension names are SCI for science data, VAR for variance, and DQ for
+data quality (0 = good).  Generation of the data quality plane (DQ) is 
+important in order to fix hot and dark pixels on the NIFS detector in 
+subsequent steps in the data reduction process.  Various header keywords 
+(used later) are also added in NFPREPARE.
+
+NFPREPARE will also add an MDF file (extension MDF) describing the NIFS 
+image slicer pattern and how the IFU maps to the sky field. 
+
+MEF STRUCTURE OF REDUCED DATA
+
+NIFS data reduction will cut the image slices and extract 
+the regions of interest from the raw data.  In the case of NIFS IFU 
+frames, data that has been run through the first few reduction steps will 
+have many extensions - one extension for the SCI, VAR and DQ planes for 
+each of the 29 different slices in the IFU.  The second extension containing 
+science data, for example, is denoted by [SCI,2].  So, NIFS data reduced with 
+variance and data quality planes will have 87 different extensions 
+after being NSCUT - 29 SCI, 29 VAR and 29 DQ.
+
+The task GEMEXTN, when used with default parameters and no arguments,
+will display all the extensions in a file:
+
+.nf
+    > unlearn gemextn
+    > gemextn snN20060202S0015
+    snN20060202S0015[0]
+    snN20060202S0015[1][MDF]
+    snN20060202S0015[2][SCI,1]
+    snN20060202S0015[3][VAR,1]
+    snN20060202S0015[4][DQ,1]
+    snN20060202S0015[5][SCI,2]
+    ...
+    snN20060202S0015[19][DQ,29]
+.fi
+
+This includes both the index (inside the first []) and the extension
+name and version (second []).  It is only necessary to use one of
+these, since either uniquely identifies an extension.  Name and
+version are recommended because they specify the type of data
+contained.  There is no guarantee about the ordering of indices apart
+from extension [0], the PHU, which always contains only header
+information.
+
+Additional information and ways to handle MEF files can be found in
+http://www.gemini.edu/sciops/data/dataFormat.html
+.ih
+
+HEADER PARAMETERS AND INSTRUMENT SPECIFIC OPTIONS
+
+The task NSHEADERS lists the header parameters used by the various tasks
+in the NIFS package (some header values which have values fixed by IRAF
+or FITS conventions are not included since they cannot be changed).
+
+Before reducing data from NIFS, the user should always run
+.nf
+    > nsheaders nifs
+.fi
+
+Note that not all header parameters named in NSHEADERS need appear in
+the raw data.  Some are used internally by the NIFS package.  Others
+are used by NFPREPARE alone.
+.ih
+
+SUMMARY OF THE NIFS DATA REDUCTION TASKS
+
+.ls NSHEADERS - Prepare the session for NIFS data reduction (task 
+resides in the GNIRS package)
+
+This task is described in more detail above.  It should be
+called before all other scripts to configure the package for processing
+data from NIFS.
+.le
+.ls NFACQUIRE - Construct quick-look NIFS images
+
+Derive quick-look images of the NIFS IFU field from flip-mirror acquisition 
+data.  This task is primarily used for acquisition of faint targets at the 
+telescope.  The option exists to derive offsets to center a target within the 
+IFU field.
+.le
+.ls NFIMAGE - Construct quick-look NIFS images from dispersed data.
+Derive quick-look images of the NIFS IFU field from dispersed science 
+exposures.  This task can be used for acquisition of bright targets at the 
+telescope, but has also proved to be very useful for viewing the IFU field sky 
+region from any dispersed data.  The option exists to derive offsets to center 
+a target within the IFU field.
+.le
+.ls NFPREPARE - Prepare NIFS data for reduction
+
+This task is described in more detail above.  It must be called
+before the other tasks listed below. 
+.le
+.ls NSFLAT -  Produce a normalized spectral flatfield (task resides in the 
+GNIRS package)
+
+NSFLAT is used to produce a normalized spectral flatfield image.  For
+IFU data it is usually used after calling NSREDUCE or NSCUT. To preserve
+a consistent normalization between slices, IFU flats must also be
+processed subsequently with NSSLITFUNCTION.
+.le
+.ls NSREDUCE - Process NearIR Spectral data (task resides in the GNIRS 
+package)
+
+NSREDUCE is used for basic reduction of raw data - it provides a
+single, unified interface to several tasks and also allows
+for the subtraction of dark frames and dividing by the flat.
+For NIFS reduction, NSREDUCE is used to call the NSCUT and NSAPPWAVE
+routines.
+.sp
+Note that NSREDUCE will not call NFPREPARE.
+.le
+.ls NSSLITFUNCTION - Correct the flat field for inter-slice variations  
+(task resides in the GNIRS package)
+
+NSSLITFUNCTION extends the flatfield produced by correcting the NSFLAT 
+normalization for inter-slice variations. The output from this task is 
+used as the flatfield image for further reduction.
+.le
+.ls NSAPPWAVE - Determines a simple wavelength calibration  (task 
+resides in the GNIRS package)
+
+NSAPPWAVE provides a quick, approximate wavelength solution for NIFS
+spectroscopic data. The wavelength solution is based on the header
+information and (by default) information in the table
+gnirs$data/nsappwave.fits (use the TTOOLS package to examine this -
+TPRINT will display the contents - but if it is necessary to
+add/delete entries or create a new table, this can be done with the
+dedicated NSWEDIT task).
+.sp
+The task is for quick reduction purposes and to provide a starting
+point for the wavelength calibration derived by NSWAVELENGTH.
+.le
+.ls NSWAVELENGTH - Establish an accurate wavelength calibration  (task 
+resides in the GNIRS package)
+
+NSWAVELENGTH (automatically, if possible) determines the wavelength
+solution for NIFS calibration lamp images, starting with the initial
+value supplied by NSAPPWAVE (this is done using the underlying IRAF
+tasks autoidentify and reidentify). 
+.sp
+This task does not calibrate the data directly, but provides a
+database entry that can be used by NSTRANSFORM (described below).
+.le
+.ls NFSDIST - Establish a spatial calibration
+
+NFSDIST uses the information in the "Ronchi" Calibration images to 
+calibrate the spatial dimension of the NIFS IFU field.  The Ronchi frame
+is a dispersed flat field image with a slit-mask in the field so that 
+the illumination on the IFU is in a pattern of ~10 different slitlets that
+are stacked in the y-dimension on the field.  Proper alignment of the
+slits across the image slicer pattern can be used for spatial 
+rectification of the on-sky science data.  The spatial 
+solution determined by NFSDIST is linked to the science data in NSFITCOORDS.
+.le
+.ls NFFIXBAD - Fix Hot/Cold pixels on the NIFS detector
+
+This routine uses the information in the Data Quality extensions to fix 
+hot and cold pixels in the NIFS science fields.  NFFIXBAD is a wrapper 
+script which calls the task PROTO.FIXPIX, using the DQ plane to define the 
+pixels to be corrected.
+.le
+.ls NSFITCOORDS - Compute 2D dispersion and distortion maps
+
+This routine uses as inputs the output from the NSWAVELENGTH and NFSDIST 
+routines.  NSFITCOORDS takes the spatial and spectral rectification 
+information from NSWAVELENGTH and NFSDIST and converts this into a 
+calculation of where the data information should map to in a final IFU 
+dataset. 
+.le
+.ls NSTRANSFORM - Spatially rectify and wavelength calibrate data
+
+NSTRANSFORM applies the wavelength solution found by NSWAVELENGTH
+and the spatial correction found by NFSDIST, aligning all the IFU
+extensions consistently onto a common coordinate system.  The output of 
+this routine is still in 2D format, with each of the IFU slices represented 
+by its own data extension.
+.le
+.ls NIFCUBE - Construct 3D NIFS datacubes
+
+NIFCUBE takes input from data output by either NSFITCOORDS or NSTRANSFORM 
+and converts the 2D data images into data cubes that have coordinates of 
+x, y, lambda.  
+.le
+.ls NFEXTRACT - Extract NIFS spectra
+
+This could be used to extract a 1D spectra from IFU data and is particularly 
+useful for extracting the bright spectra of telluric calibrator stars.  Note 
+that this routine only works on data that has been run through NSTRANSFORM.
+.le
+.ls NFTELLURIC
+
+NFTELLURIC uses input science and a 1D spectrum of a telluric calibrator to 
+correct atmospheric absorption features.
+.le
+
+.ih
+TYPICAL REDUCTION
+
+For typical reductions the user will need appropriate flat fields, arc
+calibration images, darks, Ronchi calibration frames and science images.
+
+NOTE - USE the NIFSEXAMPLES option at the IRAF prompt to obtain
+example scripts for calibration, telluric and science reductions.
+
+Use GEMTOOLS.GEMLIST to make separate lists of the files associated
+with different exposure types.  Tasks can then
+be invoked on all the data of one type using iraf's "@" syntax.  For
+example, NFPREPARE might be called with
+\fIinimages\fR=@flatlist and then NSREDUCE with
+\fIinimages\fR=n@flatlist (which prepends the letter "n" -
+\fInsprepare.outprefix\fR - to each filename).
+
+MDF SHIFT DETERMINATION:
+
+Step 0. Run NFPREPARE on a single "lamps on" flat to determine the shift 
+between your IFU data and the definition of the Image Slicer position in 
+the MDF file.  The output from this step will be used in all subsequent 
+calls to NFPREPARE as the "shiftimage".
+
+FLAT FIELD REDUCTION:
+
+Step 1. Use NFPREPARE on the lamps on/lamps off flats to update the raw data 
+headers and attach the mask definition file (MDF) as a binary table on 
+all files.  Note that dark frames will not have an MDF attached by default.  
+Instead, the appropriate MDF is added in NSREDUCE or NSFLAT to match the 
+data being reduced.
+
+Step 2. Use NSREDUCE to cut the calibration (flat/arc) spectra to
+the size specified by the MDF, placing different IFU slices in separate
+image extensions.
+
+Step 3. Use NSFLAT to generate a normalized flat field (for each IFU slice
+or cross-dispersed order) from lamp flats. A mask (BPM) will also be
+generated by thresholding - this can be used to flag bad pixels in
+other data.
+
+Step 4. Use NSSLITFUNCTION to produce the final flat.
+
+WAVELENGTH CALIBRATION:
+
+Step 5. Repeat steps 1 & 2 for the arcs and arc darks (use the appropriate 
+flat field and arc darks in the call to NSREDUCE).
+
+Step 6. Use NSWAVELENGTH to calibrate arc data (after cutting and optionally
+applying a flatfield with NSREDUCE).
+
+SPATIAL RECTIFICATION:
+
+Step 7. Repeat steps 1 & 2 for the Ronchi calibration frames.  Use the dark
+frame generated by the flat fielding steps in NSREDUCE.
+
+STEP 8.  Measure spatial mapping for the image slices with
+NFSDIST, using the output from step 7 after cutting with NSCUT in NSREDUCE
+(this step is required for accurate alignment of the slices).
+
+SCIENCE DATA REDUCTION:
+
+Step 9.  If necessary, Repeat Steps 1 & 2 for the Dark frames observed at 
+the science exposure time.  
+
+Step 10. Repeat Step 1 for the science data.  Make sure to use NSREDUCE 
+not only to process the object data to cut the frames from NSCUT, but 
+also to apply the approximate wavelength calibration from NSAPPWAVE.  
+Use the darks generated in Step 9 as input into NSREDUCE.
+
+Step 11.  Run the science data through NFFIXBAD to clean bad pixels - 
+note that this step can be time consuming.
+
+Step 12.  Use the output from the calibration Step 6 (NSWAVELENGTH) and 
+Step 8 (NFSDIST) as input into the NSFITCOORDS routine to generate the 
+mapping for the IFU datacube.
+
+Step 13. Use NSTRANSFORM to resample the combined object data to a uniform
+ wavelength scale, with consistent spatial alignment between different slices 
+and wavelengths.
+
+Step 14. TELLURIC CALIBRATOR:  Repeat Steps 10 through 13 on the data for 
+the telluric calibration star.
+
+Step 15. TELLURIC CALIBRATOR:  Extract 1-D spectra from the telluric 
+calibrator using the NFEXTRACT routine.  If necessary, merge several 
+extracted 1-D spectra using the GEMCOMBINE routine in the Gemini IRAF 
+package (with statsec="[*]" for 1D data).
+
+Step 16.  Use the NIFS NSTRANSFORMED data and the 1D telluric calibrator 
+Spectra in the NFTELLURIC routine to correct out telluric absorption 
+features.
+
+Step 17. Use NIFCUBE to construct a datacube from the final science data.
+
+FINAL PRODUCT = Telluric corrected 3D science data cubes with proper 
+wavelength and spatial calibration.
+
+CURRENT LIMITATIONS OF THE REDUCTION:
+
+In the NIFS data reduction package, there is currently no way to:
+.nf
+      -Flux calibrate the NIFS datacubes.
+      -Correct for instrument flexure in multiple exposures.
+      -Correct out photospheric absorption features in telluric 
+       standards.
+      -Correct for heliocentric radial velocity variations.
+      -Combine dithered datasets into a single, larger cube.
+      -Rectify data for atmospheric refraction effects.
+.fi
+.ih
+REDUCTION EXAMPLES
+
+Example reduction scripts are available, see NIFSEXAMPLES.
+.ih
+
+
+ABBREVIATIONS USED IN THE NIFS HELPFILES
+
+.nf
+    Abbreviation   Explanations
+    ---------------------------------------------------------------
+    NIFS           Near-IR Integral Field Spectrograph
+    IFU            Integral field unit
+    MDF            Mask definition file (a binary FITS table)
+    MEF            Multi-extension FITS
+    PHU            Primary header unit (extension [0] of a MEF file)
+    ---------------------------------------------------------------
+.fi
+.ih
+BUGS AND LIMITATIONS
+
+The tasks in the NIFS package are designed to operate on MEF FITS
+images that have been processed using NFPREPARE (for NIFS data)
+.ih
+SEE ALSO
+nifsexamples, nsflat, nfprepare, nsreduce, 
+nsappwave, nswavelength, gnirs.nsfitcoords, gnirs.nstransform, nfextract, 
+nffixbad, nfsdist, nifcube, gemlist, gemcombine, gemarith.
+.endhelp
+

@@ -1,0 +1,81 @@
+.help nfcube Mar2005 gemini.gnirs
+.ih
+NAME
+.nf
+nfcube -- Generate a datacube from IFU data
+.fi
+.ih
+USAGE
+nfcube inimages
+.ih
+PARAMETERS
+.ls inimages
+The input IFU data (after processing with NSTRANSFORM). Different image
+extensions, corresponding to image slices, must already be on the same
+co-ordinate grid (NSTRANSFORM takes care of this, provided it is run
+with both wavelength and s-distortion reference images). 
+.le
+.ls outimages = ""
+A list of output images.  The number of entries must match \fIinimages\fR
+unless the parameter is empty (in which case \fIoutprefix\fR is used).
+.le
+.ls outprefix = "c"
+The prefix used to generate output image names from the input image
+list \fIinimages\fR if \fIoutimages\fR="".
+.le
+.ls process = "none"   (none|rotate|resample)
+If "none" then the cube is assembled by stacking the individual extensions
+(2D image slices) along the third axis. Selecting "rotate" reassembles the
+cube so that the dispersion axis is third.  Resampling, in addition to
+what "rotate" does, resamples spatial sections so that the pixels are
+square, with the size defined by the pixel size along the slit (this is not
+necessary for GNIRS, where the aperture spacing matches the pixel size).
+.le
+.ls dispaxis = INDEF
+Dispersion axis, if not defined in the header.
+.le
+.ls logfile = ""
+Name of logfile.  The GNIRS package logfile "gnirs.log" is used by default.
+.le
+.ls verbose = yes
+Print actions to the screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error.
+This parameter is always set by the task, and should not be modified
+by the user.
+.le
+.ih
+DESCRIPTION
+This task copies extensions from each input image and generates a single
+stack for each extension type, then constructs an output file with those
+cubes as extensions.
+.sp
+If \fIprocess\fR="rotate" or \fIprocess\fR="resample" then the axes are
+rearranged so that the first two dimensions are the spatial axes and
+wavelength is along the third dimension. 
+.sp
+If \fIprocess\fR="resample" then the spatial sections are resampled to
+have square pixels (of the size originally along the slit).
+.ih
+EXAMPLE
+1.  The basic usage is
+.sp
+.nf
+  cl> nfcube image.fits
+.fi
+.ih
+TIMING
+Rotation of the cube is relatively slow, so the default is to retain the
+dispersion direction along the same dimension as in the raw data.
+Analysis and visualization tools may or may not be able to cope with this.
+In IRAF, image sections can be displayed with, for example:
+.sp
+.nf
+  cl> display cube[SCI,1][*,1,*]
+.fi
+.ih
+BUGS AND LIMITATIONS
+.ih
+SEE ALSO
+.endhelp

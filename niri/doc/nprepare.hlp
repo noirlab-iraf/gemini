@@ -1,0 +1,236 @@
+.help nprepare May2009 gemini.niri
+.ih
+NAME
+.nf
+nprepare -- Prepare NIRI data for reductions: update headers, derive
+            variance and DQ planes, make sure data are on a uniform 
+            calibration system
+.fi
+.ih
+USAGE
+nprepare inimages
+.ih
+PARAMETERS
+.ls inimages
+Raw NIRI images that need variance and data quality frames generated. 
+Can be a list of images.  The images must be
+multi-extension FITS images with only a single science extension 
+as [1] (raw NIRI data are in this form already, but extensions are
+unnamed).  The data in the primary header unit [0] are propagated to the
+output file.  A path can be included in the
+file names. The individual file names (including path) can also be 
+given on on separate lines of a list file, given as 
+\fIinimages\fR=@listfile, where listfile is the file name. 
+.le 
+.ls rawpath = ""
+Path for the directory where the raw NIRI images are located.  One may 
+set this parameter if the raw data are not located in the current 
+working directory, or specify a path in the input image file names.
+.le
+.ls outimages= ""
+Output multi-extension FITS images. Can be a list of images. 
+\fIoutimages\fR has preference over \fIoutprefix\fR.
+.le
+.ls outprefix = "n"
+Prefix for output images. Names of output images are the
+names of the input images with a prefix attached.
+\fIoutprefix\fR is used if \fIoutimages\fR="".
+.le 
+.ls bpm = ""
+Bad pixel mask to use to generate the data quality frame.
+A sample bad pixel mask for NIRI is supplied as niri$data/niri_bpm.pl,
+or the user may derive a bad pixel mask using NIFLAT.
+.le
+.ls logfile = ""
+Name of logfile.
+.le
+.ls sci_ext = "SCI"
+Name or number of science extension in the output image.
+.le
+.ls var_ext = "VAR"
+Name or number of variance extension in the output image.
+.le
+.ls dq_ext = "DQ"
+Name or number of data quality extension in the output image.
+.le
+.ls fl_vardq = yes
+Create the variance and data quality images.
+If set to "no", variance and data quality planes will not be computed, and
+the output image will be a copy of the input image with the appropriate
+header modifications, and possibly scaled as necessary to account for
+the way NIRI handles multiple non-destructive reads.
+.le
+.ls key_ron = "RDNOISE"
+Output header keyword for the read noise (in e-).
+.le
+.ls key_gain = "GAIN"
+Output header keyword for the gain (in e-/ADU).
+.le
+.ls key_sat = "SATURATI"
+Output header keyword for the saturation level (in ADU).
+.le
+.ls key_nonlinear = "NONLINEA"
+Output header keyword for the non-linear regime (in ADU).
+.le
+.ls key_filter = "FILTER"
+Output header keyword for the filter, parsed from the NIRI header 
+keywords FILTER1, FILTER2, and FILTER3
+.le
+.ls specsec = "[1:1024,1:1024]"
+Default entry for the SPECSEC1 header keyword that is used when the
+database file cannot be found, or when a relevant entry in the database
+cannot be found for the combination of camera and focal plane mask
+being used.
+.le
+.ls database = "niri$nprepare.dat"
+Database file containing the slit mask names, as contained in the
+header keywords CAMERA and FPMASK, and the regions of the detector to use for
+each one.  The image regions are entered into the new header keywords
+SPECSEC1, SPECSEC2, and SPECSEC3, as appropriate.  The \fIdatabase\fR file
+also must contain the gain, read noise (for 1 read pair and 1 digital
+average), the well depths and array bias voltages that correspond to
+those well depths.  NPREPARE will exit with error if any of these are
+missing from the \fIdatabase\fR file.
+.le
+.ls verbose = yes
+Print actions to the screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with
+an error.  This parameter is always set by nprepare, and should
+not be modified by the user.
+.le
+.ih
+DESCRIPTION
+.le
+NPREPARE is used to generate variance and data quality frames
+for raw NIRI images.
+Input images must be multi-extension FITS files with only a science
+extension in extension [1], which is the format of the raw NIRI data.
+
+.le
+NIRI writes data taken with multiple digital averages, multiple 
+non-destructive reads, and multiple coadds.  To avoid confusion, 
+NPREPARE modifies the data as necessary to make sure that the output
+data numbers correspond to the total number of electrons detected
+divided by the gain.  This means that data taken using multiple 
+non-destructive reads must be divided by the number of reads (header
+keyword LNRS).  The following adjustments are made:
+
+.le
+.nf
+output = input / (n_reads)  [for data prior to Nov. 2001]
+readnoise = [70, 35, or 12.3] * sqrt(n_coadds)
+exptime = individual_exp_time * n_coadds
+gain    = 12.3 e-/ADU
+saturation = [200,000 or 280,000] * n_coadds 
+non-linear > 0.7*saturation
+.fi
+
+.le
+The constants above are nominal values.  NPREPARE reads the actual 
+values to be used from the file specified by \fIdatabase\fR.  These
+must appear in the file as:
+
+.le
+.nf
+   # Array characteristics 
+   readnoise              70.     # electrons (1 read pair, 1 digital av.)
+   medreadnoise           35.     # electrons (1 read pair, 16 dig av.)
+   lowreadnoise           12.3    # electrons (16 read pairs, 16 dig av.)
+   gain                   12.3    # electrons/ADU
+   shallowwell            200000. # electrons full-well
+   deepwell               280000. # electrons full-well
+   shallowbias            -0.6    # detector bias (V)
+   deepbias               -0.87   # detector bias (V)
+   linearlimit            0.7     # non-linear regime (frac. of saturation)
+.fi
+
+.le
+NPREPARE will also shift the WCS zero point for data taken in
+subarray readout mode [for data taken prior to Feb. 2005].  Half
+the difference between the subarray size and 1024 is subtracted from
+each of the header keywords CRPIX1 and CRPIX2.
+
+.le
+If the NPREPARE keyword exists in the header (indicating that the file
+has previously been processed using NPREPARE), these modifications will
+not be made again.
+
+.le
+The variance is calculated as follows:
+
+.nf
+     var = (read noise/gain)^2 + data/gain  (for data numbers > 0)
+.fi
+
+The data quality frame is generated by setting the DQ value to 1 for 
+bad pixels, 2 for non-linear pixels, and 4 for pixels that are saturated.
+
+NPREPARE adds or modifies the following header keywords
+
+.nf
+  FILTER    Default keyword for combination of FILTER1, FILTER2 and FILTER3
+  SPECSEC1  Image section for spectroscopic observations
+  SPECSEC2  Image section for spectroscopic observations, if relevant
+  SPECSEC3  Image section for spectroscopic observations, if relevant
+  DISPAXIS  For spectroscopic observations, always 1
+  BPMFILE   The bad pixel file used
+  RDNOISE   Default keyword for read noise in electrons
+  GAIN      Default keyword for gain (electrons/ADU)
+  SATURATI  Default keyword for saturation level in ADU
+  NONLINEA  Default keyword for non-linear regime in ADU
+  COADDEXP  The exposure time of an individual exposure (if COADD > 1)
+  EXPTIME   The total exposure time, COADDEXP * COADD (if COADD > 1 )
+  BIASVOLT  Bias voltage of the array; determines the well depth
+  CRPIX1    for subarrays, prior to Jan. 2005
+  CRPIX2    for subarrays, prior to Jan. 2005
+  NPREPARE  Date stamp
+.fi
+.le
+.ih
+EXAMPLES
+
+1. Create variance and data quality frames for a raw NIRI image:
+
+.nf
+    cl> nprepare /data/inimage1 outim=outimage1 
+.fi
+
+2. To do the same for a list of images:
+
+.nf
+    cl> nprepare inimage1,inimage2,inimage3 \
+        outim=outimage1,outimage2,outimage3
+.fi
+
+3. Prepare all images in a raw data directory "night1", found on
+a particular data disk.  The composite path in this example will be
+/data/niri/night1/.  Output images will be constructed by attaching
+the prefix "n" to the input image names in the current directory,
+resulting in file names nraw*.fits.
+
+.nf
+    cl> nprepare night1/raw*fits outpre=n rawdir="/data/niri/" 
+.fi
+
+4. To explicitly set the SPECSEC1 header keyword to a particular region:
+
+.nf
+    cl> nprepare image1 outim="test1" bpm="badpix.pl" \
+        specsec="[100:900,450:600]" database="" 
+.fi
+
+5. Set the header keywords for FILTER and SPECSEC without creating the
+variance and data quality frames:
+
+.nf
+    cl> nprepare lamp* outpre="n" fl_vardq-
+.fi
+
+.ih
+BUGS AND LIMITATIONS
+.ih
+SEE ALSO
+wmef
+.endhelp

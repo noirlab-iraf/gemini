@@ -1,0 +1,73 @@
+Generic tasks: 
+      gdisplay - Display (raw) GMOS images
+      gprepare - Prepare raw GMOS data for reductions
+         gbias - Process and combine GMOS bias images
+          gbpm - Derive bad pixel mask for GMOS 
+       gmosaic - Mosaic the 3 GMOS CCDs into one image 
+         ggain - Correct gain and read-noise for GMOS images (hidden task)
+    ggdbhelper - Select gain database file for image (hidden task)
+     gmultiamp - Rough overscan correct, tile and create saturation / signal masks (hidden task)
+      goversub - Quick and overscan correction (hidden task)
+       gqecorr - Create QE data for and/or QE correct GMOS data
+       gretroi - Return only data or extensions that contain ROI data (hidden task)
+          gsat - Return the saturation value for a given extension (hidden task)
+         gtile - Tile GMOS amplifiers into their respective CCDs (hidden task)
+
+Imaging tasks: 
+        giflat - Derive flat field for GMOS images (IMAGING mode only)
+      gifringe - Derive fringe frame for GMOS images
+    girmfringe - Subtract fringe frame from GMOS images
+      gireduce - Reduce images from GMOS (overscan, trim, bias, dark, flat) 
+
+Spectroscopy tasks: 
+     gsappwave - Add approximate wavelength calibration to the headers of 
+                     GMOS spectra 
+   gscalibrate - Apply flux calibration and extinction correction to 
+                     GMOS spectra
+       gscrrej - Clean spectroscopic data for cosmic ray hits 
+      gscrmask - Make mask file for gscrrej (hidden task)
+         gscut - Cut GMOS MOS spectra into 2D pieces
+   gsdrawslits - Draw slits from MDF on a GMOS image
+     gsextract - Extract GMOS MOS or longslit spectra to 1D
+        gsflat - Derive flat field for GMOS spectra based on GCAL lamp 
+                     exposures
+      gsreduce - Reduce spectra from GMOS (overscan, trim, bias, dark, mosaic, 
+                     flat, approximate wavelength calibration, cut MOS data) 
+     gsscatsub - Model and subtract scattered light background
+      gsskysub - Skysubtract GMOS spectra (longslit or MOS)
+    gsstandard - Establish spectrophotometric calibration for GMOS spectra 
+   gstransform - Rectify and/or wavelength calibrate GMOS spectra
+  gswavelength - Establish wavelength calibration for GMOS spectra 
+
+N&S tasks:
+     gnsskysub - Nod-and-Shuffle shift and sky-subtraction of GMOS spectra
+    gnscombine - Combine Nod-and-Shuffle GMOS data frames into a master frame
+       gnsdark - Process and combine Nod-and-Shuffle GMOS dark images
+
+Special IFU tasks: 
+       gfapsum - Combine GMOS IFU spectra over a spatial region
+      gfscatsub - Model and subtract scattered light background for IFU
+        gfcube - Resample extracted IFU spectra onto an x-y-lambda datacube
+     gfdisplay - Reconstruct, display and analyse extracted GMOS IFU spectra 
+                     (uses ldisplay)
+     gfextract - Extract GMOS IFU spectra with optional correction for 
+                     lenselet/fiber throughput
+  gffindblocks - Identify unilluminated image rows between IFU blocks
+                     (for later scattered light subtraction).
+       gfquick - Quick reconstruction of GMOS IFU images of acquisition
+      gfreduce - Apply processing steps to GMOS IFU data
+    gfresponse - Derive relative fiber throughputs for the GMOS IFU 
+      gfskysub - Skysubtract GMOS IFU spectra 
+   gftransform - Wavelength calibrate GMOS IFU spectra
+      gfunexwl - Derive a wavelength for each useful pixel in detector-
+                 mosaicked GMOS IFU data, prior to fibre extraction
+                 (hidden task).
+
+      mostools - Package for GMOS mask preparation
+
+Cookbooks:
+      gmosinfo - Generic tasks and general information about GMOS
+  gmosinfoimag - Reduction of imaging data from GMOS
+  gmosinfospec - Reduction of longslit and MOS data from GMOS
+   gmosinfoifu - Reduction of IFU data from GMOS
+  gmosexamples - Print reduction examples to the screen

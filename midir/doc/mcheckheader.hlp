@@ -1,0 +1,83 @@
+.help mcheckheader December2011 gemini.midir
+.ih
+NAME
+mcheckheader -- check the primary headers of Michelle raw data files and make 
+some simple fixes of incomplete headers
+.ih
+USAGE
+mcheckheader inimages
+.ih
+PARAMETERS
+.ls inimages
+The list of input image(s) to be checked.  It can be an image name, a list 
+of image names, a wild-card expression, or the name of a file listing the 
+images prefixed by "@".  Note that these files will have their primary 
+headers changed if they are found to lack a few specific keywords.
+.le
+.ls rawpath = ""
+An optional string giving the path to the images.  If it is blank they are 
+assumed to be in the current directory.
+.le
+.ls update = yes
+A flag for whether the headers should actually be updated or not.  If it is 
+"no" then the changes are listed but not actually carried out.
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes the task use the logfile
+defined by midir.logfile.
+.le
+.ls verbose = yes
+Print actions to the screen.
+.le
+.ls status = 0
+A returned exit status value.  If there are no error it is set to zero, 
+otherwise to some positive integer.
+.le
+.ih
+DESCRIPTION
+This simple script can repair the headers on certain Michelle raw data files 
+so that they can be set to the Gemini Archive at the Canadian Astronomical 
+Data Center (CADC).  The only data files that may need to have this done are 
+those for observations that were aborted during execution.
+.sp
+The changes that this script will make to the primary header, extension zero 
+of the assumed multi-extension FITS file, are rather limited and quite 
+specific.  It does not attempt to repair all possible problems.  What it will 
+do is to search for the ENDTIME header keyword.  If this is lacking then  
+it will search for a STARTTIM header keyword.  If that is missing nothing 
+more is done.  If it is found, a very crude estimate of the length of the 
+observation is calculated from the total number of data extensions.  Each 
+one of these is assumed to correspond to a single NOD position with a length 
+of 45 seconds.  This time interval is added to the starting time to get some 
+idea of the time when the observation finished.  Using this an ENDTIME value 
+is inserted into the primary header (subject to the update flag).  The 
+change to the header is done using the NHEDIT task.
+.sp
+The keywords OBSTIME, and OBSEND are also inserted into the header using the 
+same start and end time values.
+.sp
+If missing the OBSCLASS keyword will be added to the primary header unit.  The
+value will be set to "unknown".
+.sp
+Note that no check is made for whether raw images come from Michelle.  It 
+makes no sense to try using this script on any other type of file.
+.sp
+One can get an idea of what changes need to be made without actually 
+changing anything by setting the \fIupdate\fR flag to "no".  This flag 
+sets the update flag in NHEDIT.
+.sp
+If a file has already been passed through this routine, nothing more will 
+be done to the header the second time.
+.ih
+EXAMPLES
+1. Check and fix a raw Michelle image located in directory "raw/".
+.sp
+.nf
+    mi> mcheckheader N20031109S0058 rawpath="raw/"
+.fi
+.ih
+BUGS AND LIMITATIONS
+.ih
+SEE ALSO
+nhedit
+.endhelp

@@ -1,0 +1,46 @@
+# Copyright(c) 2000-2006 Gemini Observatory, AURA
+# Database for gemseeing.cl's calculation of Strehl ratios
+# Based on calculations by Mark Chun, format adapted for
+# the Gemini IRAF package by Inger Jorgensen
+# Date: Oct 12, 2001
+#
+# Instrument      PixScale    Wavel    Filter  Normalized Peak
+Hokupaa+QUIRC    0.01974  1.25000         J    0.2515
+Hokupaa+QUIRC    0.01974  1.65000         H    0.1587
+Hokupaa+QUIRC    0.01974  1.80000       H+K    0.1338
+Hokupaa+QUIRC    0.01974  2.12000    Kprime    0.0970
+Hokupaa+QUIRC    0.01974  2.12000        Kp    0.0970
+Hokupaa+QUIRC    0.01974  2.20000         K    0.0901
+    NIRI-f32     0.0220   1.03300         Z    0.3659
+    NIRI-f32     0.0220   1.25000         J    0.2894
+    NIRI-f32     0.0220   1.65000         H    0.1957
+    NIRI-f32     0.0220   1.93500   HKprime    0.1436
+    NIRI-f32     0.0220   2.12000    Kprime    0.1200
+    NIRI-f32     0.0220   2.15000    Kshort    0.1168
+    NIRI-f32     0.0220   2.20000         K    0.1116
+    NIRI-f32     0.0220   2.24000     Klong    0.1077
+    NIRI-f32     0.0220   3.78000    Lprime    0.0382
+    NIRI-f32     0.0220   4.68000    Mprime    0.0250
+    NIRI-f14     0.0500   1.03300         Z    0.6138
+    NIRI-f14     0.0500   1.25000         J    0.5649
+    NIRI-f14     0.0500   1.65000         H    0.4884
+    NIRI-f14     0.0500   1.93500   HKprime    0.4415
+    NIRI-f14     0.0500   2.12000    Kprime    0.4075
+    NIRI-f14     0.0500   2.15000    Kshort    0.4017
+    NIRI-f14     0.0500   2.20000         K    0.3922
+    NIRI-f14     0.0500   2.24000     Klong    0.3849
+    NIRI-f14     0.0500   3.78000    Lprime    0.1929
+    NIRI-f14     0.0500   4.68000    Mprime    0.1271
+       GMOS-N    0.0727   0.50000        g     0.7791
+       GMOS-N    0.0727   0.62500        r     0.7568
+       GMOS-N    0.0727   0.77500        i     0.7317
+       GMOS-N    0.0727   0.90000        z     0.7105
+AO-SIM           0.01960  1.65           H     0.1591
+Hokupaa/QUIRC/Ded 0.01974  2.20000       K     0.0614
+        TReCS    0.0896   7.70   Si1-7.7um     0.1301
+        TReCS    0.0896   8.71   Si2-8.8um     0.1082
+        TReCS    0.0896   9.64   Si3-9.7um     0.08728
+        TReCS    0.0896   10.35  Si4-10.4um    0.07606
+        TReCS    0.0896   11.62  Si5-11.7um    0.06012
+        TReCS    0.0896   12.31  Si6-12.3um    0.05267
+        TReCS    0.0896   18.30  Qa-18.3um     0.02253

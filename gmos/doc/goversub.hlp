@@ -1,0 +1,150 @@
+.help goversub May2013 gemini.gmos
+.ih
+NAME
+goversub - read overscan information or perform quick and rough overscan
+correction.
+.ih
+USAGE
+goversub inimages
+.ih
+PARAMETERS
+.ls inimages
+GMOS images to either roughly overscan correct or return overscan values
+for. It can be a list of images. Wild cards are not supported.
+Any observing mode can be used. Images cannot be GMOSAICed and not GTILEd.
+.le
+.ls outimages = ""
+Output MEF images. The parameter can be one single image name, a list of
+images or a list file. The number of output images must equal the number of
+input images. \fIoutimages\fR has precedence over \fIoutpref\fR.
+.le
+.ls outpref = "gos"
+Prefix of output image names. Names of output images will be the names of
+the input images with the prefix attached. \fIoutpref\fR is used if
+\fIoutimages\fR="".
+.le
+.ls rawpath = ""
+Path to data file(s).
+.le
+.ls pixstat = "midpt"
+Statistic to be calculated by IMSTATISTICS to use as the rough overscan level.
+.le
+.ls bias_type = "calc" (calc|static|default)
+Which type of overscan value to use if image is not already overscan
+corrected. A value of "calc" use the \fIpixstat\fR of the bias section of the
+input image. A value of "static" means it will read the static bias value
+recorded in the file defined by the parameter \fIgaindb\fR.
+.le
+.ls sci_ext = "SCI"
+Name of the MEF extension containing the science data.
+.le
+.ls var_ext = "VAR"
+Name of the MEF extensions containing the variance frames.
+.le
+.ls dq_ext = "DQ"
+Name of the MEF extensions containing the data quality arrays.
+.le
+.ls mdf_ext = "MDF"
+Name of the MEF extension containing the Mask Definition File.
+.le
+.ls nbiascontam = 5
+Number of columns to strip from bias section on the side closest to the data
+section of the image.
+.le
+.ls key_biassec = "BIASSEC"
+Header keyword for the overscan section.
+.le
+.ls statsec = "default"
+Section of overscan section to use. Coordinates are relative to the BIAS
+section and should take the form "[#:#,#:#]". If "default", the entire overscan
+section excluding the \fInbiascontam\fR rows closest to the data section will
+be used.
+.le
+.ls calc_only = no
+Only calculate the overscan value do not create an output image. The overscan
+value is returned by the \fIoscan_val\fR parameter. If the input image is
+already overscan corrected this will return the overscan value used, that is
+stored in the header. The values returned are in the order of the EXTVER
+keywords if they are present. If not, the values are in the index order of the
+image extensions in the image.
+have EXTVER values
+.le
+.ls oscan_val = ""
+Task output parameter. Calculated overscan value. This should not be updated by
+the user.
+.le
+.ls gaindb = "default"
+Database file containing the GMOS gain data. The default value for \fIgaindb\fR
+is determined by GGDBHELPER and is generally gmos$data/gmosamps.dat.
+.le
+.ls logfile = ""
+Logfile for this task.
+.le
+.ls verbose = yes
+Verbose?
+.le
+.ls status = 0
+Exit status will be 2 if the procedure halted with an error. If the output
+status is 1 then no errors occurred but the image was already overscan
+corrected. Else, no errors occurred and the task performed as expected the
+output status will be 0. This parameter is always set by the task and should
+not be modified by the user.
+.le
+.ih
+DESCRIPTION
+
+GOVERSUB will either read the overscan value if present in the extension
+headers or calculate a rough overscan value and perform the overscan
+subtraction or return it via the \fIoscan_val\fR if \fIcalc_only\fR=yes.
+
+This task will check the image headers for the an appropriate keyword that
+describes the overscan value for that extension. If present it implies the
+file has been previously been overscan corrected. Thus if \fIcalc_only\fR=no
+then the task will fail. In the case \fIcalc_only\fR=yes the overscan values
+will be returned via the \fIoscan_val\fR parameter.
+
+If the image has not previously been overscan corrected then either the
+statistic specified by \fIpixstat\fR will be calculated from the region
+specified by the region of the overscan section defined by \fIstatsec\fR or the
+static bias level from \fIgaindb\fR will be read. The \fIbias_type\fR
+parameter defines this behavior. There is no clipping of any kind of the pixel
+values when \fIpixstat\fR is calculated. If \fIcalc_only\fR=yes. The overscan
+value will be subtracted from the input image extension and written to the
+output image. If \fIcalc_only\fR=no, the values will be returned via the
+\fIoscan_val\fR parameter.
+
+.ih
+EXAMPLES
+
+.nf
+   cl> goversub infile.fits
+.fi
+
+infile.fits is a raw GMOS image that has not been overscan corrected. This call
+will calculate the midpt of the bias section (excluding the 5 rows closest to
+the data section) and subtract it from the input image extension. This will
+create an output MEF image with the name gosinfile.fits.
+
+.nf
+   cl> goversub infile2.fits pixstat="mean" calc_only+ nbiascontam=6
+.fi
+
+infile2.fits is a raw GMOS image that has not been overscan corrected. This
+call will calculate the mean of the bias section (excluding the 6 rows closest
+to the data section) and return them in the \fIoscan_val\fR value without
+creating an output image.
+
+.nf
+   cl> goversub rginfile.fits calc_only+
+.fi
+
+rginfile.fits is a GIREDUCEd version of infile.fits that has been overscan
+corrected but has not been processed by GTILE or GMOSAIC. This call will return
+the overscan values written to the image headers by GIREDUCE in via the
+\fIoscan_val\fR.
+
+.ih
+SEE ALSO
+
+IMSTATISTICS
+.endhelp

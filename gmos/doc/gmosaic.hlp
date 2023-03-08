@@ -1,0 +1,295 @@
+.help gmosaic January2015 gemini.gmos
+.ih
+NAME
+gmosaic -- Mosaic the 3 GMOS CCDs into one image
+.ih
+USAGE
+gmosaic inimages
+.ih
+PARAMETERS
+.ls inimages
+Input images to mosaic. Can be a list of images.
+Directory names should not be included as part of the image names.
+.le
+.ls outimages = ""
+Output images if not using \fIoutpref\fR to define the output names.
+.le
+.ls outpref = "m"
+Prefix for output images. Names of output images are the names
+of the input images with a prefix attached. \fIoutpref\fR is used
+if \fIoutimages\fR="".
+.le
+.ls fl_paste = no
+Paste extensions into one image rather than apply the correct
+transformations.
+.le
+.ls fl_vardq = no
+Propagate variance and data quality planes.
+.le
+.ls fl_fixpix = no
+If \fIfl_fixpix\fR=yes, GMOSAIC will fixpix the gaps between the
+detectors using \fIbpmfile\fR as the bad pixel file.
+\fIfl_fixpix\fR=yes is recommended for spectroscopic reductions. If
+\fIfl_vardq\fR=yes, those pixels that are replaced with interpolated values
+(defined by \fIbpmfile\fR), the equivalent pixels in the \fIvar_ext\fR
+extension are also interpolated and the same pixels in the output \fIdq_ext\fR
+will have a value of 256 bitwiseOR'd with those values in the mosaiced / pasted
+\fIdq_ext\fR extension as described by \fIbitflags\fR.
+.le
+.ls fl_clean = yes
+If \fIfl_clean\fR=yes and the observing mode as defined by
+\fIkey_obsmode\fR agrees with \fIobsmode\fR then GMOSAIC will determine
+the median level in the area defined by \fIstatsec\fR, excluding non-zero
+pixels in the BPM files stored in "gmos$data/" and non-zero pixels in the
+mosaiced / pasted \fIdq_ext\fR extension as described by \fIbitflags\fR. It is
+these non-zero pixels that are replaced by the median sky value. Used
+with the default parameter values, \fIfl_clean\fR=yes will clean the areas
+outside the imaging field of view. If \fIfl_vardq\fR=yes, those pixels that
+are 'cleaned' the equivalent pixel in the output \fIdq_ext\fR extension will
+have a value of 512 bitwiseOR'd with the input BPM and the values in the
+mosaiced / pasted \fIdq_ext\fR extension as described by \fIbitflags\fR.
+.le
+.ls fl_fulldq = no
+Setting \fIfl_fulldq\fR=yes will decompose the \fIdq_ext\fR extensions into
+their constituent bits before transforming them. The pixels in the individually
+transformed bit planes are then checked against the multiple of \fIdqthresh\fR
+times the bit value. Pixel values in the individual bit planes greater than
+this value are then set to the current bit value, less than this value the
+pixel values are set to 0, i.e., good. Once this is done for all bit values in
+the original \fIdq_ext\fR extension, the newly transformed and thresholded bit
+planes are combined by a bitwiseOR to form the output \fIdq_ext\fR
+extension. This is only done for CCDs 1 and 3. In addition, pixels that are
+created during the transformation, i.e, output pixels that lie outside of the
+dimensions of the input plane are flagged with a bit value of 16. It is
+recommended to set \fIfl_fulldq\fR=yes as this will retain \fIdq_ext\fR
+information correctly.
+.le
+.ls dqthresh = 0.1 (min=0.0, max=0.5)
+Fractional threshold to apply and flag pixels as contaminated with the current
+bit value when decomposing \fIdq_ext\fR extensions (\fIfl_fulldq\fR=yes).
+.le
+.ls bitflags = "all"
+Bit values from mosaiced / pasted \fIdq_ext\fR extension to propagate to output
+\fIdq_ext\fR extension when \fIfl_clean\fR=yes or \fIfl_fixpix\fR=yes. Must
+take the form of a bitwiseOR, e.g., 2|4|8. An "!" can be included in front of a
+bit value to exclude that value from the output \fIdq_ext\fR. In the case
+where \fIfl_clean\fR=yes, if \fIbitflags\fR!="all", the determination of the
+pixels to propagate, exclude from the calculation of the median sky and those
+pixels to replace will be a combination of the bad pixel mask (see
+\fIfl_clean\fR description) and a bitwiseOR of the mosaiced / pasted
+\fIdq_ext\fR extension with the \fIbitflags\fR statement - note the bit values
+of 0 and 16 will always be propagated if \fIbitflags\fR!="all".
+.le
+.ls geointer = "linear" (linear|nearest|poly3|poly5|spline3|sinc)
+Specifies the interpolation scheme used by the IMMATCH.GEOTRAN
+called by GMOSAIC. See the GEOTRAN help for more information. Use "nearest"
+to avoid any data smoothing. GEOTRAN is also called with arguments
+\fIboundary\fR="constant" \fIconstant\fR=0 so any regions outside the CCDs
+are set to zero.
+.le
+.ls gap = "default"
+Gap between CCDs in unbinned pixels. The default value for \fIgap\fR is 37 for
+unbinned images. A value of 36/Xbin, where Xbin is the binning of the
+image in the X direction, is used for for binned images. The pixel value of the
+output chip gaps when \fIfl_clean\fR=no and \fIfl_fixpix\fR=no, for the
+\fIsci_ext\fR, \fIvar_ext\fR and \fIdq_ext\fR, will be 0, 0 and 16,
+respectively.
+.le
+.ls bpmfile = "gmos$data/chipgaps.dat"
+Bad pixel file defining the gaps between the detectors. Only used
+if \fIfl_fixpix\fR=yes. The file is ASCII.
+.le
+.ls statsec = "default"
+Statistics section for determining the median level of the mosaiced image.
+This value is used for cleaning the image. If \fIstatsec\fR="default"
+then the value [2150:3970,100:4400] will be used for unbinned images
+and the value [1075:1985,50:2200] will be used for images binned 2x2.
+User defined values of \fIstatsec\fR should be given as the usual
+IRAF image section format. There is no checking in GMOSAIC that a user
+defined \fIstatsec\fR is contained inside the size of the mosaiced image.
+.le
+.ls obsmode = "IMAGE"
+Value of the header keyword key_obsmode for imaging data.
+.le
+.ls sci_ext = "SCI"
+Extensions to to mosaic. Use \fIsci_ext\fR="" if mosaicing raw data.
+The task also checks for access to the extensions defined by \fIsci_ext\fR.
+If these do not exist, the task assumes the image is raw.
+.le
+.ls var_ext = "VAR"
+Name of the MEF extension containing the variance frame.
+.le
+.ls dq_ext = "DQ"
+Name of the MEF extension containing the data quality frame.
+.le
+.ls mdf_ext = "MDF"
+Name of the MEF extension containing the mask definition file.
+.le
+.ls key_detsec = "DETSEC"
+Header keyword for detector section.
+.le
+.ls key_ccdsec = "CCDSEC"
+Header keyword for CCD section.
+.le
+.ls key_datsec = "DATASEC"
+Header keyword for data section.
+.le
+.ls key_ccdsum = "CCDSUM"
+Header keyword for CCD binning.
+.le
+.ls key_obsmode = "OBSMODE"
+Header keyword for observing mode.
+.le
+.ls logfile = ""
+Logfile for the task. If \fIlogfile\fR="", the file name defined by
+gmos.logfile is used as the logfile.
+.le
+.ls fl_real = no
+Convert file to real before transforming with GEOTRAN. There exists a small
+round off error in GEOTRAN when the input pixel type is 'short'.
+GMOSAIC is normally used after reduction steps that convert the file to
+'real' therefore \fIfl_real\fR is normally set to 'no' unless the user wishes
+to GMOSAIC raw data and needs accurate pixel values.
+.le
+.ls verbose = yes
+Print actions to the screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error.
+This parameter is always set by the
+task and should not be modified by the user.
+.le
+.ih
+DESCRIPTION
+
+The task mosaics GMOS MEFs into MEFs with only one science extension. Images
+with custom / greater than
+one ROI can also be used as input. In this case a full frame image / one CCD
+image worth will be returned having been processed according to the requested
+mosaic type. If \fIfl_paste\fR=no the proper transformations are used that
+take into account the relative shifts and orientations of the
+three CCDs. In the process GMOSAIC necessarily interpolates the data on
+fractional pixel scales.  For full-frame data, the data from the first and
+third CCDs are interpolated, the central CCD is not.
+
+Processing with GMOSAIC with \fIfl_paste\fR=no is
+necessary for all imaging data prior to processing with IMCOADD.
+It is also needed for all spectroscopic data prior to the flat field
+correction.
+
+The output image will inherit the WCS from the input image.
+The WCS will be present in both the PHU and
+the header of the image extension. Imaging data may be used for mask
+designs from GMOS after being processed with GMOSAIC with
+\fIfl_paste\fR=no.
+
+The PHU and the header of the image extension of the output image
+will contain the following header keywords from the second image
+extension of the input image
+.nf
+   CCDSUM
+   GAIN
+   RDNOISE
+.fi
+
+If raw GMOS images or GMOS images that have not previously been
+trimmed are processed with GMOSAIC, the overscan section will be
+trimmed by GMOSAIC.
+
+If \fIfl_fixpix\fR=yes, then the gaps between the detectors as defined
+by the file \fIbpmfile\fR will be interpolated across. This is needed
+for some steps of the reduction of spectroscopic data. If
+\fIfl_vardq\fR=yes, those pixels that are replaced with interpolated values
+(defined by \fIbpmfile\fR), the equivalent pixels in the \fIvar_ext\fR
+extension are also interpolated and the same pixels in the output \fIdq_ext\fR
+will have a value of 256 bitwiseOR'd with those values in the mosaiced / pasted
+\fIdq_ext\fR extension as described by \fIbitflags\fR.
+
+If \fIfl_clean\fR=yes and the observing mode as defined by
+\fIkey_obsmode\fR agrees with \fIobsmode\fR then GMOSAIC will determine
+the median level in the area defined by \fIstatsec\fR, excluding non-zero
+pixels in the BPM files stored in "gmos$data/" and non-zero pixels in the
+mosaiced / pasted \fIdq_ext\fR extension as described by \fIbitflags\fR. It is
+these non-zero pixels that are replaced by the median sky value. Used
+with the default parameter values, \fIfl_clean\fR=yes will clean the areas
+outside the imaging field of view. If \fIfl_vardq\fR=yes, those pixels that
+are 'cleaned' the equivalent pixel in the output \fIdq_ext\fR extension will
+have a value of 512 bitwiseOR'd with the input BPM and the values in the
+mosaiced / pasted \fIdq_ext\fR extension as described by \fIbitflags\fR.
+
+Each GMOS instrument, has a different BPM for each type of CCD it is using /
+has used, for unbinned and 2x2 binning, respectively. For the list of available
+BPMs please read the README in the gmos$data/ directory. This can be done with
+the following command:
+
+.nf
+    cl> page gmos$data/README
+.fi
+
+Used with the default parameter values, \fIfl_clean\fR=yes will clean the areas
+outside the imaging field of view.  This is recommended before processing the
+images with IMCOADD, or before using the images for mask design.
+
+If \fIkey_obsmode\fR is not present in the header (ie. raw data) no
+cleaning will take place. Data processed with GPREPARE will have
+the keyword OBSMODE added to the header.
+
+Images with different binning in X and Y, or with binning of more than
+2 will not be cleaned.
+
+If \fIfl_vardq\fR=yes, the variance and data quality planes, if present, will
+be updated, and mosaiced using the same transformation as for the science
+frame.
+.ih
+EXAMPLES
+
+1. Mosaic one GMOS image, naming the output by
+using the \fIoutpref\fR parameter
+
+.nf
+    cl> gmosaic gmosimage
+.fi
+
+2. Mosaic several GMOS images defined by a wild card, propagating the data
+quality extension bit values properly.
+
+.nf
+    cl> gmosaic gmos*fits fl_fulldq+
+.fi
+
+3. Mosaic one GMOS image, specifying the output image name
+
+.nf
+    cl> gmosaic gmosimage outimages=mosaicimage
+.fi
+.ih
+TIME REQUIREMENTS
+
+.ih
+BUGS AND LIMITATIONS
+
+There is no checking that a user defined \fIstatsec\fR is contained inside
+the size of the input image.
+
+Improvements to the (previously semi-functional) variance and
+data quality propagation in the GMOS package have undergone limited
+testing; the accuracy of the results should still be verified at
+each step by the scientist, particularly for spectroscopic data
+reduction tasks.
+
+Data quality information is not propagated properly for data quality values
+greater than 1 if \fIfl_fulldq\fR=no.
+
+The \fIbitflags\fR parameter is new, it has been tested but it may produce
+results that are unexpected. To return to the old behavior of previous gmosaic
+versions (pre-Gemini IRAF 1.12), where only the pixels from the \fIbpmfile\fR
+with a non-zero value (i.e., 1) were only propagated, set \fIbitflags\fR to
+"(0|16)". This is not recommended as saturated pixels will no longer be flagged
+in  the output \fIdq_ext\fR extension. Note a bit value of 16 means that the
+pixel had no data.
+.ih
+SEE ALSO
+
+gtile, gmosinfo, gmosinfoimag, gmosinfospec, gireduce, gsreduce, gemdqexpand,
+imcoadd
+.endhelp

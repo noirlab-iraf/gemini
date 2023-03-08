@@ -1,0 +1,233 @@
+.help f2infols August2012 gemini.f2
+.ih
+NAME
+.nf
+f2infols -- Description of the tasks used to reduce FLAMINGOS-2 
+            longslit data
+.fi
+.ih
+USAGE
+f2infols
+.ih
+DESCRIPTION
+
+The F2 package contains tasks for processing FLAMINGOS-2 imaging, longslit 
+and multi-object spectroscopy (MOS) data. Many routines for the proper 
+reduction of infrared imaging and spectroscopic data already exist within the 
+Gemini IRAF package. Therefore, imaging, longslit and MOS reduction will also
+make use of the tasks in the NIRI and GNIRS packages, respectively. The
+specifics of the individual tasks can be found in their help files.
+
+This document summarises the tasks used to reduce FLAMINGOS-2 longslit data. 
+For more information regarding the FLAMINGOS-2 data structure and for generic 
+F2 package information, see \fIf2info\fR. For information on the GNIRS package,
+see \fIgnirsinfo\fR. In addition, the \fIf2examples\fR task provides a sample
+processing script for longslit data.
+
+The F2PREPARE task is used to prepare the FLAMINGOS-2 raw data from Gemini 
+South. The output longslit data from F2PREPARE are similar to the native 
+format for GNIRS longslit data. This allows for subsequent processing with the
+GNIRS package.
+
+The tasks are designed to provide a fairly complete and flexible reduction for 
+the purpose of assessing data quality at the time of observation. Real-time 
+reductions may not be optimal for a particular science application. The F2 and 
+GNIRS package scripts can be optimised for a particular application using the 
+hidden parameters to achieve the best possible results.
+
+The tasks produce logfiles for the performed processing steps. The name of the 
+logfile may be set in each individual task or at the package level by setting 
+\fIf2.logfile\fR.
+
+The tasks add header keywords to the output images. These header keywords 
+contain information about the performed processing steps and the values of the 
+critical parameters that were used.
+
+All FLAMINGOS-2 images are written as multi-extension FITS (MEF) files. Raw 
+data have two unnamed extensions. Most of the header information is written to 
+the primary header unit (PHU), which is extension [0]. The data read from the 
+array is in the pixel data extension, which is extension [1].
+
+It is recommended to use \fIimtype\fR="fits". This is set automatically when 
+loading the GEMINI package.
+.ih
+TASK SUMMARY 
+
+.ls NSHEADERS - Update header values for FLAMINGOS-2
+
+This task is described in more detail in \fIgnirsinfo\fR and \fIf2info\fR. It 
+must be called before beginning to reduce FLAMINGOS-2 data.
+
+.le
+.ls F2PREPARE - Prepare raw FLAMINGOS-2 data for reduction
+
+This task is described in more detail in \fIf2info\fR. It must be called before
+running any of the following tasks.
+
+.le
+.ls F2CUT - Cut spectroscopic FLAMINGOS-2 data
+
+F2CUT extracts the regions of interest (i.e., those regions that are expected
+to be illuminated) from prepared FLAMINGOS-2 data and places them into separate
+extensions. For longslit data, pre-defined sections are used, while for MOS
+data, information provided in the MDF and an edge detection algorithm are used.
+
+.le
+.ls F2DISPLAY - Display cut spectroscopic FLAMINGOS-2 data
+
+F2DISPLAY can be used to display cut spectroscopic data.
+
+.le
+.ls NSFLAT - Produce a normalised spectral flat image
+
+NSFLAT is used to produce a normalised spectral flat image. It is used
+after dark subtracting and cutting the flat images processed with F2PREPARE.
+
+.le
+.ls NSREDUCE - Sky subtract and flat divide spectroscopic data
+
+NSREDUCE is used for basic reduction of raw longslit data and provides a single
+interface for cutting (using F2CUT for FLAMINGOS-2 data; set the \fIfl_cut\fR
+parameter to yes), flat fielding and sky subtracting. It also optionally calls
+nsappwave (\fIfl_nsappwave=yes\fR) and allows for the subtraction of dark
+frames.
+
+Most GNIRS package tasks have been written so that data can be processed before
+or after cutting the data into regions. It is possible to run NSREDUCE more
+than once, so that some processing steps can be executed before cutting and
+others after.
+
+For a general explanation on selecting frames for sky subtraction, please see
+the "SKY SELECTION" section in \fIgnirsinfo\fR.
+
+.le
+.ls NSAPPWAVE - Establish a simple wavelength solution
+
+NSAPPWAVE provides a simple wavelength solution for spectroscopic images. The
+wavelength solution is based on the header information and (by default)
+information in the FITS look-up table \fIgnirs$data/nsappwave.fits\fR (use the
+\fIttools\fR package to examine this table - \fIttools.tprint\fR will display
+the contents - but add/delete entries or create a new table with the dedicated
+NSWEDIT task). 
+
+The NSAPPWAVE task is used to provide a starting point for the wavelength
+solution derived by NSWAVELENGTH.
+
+.le
+.ls NSWAVELENGTH - Establish an accurate wavelength solution
+
+NSWAVELENGTH is used to determine the wavelength solution for calibration lamp 
+(or sky) images starting with the initial value determined by NSAPPWAVE. This 
+task can be run non-interactively, but often requires human intervention to 
+get a sensible answer (see the help page for NSWAVELENGTH).
+        
+The NSWAVELENGTH task does not calibrate the data directly, but provides a 
+database entry that can be used by NSFITCOORDS.
+
+.le
+.ls NSFITCOORDS - Compute 2D dispersion and distortion maps
+
+NSFITCOORDS uses the wavelength solution found by NSWAVELENGTH to create
+coordinate fitting maps, which are then added to the database directory and the
+headers of each science extension in the output image. 
+
+.le
+.ls NSTRANSFORM - Rectify spectra
+
+NSTRANSFORM rectifies and interpolates the data using the wavelength solution
+determined by NSWAVELENGTH by applying the coordinate fitting maps calculated
+with NSFITCOORDS to the data.
+
+.le
+.ls NSEXTRACT - Extract spectra
+            
+NSEXTRACT extracts one dimensional spectra from two dimensional images, with a
+separate spectrum created for each input science extension. NSEXTRACT can be
+run either interactively or in batch mode. It is possible to specify a 
+reference spectrum whose trace is used to define the extraction aperture for 
+faint objects.
+
+.le
+.ih
+TYPICAL REDUCTION
+
+For typical reductions the user will need appropriate flat images, arc (or sky)
+calibration images and science images. Observations of spectrophotmetric
+standard stars may also be required. The sample processing script for longslit
+data as provided by the \fIf2examples\fR task also shows a typical reduction. 
+
+0. Use NSHEADERS to define the header values for FLAMINGOS-2.
+
+1. Use GEMTOOLS.GEMLIST to make separate lists of the files associated with
+different observation types. Typically these will be called obj.lis, arc.lis,
+flat.lis, etc. Tasks can then be invoked on all the data of one type using
+the "@" syntax.
+
+2. Use F2PREPARE to update the raw data headers and create the variance and 
+data quality extensions, if desired. The other tasks will not run if the data
+has not first been processed using F2PREPARE.
+
+3. Use GEMCOMBINE to create the necessary dark images.
+
+4. Use GEMARITH to dark subtract the prepared flat images.
+
+5. Use F2CUT to cut the dark subtracted flat images to the correct size.
+
+6. Use NSFLAT to generate a normalised flat image from the dark subtracted, cut
+flat images. A BPM will also be generated - this can be used to flag bad pixels
+in other data (in which case only process the lamps-on flat images and dark
+images in step 1 above and run F2PREPARE on all other data after this step).
+
+7. Use NSREDUCE to process the arc data. First call NSREDUCE to subtract the
+uncut dark from the data. Then call NSREDUCE a second time to cut, flat divide
+(optional) and apply an approximate wavelength solution. In some cases, the
+quality of the fit of the wavelength solution is improved when the FLAMINGOS-2
+arcs are flat divided.
+
+8. Use NSWAVELENGTH to determine the wavelength solution using the arc data.
+
+9. Use NSREDUCE to process the calibration and science data. First call
+NSREDUCE to subtract the uncut dark from the data. Then call NSREDUCE a second
+time to cut, flat divide, sky subtract and apply an approximate wavelength
+solution, if desired. The default (\fIskyrange\fR = INDEF) is set to 50% larger
+than the time between observations so that only immediately neighbouring frames
+are used for sky.
+
+10. Either group by spatial offset and combine science observations using 
+NSSTACK, or combine all science observations with shifting as required using 
+NSCOMBINE.
+    
+11. Use NSFITCOORDS to calculate coordinate fitting maps using the wavelength 
+solution from NSWAVELENGTH.
+    
+12. Use NSTRANSFORM to resample the combined science data to a uniform 
+wavelength scale.
+    
+13. Use NSEXTRACT to extract 1D spectra from the rectified data, if desired.
+    
+14. After the 2D data are reduced (before or after NSEXTRACT), a telluric 
+correction and possibly a flux calibration may be applied. For the telluric 
+correction, NSTELLURIC can be used. For flux calibration, NSCALIBRATE is not 
+yet available in the latest version of the Gemini IRAF package. The CALIBRATE
+IRAF task can be used directly on the science extension.
+.ih
+REDUCTION EXAMPLES
+
+The \fIf2examples\fR task provides a sample processing script for longslit 
+data.
+.ih
+BUGS AND LIMITATIONS
+
+The tasks in the F2 and GNIRS packages are designed to operate on MEF images
+that have been processed using F2PREPARE. The task F2PREPARE will not run on
+data from instruments other than FLAMINGOS-2 and will not run on simple FITS 
+files.
+.ih
+SEE ALSO
+
+f2prepare, f2cut, f2examples, f2info, gnirs.gnirsinfo, gnirs.gnirsinfols,
+gnirs.nsheaders, gnirs.nsflat, gnirs.nsreduce, gnirs.nsappwave, gnirs.nsstack,
+gnirs.nscombine, gnirs.nswavelength, gnirs.nsfitcoords, gnirs.nstransform,
+gnirs.nsextract
+
+.endhelp

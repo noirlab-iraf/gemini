@@ -1,0 +1,43 @@
+# Make the GEMLOG tasks
+
+$checkout libpkg.a ../../
+$update libpkg.a
+$checkin libpkg.a ../../
+$exit
+
+zzdebug:
+	$set	LIBS = "-lgemini"
+	$checkout libpkg.a ../../
+	$update libpkg.a
+	$checkin libpkg.a ../../
+	$omake	zzdebug.x
+	$link	zzdebug.o ../../libpkg.a $(LIBS) -o zzdebug.e
+	$exit
+	;
+
+libpkg.a:
+	glclose.x	"glog.h"
+	glchk.x		"glog.h" <mach.h>
+	glopen.x	"glog.h" "gemerrors.h" <error.h>
+	glprs.x		"glog.h" "gemerrors.h" <ctype.h> <time.h>
+	glrblk.x	"glog.h"
+	glwrite.x	"glog.h" "gemerrors.h" <time.h>
+
+	glogparam.x	"glog.h" "gemerrors.h"
+	gsplitstr.x
+	gemerrmsg.x
+
+	glmem.x
+
+	gloginit.x	"glog.h" "gemerrors.h" <time.h>
+	glogclose.x	"glog.h"
+	glogprint.x	"glog.h" "gemerrors.h" <time.h>
+	glogopen.x	"glog.h"
+	glogfix.x	"glog.h" <fset.h> <fio.h>
+
+	t_glclose.x	"glog.h"
+	t_glextract.x	"glog.h" <mach.h>
+	t_glinit.x	"glog.h"
+	t_glprint.x	"glog.h"
+	t_glfix.x	"glog.h"
+	;

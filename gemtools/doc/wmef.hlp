@@ -1,0 +1,114 @@
+.help wmef Oct2001 gemini.gemtools
+.ih
+NAME
+wmef -- convert individual FITS or PLIO (.pl) files to a MEF file
+.ih
+USAGE
+wmef input output
+.ih
+PARAMETERS
+.ls input
+A comma separated list of input files in the order that they should
+appear in the output Multi-Extension Fits (MEF) file. The input 
+files should either be
+FITS or PLIO (.pl) files. Input files cannot be MEF files but can
+either be extensions in existing MEF files or simple FITS files. 
+In the former case the extension
+should be included as part of the file name in \fIinput\fR.
+The .fits and .pl extensions may be omitted as long as other images
+with the same root name do not exist in the directory.
+Image sections are not accepted as input images.
+.le
+.ls output
+The name of the output MEF file. The output file cannot contain a
+character "[".
+.le
+.ls extnames = "SCI,VAR,DQ"
+The names of the extensions in the MEF file to be put in the header
+keyword EXTNAME. There should be the same
+number of extension names as number of input files. If they
+differ, the output extensions will not be named.
+The default value contains the names that will be used for NIRI data.
+.le
+.ls phu = "dummy"
+The source of the header information to be included in the Primary
+Header Unit (PHU). For the default value a PHU will be created to 
+serve as a wrapper for the extensions. \fIphu\fR may also be the
+PHU from an already existing MEF file in which case the name of the 
+file may be given with or without the "[0]" extension number.
+.le
+.ls verbose = no
+Verbose output.
+.le
+.ls status = 0
+Exit status. A value of 0 after the execution of the task shows that
+the conversion was successful. Any other value reflects an error.
+.le	
+.ih
+DESCRIPTION
+WMEF is a task that creates a Multi-Extension Fits (MEF) (\fIoutput\fR)
+from individual files, \fIinput\fR.  
+
+The \fIinput\fR files can be either FITS or PLIO (.pl masks) files.
+The task will stop if any other format is supplied.
+The FITS files may either be simple FITS or extensions in MEF files.
+In the latter case the extension number should be included in the
+\fIinput\fR list.
+Image sections cannot be specified for the input files.
+
+For NIRI data WMEF is used to assemble the data, variance and data 
+quality planes into one MEF file. In this case
+the extensions are named as follows.
+.nf
+   [1] is named [SCI] and contains the data
+   [2] is named [VAR] and contains the variance
+   [3] is named [DQ] and contains the data quality
+.fi
+
+The \fIoutput\fR file contains all information from the input files,
+headers and data.
+In addition, \fIphu\fR specifies the source of the PHU as extension [0]
+in an existing MEF file. If \fIphu\fR=dummy, a wrapper PHU is created.
+
+Any PLIO input files are stored as short integers in the MEF file.
+All other data types are preserved from the input files.
+
+.ih
+EXAMPLES
+1. Create a MEF file with three NIRI files containing the data, 
+the variance and the data quality information:
+
+.nf
+    cl> wmef data.fits,var.fits,dq.pl niridata
+.fi
+
+2. Create a MEF file with three NIRI files containing the data, 
+the variance and the data quality information using the header
+information of a different fits file as the PHY:
+
+.nf
+    cl> wmef data.fits,var.fits,dq.pl niridata phu=niriraw.fits
+.fi
+
+3. Create a MEF file with named extensions from three GMOS data 
+files and a binary FITS table:
+
+.nf
+    cl> wmef ccd1.fits,ccd2.fits,ccd3.fits,masktab.fits gmosdata \
+        extnames="SCI1,SCI2,SCI3,MASKDEF"
+.fi
+
+4. Create a MEF file from extensions of other MEF files:
+
+.nf
+    cl> wmef niriA[1],niriB[2],niriC[3] nirioutput 
+.fi
+
+.ih
+TIME REQUIREMENTS
+.ih
+BUGS
+.ih
+SEE ALSO
+fxdummy, fxinsert, fxheader
+.endhelp

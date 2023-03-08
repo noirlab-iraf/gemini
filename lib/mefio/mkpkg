@@ -1,0 +1,46 @@
+# Make the general subroutine library supporting compiled gemini tasks
+
+$checkout libmefio.a ../
+$update   libmefio.a
+$checkin  libmefio.a ../
+$exit
+
+
+update:
+libmefio.a:
+	$call generic
+
+	mefiocorrelate.x <mefio.h> <glogcommon.h> <mefiocommon.h>
+	gdcorrelate.x <mefio.h> <glogcommon.h> <mefiocommon.h>
+	mefioiter.x <mefio.h> <glogcommon.h> <mefiocommon.h>
+	mefiomap.x <mefio.h> <glogcommon.h> <mefiocommon.h>
+	mefioutil.x <mefio.h> <glogcommon.h> <mefiocommon.h>
+	mefiodata.x <mefio.h> <glogcommon.h> <mefiocommon.h>
+	mefioheader.x <mefio.h> <glogcommon.h> <mefiocommon.h> 
+	mefioimcopy.x <mefio.h> <glogcommon.h> <mefiocommon.h>
+	gdpropagate.x <mefio.h> <glogcommon.h> <mefiocommon.h>
+        mefiostruct.x <mefio.h> <glogcommon.h> <mefiocommon.h>
+        ;
+
+generic: firstgeneric
+
+	$set GEN = "$$generic -k "
+	$iffile (mefiodata.x)
+		$ifnewer (mefiodata.gx: mefiodata.x)
+			$(GEN) -o mefiodata.x mefiodata.gx 
+		$endif	
+	$else
+		$(GEN) -o mefiodata.x mefiodata.gx 
+	$endif
+	$iffile (mefioheader.x)
+		$ifnewer (mefioheader.gx: mefioheader.x)
+			$(GEN) -o mefioheader.x mefioheader.gx 
+		$endif	
+	$else
+		$(GEN) -o mefioheader.x mefioheader.gx 
+	$endif
+	;
+
+clean:
+	! rm ../libmefio.a mefiodata.x
+	;

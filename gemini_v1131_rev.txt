@@ -1,0 +1,209 @@
+GEMINI (December2015)     Gemini IRAF package v1.13.1     GEMINI (December2015)
+
+Release date: December 7, 2015
+
+This document describes the revisions relative to the Gemini IRAF package v1.13.
+
+All users are encouraged to use Ureka (http://ssb.stsci.edu/ureka/) to install
+IRAF and the Gemini IRAF package.  Installation instructions for Ureka users
+can be found at 
+  http://www.gemini.edu/sciops/data-and-results/processing-software/download.
+
+This release, v1.13.1, is NOT yet integrated into Ureka.  Ureka users will need 
+to download "gemini_v1131_for_iraf_2.16.tar.gz" and follow the installation 
+instructions provided in the file "gemini_readme.txt" distributed with the
+package.  The tar file already contains the binaries, no need to recompile.
+
+Users who do not wish to use Ureka can download the Gemini IRAF package v1.13.1 
+for use with IRAF 2.14 (gemini_v1131_for_iraf_2.14.tar.gz) or for use with the 
+32-bit version of IRAF v2.16 distributed in Ureka 
+(gemini_v1131_for_iraf_2.16.tar.gz).
+Please refer to
+  http://www.gemini.edu/sciops/data-and-results/processing-software/requirements
+for other requirements on your IRAF installation including other required 
+external packages.   Installation instructions are provided in the 
+gemini_readme.txt file distributed with the package.
+
+This will be the last distribution of IRAF 2.14 binaries.
+
+The Gemini IRAF package v1.13.1 has been fully tested and vetted *only* in the 
+PyRAF environment.  Most of the package works under IRAF CL, however we have
+experienced irregularities when using the GMOS package.  Therefore, people
+using the GMOS package should use PyRAF to avoid problems.
+
+WARNING!! The Gemini IRAF package v1.13.1 does NOT work reliably with any of the
+version of IRAF v2.16 as distributed by NOAO.  Ureka contains a version
+of IRAF v2.16 modified for compatibility with Gemini IRAF.
+
+If updating an older installation of the Gemini IRAF package, it is 
+recommended that users initialize their uparm directories by typing 
+"rm uparm/*" in their iraf home directory (ie., where mkiraf was executed /
+where the login.cl file is located).  NOTE: if you wish to make a note of any
+stored parameters, please do so before running this command.
+
+The binaries distributed with the package were built on CentOS 5 and 
+Mac OS X 10.6.  See gemini_readme.txt for more information.
+
+PRIMARY REVISIONS
+=================
+1) GMOS:  a) Support of GMOS-S Hamamatsu CCDs new video boards installed 
+             Aug2015.
+
+          b) Full activation of the quantum efficiency correction support.
+          
+          c) More automation and options for GMOS spectroscopy reduction.
+          
+          d) Updated and improved reduction examples for Longslit.
+
+
+
+DETAILS OF THE REVISIONS
+========================
+
+Numerous stability fixes, bug fixes, and minor improvements, especially to
+the gemtools and gmos package are included in this release.  They will not be 
+listed here.  Rather, only the most notable changes or those more likely to be 
+of interest to the users will be highlighted.
+
+1) GMOS
+-------------------
+Instrument: GMOS
+
+    a) Support of GMOS-S Hamamatsu CCDs new video boards
+
+       New video boards were installed in GMOS-S in August 2015.  As
+	   a result, characteristics like gain, read noise, etc changed.
+	   It is therefore important for people with GMOS-S data from 
+	   September 2015 and beyond, to use this release, which 
+	   contains the information on the new CCDs characteristics.  This
+	   version remains backward compatible with past data. 
+
+    b) Full activation of the quantum efficiency correction support.
+    
+       In v1.13, a manual way to correct for quantum efficiency variation 
+       was introduced.  In this patch release, the quantum efficiency 
+       correction is now integrated to the main "reduce" scripts: gireduce,
+       gsreduce, and gfreduce.  
+       
+       QE correction is particularly important in the processing of the 
+       GMOS-S Hamamatsu data.
+       
+       The GMOS reduction examples provided with the package and accessible
+       through the "gmosexamples" task have been updated to reflect a 
+       procedure that corrects for QE variations.
+       
+    c) More automation and options for GMOS spectroscopy reduction
+    
+       The new cosmic ray rejection routine using LACosmic and the scattered
+       light removal tools were integrated into "gsreduce" and "gfreduce" to 
+       offer a more automated and straightforward approach to GMOS 
+       longslit and IFU spectroscopy data reduction.
+
+       Note that several new parameters were introduced so make sure you 
+       "unlearn gfreduce" and "unlearn gsreduce" before using either.  Check 
+       the "gfreduce" and "gsreduce" help page for the details 
+       (eg. "help gfreduce").
+       
+    d) Updated and improved reduction examples for GMOS Longslit.
+    
+       The new examples can be accessed with the gmosexamples task as follow:
+       
+          gm> gmosexamples standard_longslit
+          gm> gmosexamples longslit
+       
+       If you wish to copy the examples over, the files are located in the
+       directory "gmos$doc/"  (from the PyRAF command line).  They are named
+       "gmos_longslit_standard_example.cl" and "gmos_longslit_example.cl".
+       
+
+
+SUMMARY OF ALL CHANGED PARAMETERS
+=================================
+
+If a task listed below is causing problems, it is very likely that the task is
+accessing an old parameter file that does not contain the updated parameters
+and/or values.  To resolve the problem, the old parameter files for the 
+Gemini IRAF package must be removed from the uparm directory.  To do this, 
+initialize the uparm directory by typing "rm uparm/*" in your iraf home 
+directory (ie., where you ran mkiraf / where your login.cl file is located).
+NOTE: if you wish to make a note of any stored parameters, please do so before
+running this command.  If it is not desirable to remove all the old parameter
+files for the Gemini IRAF tasks, it is possible to "unlearn" the individual
+task.
+
+Please see the appropriate help file for more information about the specific
+parameter changes listed below.
+
+    gmos.gfreduce:
+      - New parameters:     fl_qecorr
+                            qe_refim
+                            fl_keep_qeim
+                            qe_corrpref
+                            qe_corrimages
+                            qe_data
+                            qe_datadir
+                            fl_crspec
+                            cr_xorder
+                            cr_sigclip
+                            cr_sigfrac
+                            cr_objlim
+                            cr_niter
+                            fl_scatsub
+                            sc_xorder
+                            sc_yorder
+                            sc_cross
+    
+    gmos.gfscatsub:
+      - New parameters:     status
+      
+    gmos.gsdrawslits:
+      - New parameters:     fl_label
+                            sci_ext
+    
+    gmos.gireduce:
+      - New parameters:     fl_qecorr
+                            qe_refim
+                            fl_keep_qeim
+                            qe_corrpref
+                            qe_corrimages
+                            qe_data
+                            qe_datadir
+    gmos.gsflat:
+      - New parameters:     fl_qecorr
+                            qe_refim
+                            fl_keep_qeim
+                            qe_corrpref
+                            qe_corrimages
+                            qe_data
+                            qe_datadir
+                            
+      - Modified defaults:  ovs_order = "default"        
+    
+    gmos.gsreduce:
+      - New parameters:     fl_qecorr
+                            qe_refim
+                            fl_keep_qeim
+                            qe_corrpref
+                            qe_corrimages
+                            qe_data
+                            qe_datadir
+                            fl_crspec
+                            cr_xorder
+                            cr_sigclip
+                            cr_sigfrac
+                            cr_objlim
+                            cr_niter
+                            fl_scatsub
+                            sc_nfind
+                            sc_column
+                            sc_torder
+                            sc_order1
+                            sc_sample1
+                            sc_order2
+                            sc_niterate2
+    gmos.gsscatsub:
+      - New parameters:     nfind
+                            column
+                            
+      - Modified parameters:  n1iterate -> niterate2
+

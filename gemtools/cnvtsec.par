@@ -1,0 +1,7 @@
+# Copyright(c) 2005-2009 Association of Universities for Research in Astronomy, Inc.
+#
+# CNVTSEC parameters
+
+dateobs,s,a,,,,"DATE-OBS value, or equivalent"
+timeobs,s,a,,,,"TIME-OBS value, or equivalent"
+status,i,h,0,,,"Exit status"

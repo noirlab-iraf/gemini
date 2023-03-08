@@ -1,0 +1,234 @@
+.help gemcube August2011 gemini.gemtools
+.ih
+NAME
+gemcube -- Transform and combine 2D or 3D images
+.ih
+USAGE
+gemcube input output
+.ih
+PARAMETERS
+.ls input
+List of input images to be resampled and combined.  These may be one,
+two, or three dimensional images with two or three dimensional world
+coordinate systems.
+.le
+.ls output
+List of new or existing output images.  New image will be two or three
+dimensional depending on the input world coordinate systems and
+the selected geometry function.  The number of output images specified
+must be one or match the number of input images.  When only one image
+is specified all the input images will be combined into the single output
+otherwise each input is resampled to a different output.
+.le
+.ls masks = ""
+Optional list of new or existing output masks.  The number of masks in
+the list must either be zero or match the number of output images.
+.le
+.ls weights = ""
+Optional list of new or existing output weight images.  The number of
+weight images must either be zero or match the number of output images.
+.le
+.ls logfiles = "STDOUT"
+List of output logfiles for appending task log information.  Any number
+of logfiles, including none, may be specified.  The special file name
+"STDOUT" may be specified to write log information to the standard
+task output.
+.le
+.ls bpm = ""
+List of input bad pixel masks and keyword references to masks.  The number
+may be zero, one, or match the list of input images.  If only one is
+specified it will apply to all the input images.  A keyword reference
+consists of a leading '!' character followed by the name of a keyword in
+the input image whose value is a bad pixel mask filename.  The special
+value "BPM" is shorthand for "!BPM".  The bad pixel masks must use zero
+for pixels to be used and non-zero for pixels to be ignored.
+.le
+.ls scale = ""
+List of relative scales and keyword references to scale values to apply to
+the input pixel values.  The number may be zero, one, or match the
+list of input images.  If only one is specified it will apply to all
+the input images and would normally be a keyword reference to a scale
+appropriate to each input image.  A keyword reference consists of a leading
+'!' character followed by the name of a keyword in the input image whose
+value is the scale.  The scales must resolve to a number.
+.le
+.ls wt = ""
+List of input weight images and keyword references to weight images.
+The number may be zero, one, or match the list of input images.  If only
+one is specified it will apply to all the input images.  A keyword
+reference consists of a leading '!' character followed by the name of
+a keyword in the input image whose value is a weight image.
+.le
+.ls wcsreference = ""
+A reference image whose WCS is matched in the output images.  This does
+not mean the size of the images will be the same but where the output and
+reference images overlap in world coordinates they will have the same
+pixel sampling to allow simple combining.  Note that one may use a WCS
+image which has only a header and no data.  This reference WCS is ignored
+if an existing output image is specified.
+.le
+.ls wttype = "drizzle" (nearest|drizzle|linear)
+The weighting type for accumulating input pixels to output pixels.  This
+is a place holder for future options.  The current options are "drizzle"
+for drizzle weighting (see the description) and "nearest" for adding an
+input pixel to the nearest output pixel with unit weight.  Note that
+"nearest" is equivalent to a drizzle scale factor of 0.
+.le
+.ls drizscale = "1."
+The volume of the input pixels in world coordinates is scaled by this
+factor.  The value may be a single value that applies to all axes or
+values for each output axis.
+.le
+.ls blank = 0.
+Output pixel value when no input data contributes to that pixel.
+.le
+.ls geofunc = "gfwcs" (gfwcs)
+Geometry function mapping input pixels to output pixels.  The geometry
+function is a parameter set (pset) which may add additional parameters.
+.le
+.ls memalloc = 100.
+Memory, in megabytes, to use for in-memory buffering of the output image.
+Large values, provided there is sufficient RAM, make the accumulation of
+data more efficient.  If the output image is larger than this amount then
+disk buffering will be used.
+.le
+.ih
+DESCRIPTION
+GEMCUBE is a task used by Gemini tasks to build data cubes from IFU data.
+Currently this includes only NIFS.NIFCUBE.  This task is more general than
+the instrument specific tasks and may be used directly for applications
+requiring resampling and combining images where one of the supported
+resampling weighting methods is desired.  Currently the only weighting
+method is the one commonly called "drizzle".
+
+This task can be used to create or update two or three dimensional output
+images from one, two, or three dimensional input images.  Which of these
+is performed depends on the world coordinate systems of the input images
+and the geometry function selected.  The geometry function provides the
+mapping between input images and output images.
+
+Currently the only geometry function included with GEMCUBE is GFWCS.
+However, this is a very general function that uses the world coordinate
+systems (WCS) in the input images and includes support for the mappings
+produced by the task FITCOORDS.  Since a WCS may be defined with higher
+dimensionality than the pixel raster (that is an image may be a slice of
+a higher dimensional image) and the FITCOORDS mapping is a common type
+of calibration for long slit images, this task is applicable to image slicer
+IFU data.
+
+Most of the mapping details may be found in the help for the function
+driver.  The purpose of GEMCUBE is to use the mapping information to
+resample and combine input images to produce output images.  This task
+can be used for resampling one input image to one output image, for
+putting together lower dimensional pieces into a higher dimensional
+image, and for combining data using one of the weighting methods.  It is
+a complement to tasks such as TRANSFORM and IMCOMBINE since it implements
+different algorithms.
+
+The key feature of this task is its use of a "forward" resampling method
+in two and three dimensions.  A forward resampling means that each
+input pixel, possibly from multiple images, is mapped in turn to one
+or more output pixels and its value "added" to them.  The alternative
+resampling category is a "reverse" or interpolative method such as used
+in the TRANSFORM task.  In this method each output pixel is evaluate
+in turn and mapped into an input image where the value at the normally
+non-pixel center position is obtained by evaluating an interpolator of
+the input raster.  There are various variations of the two methods, and
+one can even make one behave like the other in some sense, but there are
+various implementation advantages to each.
+
+Forward resampling has the advantage of handling bad pixels, dithered
+and offset exposures, and mosaic instruments with gaps in a relatively
+intuitive way.  The bad pixels in the input are simply skipped when adding
+them to the output.  Dithering, particularly to an output sampled at a
+higher resolution, adds the input pixels at the natural point at which
+they collected photons.  There is an approach to generating higher resolution
+from coarser pixel sampling by having the input pixels affect a smaller
+area of the output and letting the dithering fill in or inter-leave areas.
+This approach is part of this task using the \fIdrizscale\fR parameters
+described below.
+
+The input pixels, after scaling by the input scale factor and weighting
+by the input weight image, are added to the output pixels using weights
+defined by the \fIwttype\fR parameter.  In addition to accumulating the
+weighted input pixels the weights are also accumulated.  When all the input
+data has been added to the output the output pixels are normalized by the
+accumulated weights.  The weights may be written to an output weight map
+is desired.  This would be useful if later adding additional input data
+to the output image.
+
+The output weights have two specific uses in GEMCUBE beyond their
+possible usefulness to the user or other application.  They can be used
+as input weights when combining images previously created by GEMCUBE.
+And, as discussed next, they can be specified as the output weight map
+when adding additional input to a previously created image.
+
+Since the resampling and combining algorithm consists of accumulating
+input data into the output image it is possible to specify an existing
+image as the output.  In this case new data will be added to the output.
+If no output weight map or a new weight is specified then the initial
+weights for the output will be unit weights.  However, in this application
+it is desirable to use an existing weight map.  This would typically
+be produced during an earlier execution of this task and then new data
+can be accumulated just as if all the initial input data was accumulated
+at the same time in a single execution of the task.
+
+The output bad pixel mask, if specified, is constructed by setting all
+pixels with zero weights to one, and those with non=zero weights to zero.
+An existing output bad pixel mask is not used and will be replaced by
+a new mask.
+
+3D DRIZZLE
+
+This section summarizes the algorithm producing the output pixel values
+from the input pixel values.  The algorithm is an extension of the
+algorithm first developed for 2D resampling (Fruchter, A. S. & Hook,
+R. N., 2002, PASP, 114 144) which goes by the common name "drizzle".
+
+Each input pixel maps to a rectangular volume (voxel) with two spatial
+dimensions, a dispersion dimension, and some orientation.  In our case
+the wavelength axis is assumed to be orthogonal to the spatial axes.
+Though the input long slit data is two dimensional the third dimension
+is implicit in the slice which has a pixel width defined by the the
+effective slit.
+
+In the drizzle algorithm the value of the input voxel is apportioned
+to the output voxels that it overlaps by the volume of the overlap.
+There may be multiple input voxels that overlap the same output voxel
+either from the same exposure or from multiple exposures when combining
+data.  In either case the apportioned value from the input voxels are
+accumulated along with the volume fraction.  The accumulated fractions
+are used to normalize the final output data cube value.
+
+Note that this method preserves the input pixel values independent of
+the output pixel sampling.  This means that it is effectively preserving
+the input "surface brightness" and not the total flux.  However,
+by the nature of this method the sum of all the pixel values which map
+to the output data cube is rigorously conserved.
+
+This method is a type of linear interpolation which, like all resampling
+methods, degrades the resolution to some extent.  However, by treating
+the input pixels as if they were smaller this effect can be minimized.
+The \fIdrizscale\fR parameter allows the input voxel volume to be
+shrunk (or expanded) by specified factors.  This shrinking can be uniform
+by specifying a single scale value or can be applied separately for each
+world coordinate dimension.
+
+Because shrinking the input pixels can leave gaps in the output cube
+this only makes sense when combining multiple exposures that have been
+offset by a non-integer number of input pixels.   It is also generally
+used when the output is created with finer sampling than the input.
+The Fruchter and Hook reference provides some guidelines and discussion
+about how drizzling might be used.
+
+Note that this capability will only be useful when the input data supports
+WCS that incorporate information about offsets, relative orientations,
+and dithering used during the observations.  This is not yet developed
+for NIFS though it will be added as soon as possible.
+
+.ih
+EXAMPLES
+.ih
+SEE ALSO
+gfwcs, nifcube, fitcoords.
+.endhelp

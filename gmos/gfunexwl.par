@@ -1,0 +1,10 @@
+waveref,s,l,"",,,"Extracted wavelength reference arc spectra"
+outimage,s,l,"",,,"Output image with array of wavelengths"
+ncols,i,h,11,2,,"Number of cols at which to sample database fits"
+xorder,i,h,4,2,,"Wavelength interp. order along dispersion axis"
+yorder,i,h,3,2,9,"Wavelength interp. order across each ap. block"
+database,f,h,"database",,,"IRAF apextract & identify database directory"
+verbose,b,h,no,,,Verbose output?
+#logfile,s,h,"",,,"Log file name"
+#
+# verbose & I think logfile are needed by apextract or identify code

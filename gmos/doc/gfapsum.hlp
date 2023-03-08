@@ -1,0 +1,201 @@
+.help gfapsum December2011 gemini.gmos
+.ih
+NAME
+gfapsum -- Combine GMOS IFU spectra over a spatial region
+.ih
+USAGE   
+gfapsum inimages
+.ih
+PARAMETERS
+.ls inimages
+Input files of extracted GMOS IFU spectra.  Can be a list of images.
+Wild cards are supported. 
+The images must be in multi-extension FITS (MEF) format.
+.le
+.ls outimages = ""
+Output MEF spectra.  The parameter can be one single image name, 
+a list of images or a list file; as long as the number of output images matches
+the number of input images. \fIoutimages\fR has precedence over 
+\fIoutprefix\fR.
+.le
+.ls outprefix = "a"
+Prefix  for  output images. Names of output images are the names
+of the input images with a prefix attached.  \fIoutpref\fR  is  used
+if \fIoutimages\fR="".
+.le
+.ls apertures = ""
+A list of apertures (APIDs) to use rather than selecting using \fIexpr\fR.
+.le
+.ls expr = "default"
+Expression used for selecting spectra. The default selects all spectra
+in the larger IFU field for the given instrument.
+.le
+
+.ce
+SCOMBINE Parameters
+.ls combine = "sum" (average|median|sum)
+Type of combining operation performed on the final set of pixels (after
+offsetting, masking, thresholding, and rejection).  The choices are
+"average" or "median".  The median uses the average of the two central
+values when the number of pixels is even.
+.le
+.ls reject = "none" (none|minmax|ccdclip|crreject|sigclip|avsigclip|pclip)
+Type of rejection operation performed on the pixels remaining after offsetting,
+masking and thresholding.  The algorithms are described in the help for 
+SCOMBINE.
+.fi
+.le
+.ls scale = "none" (none|mode|median|mean|exposure|@<file>|!<keyword>)
+Multiplicative image scaling to be applied.
+.le
+.ls zero = "none" (none|mode|median|mean|@<file>|!<keyword>)
+Additive zero level image shifts to be applied.  
+.le
+.ls weight = "none" (none|mode|median|mean|exposure|@<file>|!<keyword>)
+Weights to be applied during the final averaging.  
+.le
+.ls lthreshold = INDEF, hthreshold = INDEF
+Low and high thresholds to be applied to the input pixels.  This is done
+before any scaling, rejection, and combining.  If INDEF the thresholds
+are not used.
+.le
+.ls nlow = 1,  nhigh = 1 (minmax)
+The number of low and high pixels to be rejected by the "minmax" algorithm.
+.le
+.ls nkeep = 0
+The minimum number of pixels to retain or the maximum number to reject
+when using the clipping algorithms (ccdclip, crreject, sigclip,
+avsigclip, or pclip).  
+.le
+.ls mclip = yes (ccdclip, crreject, sigclip, avsigcliip)
+Use the median as the estimate for the true intensity rather than the
+average with high and low values excluded in the "ccdclip", "crreject",
+"sigclip", and "avsigclip" algorithms?  
+.le
+.ls lsigma = 3., hsigma = 3. (ccdclip, crreject, sigclip, avsigclip, pclip)
+Low and high sigma clipping factors for the "ccdclip", "crreject", "sigclip",
+"avsigclip", and "pclip" algorithms.  
+.le
+.ls key_ron="RDNOISE", key_gain="GAIN" 
+CCD readout noise in electrons and gain in electrons/DN.  
+These parameters are used with the "ccdclip" and "crreject"
+algorithms.   
+.le
+.ls snoise = "0.0" (ccdclip, crreject)
+Sensitivity noise as a fraction. 
+.le
+.ls sigscale = 0.1 (ccdclip, crreject, sigclip, avsigclip)
+This parameter determines when poisson corrections are made to the
+computation of a sigma for images with different scale factors. 
+.le
+.ls pclip = -0.5 (pclip)
+Percentile clipping algorithm parameter.  
+.le
+.ls grow = 0.0
+Radius in pixels for additional pixel to be rejected in an image with a
+rejected pixel from one of the rejection algorithms.  
+.le
+.ls blank = 0.0
+Value to use if no pixels remain after rejection.
+.le
+
+.ce
+Remaining GFAPSUM Parameters
+.ls sci_ext = "SCI", var_ext = "VAR", dq_ext = "DQ"
+Name or number of science, variance and data quality extension,
+respectively.
+.le
+.ls fl_inter = yes
+Interactively edit sky spectra using SPECPLOT.
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes the task use the logfile
+defined by gmos.logfile.
+.le
+.ls verbose = yes
+Print actions to screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error. 
+This parameter is always set by the task, and should not be modified by 
+the user.
+
+.ih 
+DESCRIPTION 
+
+GFAPSUM combines GMOS IFU spectra over a spatial region using
+SCOMBINE.  It is assumed that most of the time this task will be used
+for summing spectra but other combine algorithms are available.  The
+spectra to be combined are originally selected either using the
+aperture list \fIapertures\fR or from the MDF binary table extension
+using the criteria in \fIexpr\fR.  An aperture list will override
+\fIexpr\fR. In the simplest case, one would use the relative
+instrument coordinates of the lenslets (XINST, YINST) to select the
+field of the IFU that contains only sky signal.  For example, the
+defaults (XINST < 10 [arcsec] for GMOS-N, XINST > 10 for GMOS-S) will
+sum all spectra from the larger of the IFU fields to form the final
+spectrum.
+
+GFAPSUM can combine non-wavelength calibrated spectra.  For data taken
+in 2-slit mode it will merge the spectra from the two slits and update
+the APIDs in the merged temporary file before applying the aperture
+selection.  In this case the APIDs in the original headers and MDF
+will not match the APIDs used for the selection.  This is not a
+problem if using \fIexpr\fR to select by coordinates.  If using the
+headers or MDFs to make an aperture list, then be sure to add the
+number of good fibers in slit 1 to the APIDs in slit 2.
+
+A schematic of the GMOS IFU instrument coordinate systems in two-slit
+mode is given below.  The coordinates are approximate relative
+coordinates and do not account for slight rotations of the fields or
+the exact field separations.  A distance of 60arcsec was assumed for
+the distance between the centers of the two fields, this is accurate
+to about 1arcsec.
+
+.nf
+GMOS-N
+(65.0,4.9) |---|    (6.8,4.9) |-------|
+           |   |              |       |
+           |   |              |       |
+           |   |              |       |
+           |---| (61.7,0)     |-------| (0,0)
+GMOS-S
+(65.0,4.9) |-------|    (3.3,4.9) |---|       
+           |       |              |   |       
+           |       |              |   |       
+           |       |              |   |       
+           |-------| (58.3,0)     |---| (0,0)
+.fi
+
+The selection criteria may be a combination of XINST and YINST.
+For example, \fIexpr\fR="XINST>10 && YINST>2.5" will select the top
+part of the larger GMOS-S IFU field. The selection is done using 
+TABLES.TTOOLS.TSELECT.
+
+If \fIfl_inter\fR=yes, then the user can visually inspect the selected
+sky spectra and throw out bad spectra using SPECPLOT.  The final
+selected spectra are then combined with the \fIcombine\fR operation and
+\fIreject\fR rejection using SCOMBINE.
+
+.ih
+EXAMPLES
+
+1. Sum all the spectra from a standard star observed with the GMOS IFU.
+
+.nf
+gm> gfapsum stergN20010908S091 fl_inter-
+.fi
+
+.ih
+REVISIONS
+.ih
+LIMITATIONS
+Improvements to the (previously semi-functional) variance and
+data quality propagation in the GMOS package have undergone limited
+testing; the accuracy of the results should still be verified at
+each step by the scientist, particularly for spectroscopic data
+reduction tasks. 
+.ih
+SEE ALSO
+specplot, scombine, tselect, gfskysub, gfdisplay, gfcube, tselect
+.endhelp

@@ -1,0 +1,27 @@
+# Copyright(c) 2006-2009 Association of Universities for Research in Astronomy, Inc.
+# GFWCS function parameters.
+
+axis1,i,h,INDEF,,,"Input axis for axis 1"
+cmin1,r,h,INDEF,,,"Minimum coordinate value for axis 1"
+cmax1,r,h,INDEF,,,"Maximum coordinate value for axis 1"
+cd1_1,s,h,"INDEF",,,"Reference scale for axis 1"
+cd2_1,s,h,"INDEF",,,"Reference scale for axis 1"
+cd3_1,s,h,"INDEF",,,"Reference scale for axis 1
+"
+axis2,i,h,INDEF,,,"Input axis for axis 2"
+cmin2,r,h,INDEF,,,"Minimum coordinate value for axis 2"
+cmax2,r,h,INDEF,,,"Maximum coordinate value for axis 2"
+cd1_2,s,h,"INDEF",,,"Reference scale for axis 2"
+cd2_2,s,h,"INDEF",,,"Reference scale for axis 2"
+cd3_2,s,h,"INDEF",,,"Reference scale for axis 2
+"
+axis3,i,h,INDEF,,,"Input axis for axis 3"
+cmin3,r,h,INDEF,,,"Minimum coordinate value for axis 3"
+cmax3,r,h,INDEF,,,"Maximum coordinate value for axis 3"
+cd1_3,s,h,"INDEF",,,"Reference scale for axis 3"
+cd2_3,s,h,"INDEF",,,"Reference scale for axis 3"
+cd3_3,s,h,"INDEF",,,"Reference scale for axis 3
+"
+nonspatial,i,h,3,,,Non-spatial output axis
+square,s,h,"",,,"Axes to make equal size"
+rotate,b,h,yes,,,"Allow input pixels to be rotated relative to output pixels"

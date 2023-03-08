@@ -1,0 +1,10 @@
+# Copyright(c) 2004-2006 Association of Universities for Research in Astronomy, Inc.
+
+# GLOGCLOSE parameters
+
+logfile,s,a,,,,"Logfile name"
+curtask,s,a,,,,"Name of the parent task"
+fl_success,b,a,,,,"Was task successful"
+glogpars,pset,h,"",,,"Logging preferences"
+verbose,b,h,yes,,,"Verbose"
+status,i,h,0,,,"Exit status (0=good)"

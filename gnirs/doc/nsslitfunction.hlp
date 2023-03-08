@@ -1,0 +1,258 @@
+.help nsslitfunction December2011 gemini.gnirs
+.ih
+NAME
+nsslitfunction -- Establish the slit function using sky flats
+.ih
+USAGE
+nsslitfunction skyflats output
+.ih
+PARAMETERS
+.ls skyflats
+List of twilight or unregistered sky flats.
+The DQ plane will be read if it exists.
+.le
+.ls output
+Output illumination-corrected flat in MEF format.  The
+second extension (VAR) is the normalized variance image.  The third
+extension (DQ) is the combined data-quality file.
+.le
+.ls flat = ""
+The calibration lamp flat (from NSFLAT) that is used as the basis 
+for the final, corrected flat.
+.le
+.ls flexflat = ""
+A calibration lamp flat (from NSFLAT) that is taken at the same
+telescope pointing as the \fIskyflats\fR.  This can be omitted if there is
+no flexure, or if the \fIskyflats\fR are processed with the same MDF shift
+as the main \fIflat\fR, in which case \fIflat\fR will be used.
+.le
+.ls dark = ""
+Dark image to subtract from the combined twilight or sky flat.  This should
+have the same MDF shift as \fIflexflat\fR if given, or \fIflat\fR otherwise.
+.le
+.ls title = ""
+Title for output science plane.
+.le
+.ls combine = "median" (average|median)
+Type of combining operation performed on the final set of pixels (after
+offsetting, masking, thresholding, and rejection).  The choices are
+"average" or "median".  The median uses the average of the two central
+values when the number of pixels is even.
+.le
+.ls reject = "none" (none|minmax|ccdclip|crreject|sigclip|avsigclip|pclip)
+Type of rejection operation performed on the pixels remaining after 
+offsetting, masking and thresholding.  The algorithms are described in 
+the help for IMCOMBINE.  
+.le
+.ls masktype = "goodvalue" (none|goodvalue)
+Type of pixel masking to use.  See GEMCOMBINE.
+.le
+.ls maskvalue = 0.
+Mask value used with the \fImasktype\fR parameter.  See GEMCOMBINE.
+.le
+.ls scale = "median" (none|mode|median|mean|exposure|@<file>|!<keyword>)
+Multiplicative image scaling to be applied.  When specified in a file 
+the scales must be one per line in the order of the input images.
+.le
+.ls zero = "none" (none|mode|median|mean|@<file>|!<keyword>)
+Additive zero-level image shifts to be applied.  When specified in a file 
+the zero values must be one
+per line, in the order of the input images.  File or keyword zero offset
+values do not allow a correction to the weights.
+.le
+.ls weight = "none" (none|mode|median|mean|exposure|@<file>|!<keyword>)
+Weights to be applied during the final averaging.
+When specified in a file the weights must be one per line in the order of
+the input images and the only adjustment made by the task is for the number of
+images previously combined.   In this case the weights should be those
+appropriate for the scaled images which would normally be the inverse
+of the variance in the scaled image.
+.le
+.ls statsec = "[*,*]"
+Section of images to use in computing image statistics for scaling,
+weighting, and normalizing.  If no section is given then the entire region of 
+the input is sampled (for efficiency the images are sampled if they are big 
+enough). When the images are offset relative to each other one can precede the 
+image section with one of the modifiers "input", "output", "overlap".  The 
+first interprets the section relative to the input image (which is equivalent 
+to not specifying a modifier), the second interprets the section relative to 
+the output image, and the last selects the common overlap and any following 
+section is ignored.
+.le
+.ls lthreshold = INDEF, hthreshold = INDEF
+Low and high thresholds to be applied to the input pixels.  This is done
+before any scaling, rejection, and combining.  If INDEF the thresholds
+are not used.
+.le
+.ls nlow = 1, nhigh = 1 (minmax)
+The number of low and high pixels to be rejected by the "minmax" algorithm.
+These numbers are converted to fractions of the total number of input images
+so that if no rejections have taken place the specified number of pixels
+are rejected, while if pixels have been rejected by masking, thresholding,
+or nonoverlap, then the fraction of the remaining pixels, truncated
+to an integer, is used.
+.le
+.ls nkeep = 0
+The minimum number of pixels to retain or the maximum number to reject
+when using the clipping algorithms (ccdclip, crreject, sigclip,
+avsigclip, or pclip).  When given as a positive value, this is the minimum
+number to keep.  When given as a negative value, the absolute value is
+the maximum number to reject.  The latter is in addition to pixels
+missing due to non-overlapping offsets, bad pixel masks, or thresholds.
+.le
+.ls mclip = yes (ccdclip, crreject, sigclip, avsigclip)
+Use the median as the estimate for the true intensity rather than the
+average with high and low values excluded in the "ccdclip", "crreject",
+"sigclip", and "avsigclip" algorithms?  The median is a better estimator
+in the presence of data which one wants to reject than the average.
+However, computing the median is slower than the average.
+.le
+.ls lsigma = 3., hsigma = 3. (ccdclip, crreject, sigclip, avsigclip, pclip)
+Low and high sigma clipping factors for the "ccdclip", "crreject", "sigclip",
+"avsigclip", and "pclip" algorithms.  They multiply a "sigma" factor
+produced by the algorithm to select a point below and above the average or
+median value for rejecting pixels.  The lower sigma is ignored for the
+"crreject" algorithm.
+.le
+.ls ron = 0.0, gain = 1.0 
+CCD readout noise in electrons and gain in electrons/DN.
+These parameters are used with the "ccdclip" and "crreject"
+algorithms if header parameters are missing.
+.le
+.ls snoise = "0.0" (ccdclip, crreject)
+Sensitivity noise as a fraction.  Sensitivity
+noise typically comes from noise introduced during flat fielding.
+.le
+.ls sigscale = 0.1 (ccdclip, crreject, sigclip, avsigclip)
+This parameter determines when Poisson corrections are made to the
+computation of a sigma for images with different scale factors.  If all
+relative scales are within this value of unity and all relative zero level
+offsets are within this fraction of the mean then no correction is made.
+A value of zero will apply the
+corrections except in the case of equal images. A large value can be
+used if the sigmas of pixels in the images are independent of scale and
+zero level.
+.le
+.ls pclip = -0.5 (pclip)
+Percentile clipping algorithm parameter.  If greater than
+one in absolute value then it specifies a number of pixels above or
+below the median to use for computing the clipping sigma.  If less
+than one in absolute value then it specifies the fraction of the pixels
+above or below the median to use.  A positive value selects a point
+above the median and a negative value selects a point below the median.
+The default of -0.5 selects approximately the quartile point.
+.le
+.ls grow = 0.0
+Radius in pixels for additional rejection around pixels which have
+been rejected during previous processing. This applies only to pixels
+flagged by one of the rejection algorithms and not masked or
+threshold-rejected pixels.
+.le
+.ls function = "spline3" (spline1|spline3|legendre|chebyshev)
+Function for response fitting.
+.le
+.ls order = 3
+Order of the fitting function or the number of spline pieces.
+.le
+.ls fl_vary = no
+Allow the scaling for individual orders to vary?  \fIfl_vary-\fR
+helps correct IFU for variations from one mirror to another.
+.le
+.ls fl_dqprop = no
+Propagate DQ values when combining sky flats?  (see GEMCOMBINE)
+.le
+.ls fl_inter = no
+Fit interactively.
+.le
+.ls fl_gemarith = yes
+Use gemarith rather than imexpr?  Using GEMARITH gives better 
+performance.
+.le
+.ls logfile = ""
+Name of the logfile.
+.le
+.ls verbose = yes
+Verbose output.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error.
+This parameter is always set by the task, and should not be modified
+by the user.
+.le
+
+
+.ce
+Parameters from NSHEADERS
+.sp
+The following values are read from gnirs.nsheaders.
+.ls sci_ext
+Name of science extension.
+.le
+.ls var_ext
+Name of variance extension.
+.le
+.ls dq_ext
+Name of data quality extension.
+.le
+.ls key_ron
+Header keyword for read noise (e-)
+.le
+.ls key_gain
+Header keyword for gain (e-/ADU)
+.le
+.ls key_dispaxis
+Header keyword for dispersion axis.
+.le
+.ls key_exptime 
+Header keyword for exposure time
+.le
+.ih 
+DESCRIPTION 
+NSSLITFUNCTION corrects the illumination (along the spatial direction)
+of a calibration lamp flat using sky or twilight flats.
+For IFU data, as well as applying a low-order flatness correction
+along each image slice, the variation between slices can be restored 
+(since NSFLAT currently normalizes each one separately to unity).
+All input images should have the same exposure time.
+.sp
+Sky flats should be deregistered so that object spectra can be
+removed.  Flats taken during twilight are preferable to dark sky flats
+that contain sky emission lines.
+.sp
+The sky flats are combined using IMCOMBINE before having the dark
+level subtracted.  The image formed by flat-fielding the sky flat with
+\fIflexflat\fR (of \fIflat\fR if no flexure is present - see
+discussion below) is then used to determine the illumination
+calibration.  See the help pages for the task ILLUMINATION for details
+on how that is done.  The parameters \fIfunction\fR and \fIorder\fR
+control the fit in the spatial direction.
+.sp
+If a separate \fIflexflat\fR is specified then the illumination function
+is shifted to the position of \fIflat\fR.  This allows skyflats to
+be taken with flexure - in such cases, \fIskyflats\fR, \fIflexflat\fR
+and \fIdark\fR must all have the same MDF shift (presumably they are
+all taken at the same telescope position and processed together with
+NSPREPARE).
+.sp
+This process is repeated for each science extension in the data.  If
+\fIfl_vary-\fR then the same normalisation (based on the central frame) 
+is applied to all frames, otherwise each is normalised individually to 
+a median value of unity.
+.sp
+Finally, the illumination function is combined with the input \fIflat\fR,
+to give a "superflat" in \fIoutput\fR.
+.ih
+EXAMPLES
+1. Interactively correct the GCAL flat nsFlat.fits for illumination along
+the slit using the list of sky images in skyflat.lis.
+.sp
+.nf
+   cl> nsslit @skyflat.lis Final.fits dark=dark100.niri.fits \
+   >>> flat=nsFlat.fits Final.fits fl_inter+
+.fi
+.ih
+BUGS AND LIMITATIONS
+.ih
+SEE ALSO
+imcombine, gemcombine, illumination, nsflat
+.endhelp

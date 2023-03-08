@@ -1,0 +1,173 @@
+.help gemarith August2011 gemini.gemtools
+.ih
+NAME
+gemarith -- Arithmetic on MEF images, relying on gemexpr
+.ih
+USAGE
+gemarith operand1 op operand2 result
+.ih
+PARAMETERS
+.ls operand1, operand2
+Images and constants (includes FITS header values) to be used as
+operands.  At least one of the operands has to be an image.  Input
+images are filename for MEF format FITS files. Header parameters
+should be in the form operand1.KEYNAME or operand2.KEYNAME, where
+KEYNAME is the name of the FITS header value (note: "operand1" and
+"operand2" are the parameter specifiers, NOT the MEF file name
+itself).  Note also that the header values refer to the header value
+in the frame currently being processed within the MEF.  An additional
+special syntax is possible to refer to PHU header values,
+"operand1[0].KEYNAME" or "operand2[0].KEYNAME" respectively.  Image
+sections are NOT allowed at this time.  List input is not supported.
+The input images may be raw Gemini data or they may be images
+processed with tasks in the Gemini IRAF package.  If present, variance
+and data quality frames can be processed by setting the \fIfl_vardq\fR
+flag.
+.le
+.ls op (+|-|*|/)
+Operator to be applied to the operands. The allowed operators are "+", "-", 
+"*", "/"
+.le
+.ls result
+Resultant MEF image. If \fIfl_vardq\fR=yes, and the input images both
+contained variance and data quality extensions, the output image will have
+variance and data quality extensions.
+.le
+.ls sci_ext="SCI", var_ext="VAR", dq_ext="DQ", mdf_ext="MDF"
+Name of science, variance, data quality extensions, and of the Mask 
+Definition File (MDF) extension, respectively.
+.le
+.ls fl_vardq = no
+Flag to propagate the variance and data quality data. This requires
+that all images used as input already has variance and data quality
+extensions.
+.le
+.ls dims = "default"
+The dimensions of the output image.  If the special value "default" is
+given, the output image dimensions are computed based on the input operands
+and the expression being evaluated.  Otherwise the value is a list of axis
+lengths, e.g., "512,512".
+.le
+.ls intype = "double"
+All the input operands are cast to this datatype 
+to perform the given calculation.
+The default is "double" which ensure that if left alone, gemarith will do
+the most accurate calculations possible. If the special value
+"default" is given the operand type will be the same as the pixel type of
+the image.  Otherwise one of the values "short", "int", "long", "real",
+or "double" should be given.  The program will promote the type of the
+input operand to the type specified if the actual type is less precise
+than the value of \fIintype\fR, otherwise the type of the input operand
+is not changed.  For example, if \fIintype\fR is "int" (the default),
+short integer input operands will be promoted to integer but int, long,
+real or double operands will be unaffected.  Setting \fIintype\fR to real
+will force the expression to be evaluated in floating point.
+.le
+.ls outtype = "default"
+The pixel type of the output image.  If set to the special value "default"
+the output image will be "real" unless at least one operand is of type
+"double", in which case outtype will be "double".
+If set to "ref" the output image will have the same type as the
+"reference" input image (see below), regardless of the expression type.
+If an explicit type is specified such as "short", "ushort", "int", "real",
+an image of the indicated type will be created.
+.le
+.ls refim = "default"
+The operand name of the image to use to provide reference images used
+to pass the WCS and other image header attributes to the output image.
+If set to "default" the program will use the first most highly
+dimensioned image operand.  To force a particular input image to be
+the reference image the value should be set to the parameter name of
+an input operand (i.e. "operand1" or "operand2" not the MEF name 
+itself).
+.le
+.ls rangecheck = yes
+If range checking is enabled then the program will check for illegal
+operations such as divide by zero or the square root or logarithm of a
+negative value, substituting a constant value (zero) if such an operation
+is detected.  This may be necessary to avoid aborting the entire operation
+because of a few bad pixels in an image.  A conditional expression may be
+used to detect such pixels and perform any special processing.
+.le
+.ls verbose = yes
+Print actions to the screen and log.  Errors will be printed regardless.
+.le
+.ls lastout = ""
+This parameter holds the most recently output extension, this will be
+the most recently used output MEF, with an "[APPEND]" kernel section.
+This can then be referenced as a command operand.
+.le
+.ls logfile = ""
+Name of logfile.
+.le
+.ls glogpars = "glogpars"
+A pset file used by the Gemini IRAF logging facility to store personal 
+preferences that take effect package-wide for the logging system.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an
+error. This parameter is always set by the task, and should
+not be modified by the user.
+.le
+.ih
+DESCRIPTION
+GEMARITH performs binary image arithmetic of the form:
+
+           operand1 op operand2 = result
+           
+The allowed operators are (+|-|*|/).  The operands are two MEF files,
+or a MEF file and a constant. The result is a MEF file, which contains
+the same number of science extensions as the input image(s).  If the
+resulting image already exists, it will not be overwritten.  GEMARITH
+can handle raw Gemini data as well as images processed with tasks in
+the Gemini IRAF package.
+
+If \fIfl_vardq\fR=yes and the input image(s) contain variance and data
+quality extensions, then variance and data quality extensions will
+propagated to the result appropriately.  If \fIfl_vardq\fR=yes but the
+input image(s) do not contain variance and data quality extensions
+then there will be no variance and data quality extensions in the
+output and a warning will be generated.  The variance and data quality
+extensions can be created with the "PREPARE" tasks in the instrument
+specific package, e.g. NPREPARE and GPREPARE for NIRI and GMOS,
+respectively.
+
+The MDF from \fIrefim\fR, if present, will be copied to the output image.
+Usually only GMOS images have MDFs, see gmosinfospec for details.
+
+.ih
+TECHNICAL NOTES
+
+This new version of GEMARITH task relies on the GEMEXPR task to
+perform the work.  The file 'gemexprpars.par' is a "pset" file which
+exists to pass parameters to gemexpr when invoked as a subtask as by
+gemarith.  The gemexpr task in turn relies on a task function not
+available from the CL, mimexpr, and you may note the 'mimexprpars.par'
+file as well which exists to pass parameters to this subtask.  Neither
+these .par files nor their related parameter caches in user's "uparm"
+directory should be manipulated by the user, they exist entirely for
+automated control of subtasks.
+
+.ih
+EXAMPLES
+1. To add two MEF images
+
+   cl> gemarith mef_image1 + mef_image2 sum 
+
+2. To add two MEF images, which both have variance and data quality 
+extensions, and propagate the variance and data quality
+
+   cl> gemarith mef_image1 + mef_image2 sum fl_vardq+
+
+3. To subtract two raw GMOS images (MEF images)
+
+   cl> gemarith raw_gmos1 - raw_gmos2 difference
+
+.ih
+BUGS AND LIMITATIONS
+GEMARITH does not support '@' file lists, yet.  Also, image sections are
+not allowed at this time.
+.ih
+SEE ALSO
+gemexpr, imarith, imexpr, addmasks, gmosinfospec, gprepare, nprepare
+.endhelp

@@ -1,0 +1,22 @@
+Starlink PDA subroutines
+------------------------
+
+The subroutines in this directory were provided by the UK Starlink
+project, as part of their Public Domain Algorithms library - a
+distribution of numerical algorithms from several sources. A complete
+set of the source code and documentation can be downloaded from
+http://www.starlink.rl.ac.uk.
+
+A few minor changes have been made to the code included here,
+originally for use in the imspec IRAF package ("Astronomy with
+Integral Field Spectroscopy...", James Turner, Ph.D., 2001). The
+routines JDBVIP/JDPTIP were modified further in April 2009 to return
+a second array of "data quality" information, flagging data outside
+the interpolation bounds in the main output array.
+
+The IDBVIP interpolation code and associated subroutines were
+originally published by H. Akima in ACM Transactions on Mathematical
+Software (vol4. no.2, June 1978). The copyright belongs to the
+Association for Computing Machinery, which gives permission for
+non-commercial distribution (see TOMS vol. 12, no. 2, June 1986).
+

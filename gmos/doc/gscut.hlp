@@ -1,0 +1,282 @@
+.help gscut December2012 gemini.gmos
+.ih
+NAME
+gscut -- Cut GMOS MOS spectra into 2D pieces
+.ih
+USAGE
+gscut inimage
+.ih
+PARAMETERS
+.ls inimage
+Input image.  It should be in MEF format and have been processed by 
+GSREDUCE and GMOSAIC.  Lists and wildcards are _not_ supported, only 
+one image at a time may be processed.  Looping can be done using GSREDUCE.
+Directory names should not be included as part of the image name.
+.le
+.ls outimage = ""
+Name of the output MEF file containing the extracted spectra. 
+Lists are not supported.
+If \fIoutimage\fR="", the output image is not produced. This is useful if
+only the \fIsecfile\fR is needed as output from the task.
+The output file contains the extracted spectra in the following format
+
+.nf
+EXT#  EXTTYPE             EXTNAME       EXTVER OBJECT
+0     flat2.fits
+1      BINTABLE           MDF
+2      IMAGE              SCI           1      Science spectra 
+3      IMAGE              VAR           1      Variance
+4      IMAGE              DQ            1      Data Quality 
+5      IMAGE              SCI           2      Science spectra
+6      IMAGE              VAR           2      Variance
+7      IMAGE              DQ            2      Data Quality
+.fi
+
+The listing is made with the task FXHEAD.
+The EXTTYPE for the PHU (extension [0]) is the name of the FITS file.
+.le
+.ls secfile = ""
+Output file that contains the image sections of the individual spectra.
+If \fIsecfile\fR="", this file is not produced.
+.le
+.ls fl_update = no
+Update input image \fIinimage\fR MDF with slit positions if no output image
+is produced. This is useful when using a gradient image \fIgradimage\fR 
+for finding the slit edges and preserving the result in the MDF of the input 
+image.
+.le
+.ls fl_vardq = no
+Propagate variance and data quality planes? If \fIfl_vardq\fR =yes then GSCUT 
+will create a new variance and data quality plane for each cut spectrum using 
+an approximation for variance = (readnoise)^2 + (science plane)/(detector gain)
+.le
+.ls gratingdb = "gmos$data/GMOSgratings.dat"
+Database file with GMOS grating information, including wavelength interval.
+.le
+.ls filterdb = "gmos$data/GMOSfilters.dat"
+Database file with GMOS filter information, including wavelength range.
+.le
+.ls gradimage = ""
+Gradient image to use for identifying slit edges. This should normally be a 
+GCAL flat field taken with the same configuration as the input image 
+\fIinimage\fR.
+.le
+.ls refimage = ""
+Reference image whose MDF contains information about the location of the slits.
+If both \fIgradimage\fR and \fIrefimage\fR are defined,  \fIrefimage\fR takes
+precedence.
+.le
+.ls xoffset = INDEF
+The offset in the X (wavelength) direction between the theoretically 
+predicted position of the spectra and the actual position.  The units are 
+nanometers.  This overrides the offset value in \fIgratingdb\fR if
+it is not equal to INDEF.
+.le
+.ls yoffset = INDEF
+The offset in the Y direction (the spatial direction) between the 
+theoretically predicted position of the spectra and the actual position.  The 
+units are unbinned pixels.  This overrides the offset value in \fIgratingdb\fR 
+if it is not equal to INDEF.
+.le
+.ls yadd = 0
+The additional length to add in the Y direction (the spatial direction) to 
+each end of every MOS slitlet region.  The units are unbinned pixels.
+.le
+.ls w2 = INDEF
+The upper wavelength limit of cut spectra in nanometers. If \fIwave_limit\fR is
+set to INDEF, the red end of the spectrum is cut using a value of either the
+upper wavelength limit of the grating, the upper wavelength limit of the filter
+band-pass, the 2% quantum efficiency cut-off of the detector in the red (which
+is typically 1025 nm and 1050 nm for the EEV and e2vDD CCDs, respectively) or
+the edge of the detector, whichever has the shortest wavelength. The user can
+use \fIw2\fR to override this default behaviour. However, if the edge of
+the detector occurs before the value supplied for \fIw2\fR, the spectrum will
+end at the edge of the detector.
+.le
+.ls sci_ext = "SCI" 
+Name of the MEF extension containing the science data. 
+.le
+.ls var_ext = "VAR"
+Name of the MEF extension containing the variance frame. 
+.le
+.ls dq_ext = "DQ"
+Name of the MEF extension containing the data quality array. 
+.le
+.ls key_gain = "GAIN"
+Header keyword for the detector gain (in electrons/ADU).  This value has 
+precedence over \fIgain\fR.
+.le
+.ls key_ron = "RDNOISE"
+Header keyword for the detector read noise (in electrons).  This value has 
+precedence over \fIron\fR.
+.le
+.ls ron = 3.5
+Detector read noise (in electrons) to use if not found from the header 
+keyword \fIkey_ron\fR.
+.le
+.ls gain = 2.2 
+Detector gain (in electrons/ADU) to use if not found from the header 
+keyword \fIkey_gain\fR. 
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes the task use the logfile
+defined by gmos.logfile.
+.le
+.ls verbose = yes
+Print actions to the screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error. 
+This parameter is always set by the task, and should not be modified by 
+the user.
+.le
+.le
+
+.ih 
+DESCRIPTION 
+
+GSCUT can be used to 
+.nf
+  1) cut a GMOS MOS image into a MEF (\fIoutimage\fR) with one set of 
+     extensions for each slitlet 
+  2) write the image sections for the individual spectra to the file 
+     \fIsecfile\fR
+  3) copy slit location definitions from a reference image to the 
+     input image
+.fi
+
+The actual cutting of the image into slitlets (1) only takes place if
+\fIoutimage\fR is defined. In this case the \fIinimage\fR must be 
+mosaiced with GMOSAIC.
+The sections file \fIsecfile\fR is only produced if it is not an empty string 
+(2). If \fIoutimage\fR="" and \fIfl_update\fR=yes the MDF of the input image
+will be updated with the slit locations as described below, this can be used
+to copy the slit location definitions from a reference image to the
+input image (3).
+
+GSCUT will normally be called by GSREDUCE or GSFLAT.  GSCUT can also
+handle longslit data, trimming the spectra properly if a blocking
+filter was used.
+
+There are three ways to define the slit locations:
+.nf
+   1)  The slit locations are calculated from the MDF
+   2)  The slit locations are taken from the MDF of \fIrefimage\fR
+   3)  The slit locations are first found from the MDF and then refined
+       using an edge-detecting algorithm on the \fIgradimage\fR
+.fi
+The three methods are described in the following.
+
+1. The slit locations are calculated from the MDF
+
+The image sections corresponding to each slit are calculated using the
+information in the mask definition file extension (MDF) added by
+GPREPARE, the binning of the CCDs, the characteristics of the grating
+and filter used, and the optical characteristics of GMOS.  The spectra
+of acquisition objects (priority==0 in the MDF) are ignored. It has
+been found that the offsets between the theoretical predictions and
+the actual spectra can change with time, especially for the B600
+grating in GMOS-N.  Therefore, the locations of the spectra should be
+checked using GCAL flats and arcs.  The default offsets can be
+overridden using the \fIxoffset\fR and \fIyoffset\fR parameters.  The
+\fIxoffset\fR parameter has units of nanometers and should be set such
+that running GSAPPWAVE gives a reasonable wavelength solution.
+
+GSCUT uses approximate corrections for the GMOS field distortion in
+both X and Y directions.  To ensure that the full extent of each
+slitlet is included in the cut out sections, the slit length is
+multiplied with 1.05 before the section is derived.  If additional length
+is desired, the \fIyadd\fR parameter may be used to add extra length to the top
+and bottom of every derived slitlet region.
+
+The MDF of the output file has six additional columns: SELECT, SECX1,
+SECX2, SECY1, SECY2, SPECCEN.  If SELECT=1, then subsequent processing steps,
+e.g. GSWAVELENGTH, GSTRANSFORM, will be done on that extension.  The
+MDF may be edited with the tools in the package TABLES.TTOOLS.
+SELECT=1 is set for the acquisition objects.
+
+The keyword MDFROW is added in the image extensions and links the
+extension with a row in the MDF.  The SEC column in the MDF gives the
+image section used to extract the slitlet, [SECX1:SECX2,SECY1:SECY2].  The
+SPECCEN column gives the y-center of the spectrum as a real value rather than 
+as an integer.  This is for future development.
+
+2. The slit locations are taken from the MDF of \fIrefimage\fR
+
+In this case the slit location columns SELECT, SECX1, SECX2, SECY1, 
+SECY2 from the MDF of the \fIrefimage\fR are used.
+
+3. The slit locations refined using edge detection
+
+In this case the slit locations are first found using the method described
+under Section 1. Then the \fIgradimage\fR is processed to find the positive
+and negative gradients -- the edges of the slits. These are then matched
+with the approximate locations to get the refined slit locations.
+The \fIgradimage\fR should normally be a GCAL flat that have been
+bias subtracted, trimmed and GMOSAICed. It should not be normalized.
+A combined GCAL flat \fIcombflat\fR from GSFLAT are useful for this purpose.
+
+GSCUT prints warnings for slit locations that appear to be mismatched.
+The warnings are issued if the slit length found from the edge-detection
+algorithm deviates from the MDF information by more than 3 pixels.
+For long slits, this may result in a large number of warnings, while the
+resulting cut out slitlets may in fact be correct. 
+GSCUT makes a reasonable effort to recover from such apparently 
+mismatched slit locations. The user is urged to
+inspect the results closely to evaluate if the cutting was done correctly.
+If the user finds that some of the slit locations are indeed incorrect, the
+easiest way to recover is to edit the MDF in the output image to contain
+the correct locations, then use that image at the \fIrefimage\fR for
+a rerun of GSCUT. The MDF can be edited using the tools in TABLES.TTOOLS.
+
+If \fIfl_vardq\fR is yes and variance and data quality frames do not exist 
+then GSCUT will create a new variance and data quality plane for each spectrum.
+The variance plane is calculated as VAR = ron^2 + SCI/gain. This equation 
+provides an approximation of the variance with the following limitations: 
+1) It assumes read noise and gain values correctly reflect the noise 
+characteristics of the frame. 2) Will not be valid if sky has been subtracted 
+or any other arithmetic operation was performed on the frame. 3) The variance 
+calculation ignores any contributions to the noise from flat fielding and bias 
+subtraction. 
+.ih
+EXAMPLES
+
+1. Find the individual slitlets in MOS image and write them to a MEF.
+
+.nf
+    cl> gscut mrN20020608S0073.fits outimage=mrN20020608S0073cut.fits
+.fi
+
+2. Find the slitlet image sections and write them to a text file.
+
+.nf
+    cl> gscut mrN20020608S0073.fits secfile=mrN20020608S0073.sec
+.fi
+
+3. Find the slitlets using a GCAL flat as the gradient image
+
+.nf
+    cl> gscut mrN20020608S0073.fits outimage=mrN20020608S0073cut.fits \
+        gradimage=combflat.fits
+.fi
+
+4. Copy the slit location information from the MDF of the reference
+image to the input image, the reference image may previously have been
+processed with GSCUT to find the slit locations
+
+.nf
+    cl> gscut mrN20020608S0073.fits refimage=referenceflat.fits
+.fi
+
+
+.ih
+BUGS AND LIMITATIONS
+Improvements to the (previously semi-functional) variance and
+data quality propagation in the GMOS package have undergone limited
+testing; the accuracy of the results should still be verified at
+each step by the scientist, particularly for spectroscopic data
+reduction tasks.
+.ih
+SEE ALSO
+gmosinfo, gmosinfospec, gsreduce, gsflat, tables.ttools
+.endhelp

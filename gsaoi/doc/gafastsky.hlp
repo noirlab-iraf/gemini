@@ -1,0 +1,148 @@
+.help gafastsky May2013 gemini.gsaoi
+.ih
+NAME
+gafastsky -- Create a quick sky frame from prepared GSAOI sky frames
+.ih
+USAGE
+gafastsky inimages
+.ih
+PARAMETERS
+.ls inimages
+List of prepared GSAOI sky images to combine to form master sky
+frame(s). The input sky images can be science frames or designated sky
+frames. Input should be dithered - no registration or alignment of input frames
+is done using the WCS. \fIinimages\fR Can be a list of image names or numbers
+(comma separated or @ lists), or a range of images numbers - wild cards are
+supported, though "*.fits" is not. The image names may include the directory
+path. The images must be in multi-extension FITS (MEF) format and not be
+mosaiced. The file extension ".fits" may or may not be included. It is
+recommend that the user supply input images explicitly in the form of list.
+.le
+.ls outimages = ""
+Output name(s) for master sky frame(s). If left blank the default suffix,
+"_sky" will be used. Input can be a list of names if more
+than one configuration is input (comma separated or @ lists"). If supplying
+more than one configuration the list of names must match the ordered list of
+unique configurations. If \fIoutimages\fR="", the default suffix of "fsky" will
+be used in conjunctions with the name of the first file in the sorted list of
+images to be combined for that unique METACONF value.
+.le
+
+GEMCOMBINE PARAMETERS:
+.ls combine = "default" (default|median|average)
+Type of combining operation performed on the final set of pixels (after
+offsetting, masking, thresholding, and rejection). The choices are
+"average" or "median". The median uses the average of the two central
+values when the number of pixels is even. When \fIcombine\fR="default", then
+both \fIcombine\fR and \fIreject\fR parameters passed to GEMCOMBINE are set
+internally by GASKY. The default setting of \fIcombine\fR and \fIreject\fR when
+combining 5 or more images are "median" and "minmax", receptively, with
+"\fInlow\fR"=1 and \fInhigh\fR=1 (\fInhigh\fR=2 for 8 or more files).
+However, should the number of images to be combined be less than 5 and
+\fIcombine\fR=default, \fIcombine\fR="average", \fIreject\fR="minmax",
+"\fInlow\fR"=0 and \fInhigh\fR=1.
+.le
+.ls reject = "minmax" (none|minmax)
+Type of rejection operation performed on the pixels remaining after offsetting,
+masking and thresholding. The algorithms are described in the help for
+IMCOMBINE.
+.le
+.ls nlow = 0, nhigh = 1
+The number of low and high pixels to be rejected by the "minmax" algorithm.
+.le
+.ls statsec = "[5%]"
+Section of images to use when scaling, and weighting with GEMCOMBINE. If no
+section is given then the entire region of the input is sampled. \fIstatsec\fR
+is relative to an individual array but is applied to all arrays - assuming all
+arrays are of the same size. Allowed syntax, i.e., standard and non-standard
+IRAF syntax, can be found in the help for GEMSECCHK.
+.le
+.ls masktype = "goodvalue" (none|goodvalue)
+Type of pixel masking to use. Note that not all IMCOMBINE options are
+currently available. See the IMCOMBINE help page for more details.
+.le
+.ls maskvalue = 0.
+Mask value to use with the \fImasktype\fR parameter. See the IMCOMBINE help
+page for a complete description.
+.le
+.ls badpix = "gsaoi$data/gsaoibpm_high_full.fits"
+Static MEF bad pixel mask.
+.le
+.ls key_exptime = "EXPTIME"
+Image header keyword to be used with the exposure scaling and weighting
+options.
+.le
+.ls key_ron = "RDNOISE", key_gain = "GAIN"
+Header keywords that give CCD readout noise in electrons and gain in
+electrons/DN.
+.le
+.ls fl_vardq = no
+Create variance and data quality frames for the output image? If
+\fIfl_vardq=yes\fR, variance and data quality planes are required to be present
+in all prepared input frames.
+.le
+.ls fl_dqprop = no
+Propagate data quality values to the combined frame data quality extensions? If
+\fImasktype\fR="none" all input data quality values will be propagated. If
+\fImasktype\fR="goodvalue" only the data quality values for those output pixels
+that have no data in will be propagated.
+.le
+
+GENERAL PARAMETERS:
+.ls sci_ext = "SCI"
+Name of the MEF extension containing the science data.
+.le
+.ls var_ext = "VAR"
+Name of the MEF extensions containing the calculated variance planes.
+.le
+.ls dq_ext = "DQ"
+Name of the MEF extensions containing the data quality information.
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes use of the logfile
+defined by gsaoi.logfile.
+.le
+.ls verbose = yes
+Print actions to screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted
+with an error. This parameter is set by the task and should not be
+modified by the user.
+.le
+.ih
+DESCRIPTION
+
+GAFASTSKY creates a quick sky frame from the prepared input GSAOI
+images. Images are sorted by unique METACONF value first before combining.
+Should there be more than one configuration supplied the output names specified
+must be the same number of unique configurations and be ordered in reverse
+according to unique METACONF values.
+
+By default the images are median combined (unless the number of images to be
+combined for a given unique METACONF value is less than 5 - then average
+combining takes place). The default rejection algorithm used is "minmax", with
+\fInlow\fR and \fInhigh\fR set according to the number of files to be combined.
+
+.ih
+EXAMPLES
+
+.nf
+   cl> gafastsky @sky.list
+.fi
+.ih
+BUGS AND LIMITATIONS
+
+There is no registering of input images before stacking, meaning images are
+stacked without any translation etc. Therefore if there are ODGWs guiding but
+in a frozen state, most likely if a large offset to sky is performed, then it
+is likely that there will be an area of the master sky frame that contains no
+information. The data quality frames (if \fIfl_vardq\fR=yes,
+\fIfl_dqprop\fR=yes and \fIfl_mask\fR=yes) will show areas that contain no data
+in the output sky frame.
+.ih
+SEE ALSO
+
+GADIMSCHK, GAIMCHK and GEMCOMBINE
+
+.endhelp

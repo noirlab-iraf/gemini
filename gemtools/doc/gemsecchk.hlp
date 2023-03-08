@@ -1,0 +1,144 @@
+.help gemsecchk October2015 gemini.gemtools
+.ih
+NAME
+gemsecchk -- Parse non-standard image sections and check sections against input
+image
+.ih
+USAGE
+gemsecchk inimage section
+.ih
+PARAMETERS
+.ls inimage
+Input image (or image with extension if MEF) to determine and check section
+for. Any paths to the image must be included in \fIinimage\fR. Only one image
+at a time. No wild cards allowed. Only two-dimensional images are currently
+supported, but GEMSECCHK can nevertheless be run on other images as a
+no-operation.
+.le
+.ls section 
+Section to check if ordinary IRAF syntax supplied. Or section to create and
+check for if non-standard syntax is used. See description for valid syntax.
+.le
+.ls out_imgsect = ""
+Output parameter for this task containing the calculated section (copied from
+\fIsection\fR if IRAF syntax is used). If the specified section or calculated
+section are invalid or too big for the input image the task will halt with an
+error and \fIout_imgsect\fR will be set to "".
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes use of the logfile
+defined by gemtools.logfile.
+.le
+.ls verbose = yes
+Print actions to screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted
+with an error. This parameter is set by the task and should not be
+modified by the user.
+.le
+.ih
+DESCRIPTION
+
+GEMSECCHK accepts standard IRAF image section syntax (\fIsection\fR) and
+compares it to the input image (\fIinimage\fR) to check the section is valid
+for that image; returning the section as the \fIout_imgsect\fR parameter. If
+non-standard syntax is supplied as part of \fIsection\fR, GEMSECCHK will
+determine the section requested and compare it to the image; returning the
+calculated section as part of \fIout_imgsect\fR.
+
+Currently, only two-dimensional images are supported. Where \fIinimage\fR has
+some other dimensionality, the value of \fIsection\fR is passed through
+unchanged to \fIout_imgsect\fR, without checking its validity or parsing
+non-standard syntax, and a warning is issued; this includes cases where the
+second dimension has length 1, ie. the input is really one-dimensional.
+
+The non-standard syntax for 2D images can take the form of percentages and
+negative numbers. In both case they define a border for the axes or side that
+they were supplied for. For example, \fIsection\fR="[5%]" will create a
+section that will exclude a border of 5% of the pixels in each dimension.
+Whereas, a \fIsection\fR="[-5]" will create a section where the outer 5 pixels
+along each edge of the image. Combinations of the syntax are allowed. 
+
+A list of valid syntax for \fIsection\fR given below:
+
+.nf
+    Standard IRAF syntax -
+
+    [x1:x2,y1:y2]
+
+    Non-standard IRAF syntax - 
+
+    [n%]    -- Exclude a border of n% of the pixels for each axis along the
+               respective edges.
+
+    [-n]    -- Exclude a border of n pixels along each edge of the image.
+
+    [-m:n%] -- Exclude m pixels along the left hand and lower edges of the
+               image whilst excluding n% of the pixels in the x dimension and y
+               dimensions along the right hand and upper edges, respectively.
+
+    [m%,n%] -- Exclude m% of the X-axis pixels from each of the sides of the
+               image. Then exclude n% of the Y-axis pixels from each the lower
+               and upper edges of the image, respectively.
+
+    [-m,-n] -- Exclude m pixels from each of the sides of the image and n
+               pixels from each of the upper and lower edges respectively.
+
+    Combinations of the above examples:
+
+        [-m%,-n:r%]
+        [-m:n%,r%]
+        [-m:n%,-r]
+        [-m%:n%,r%:s%]
+        [-m%:n%,-r:-s]
+
+    IRAF syntax can be included too:
+
+        [-m%:n%,y1:y2]
+
+    However, the syntax [-m:n%,y1:r%] for example, is not valid. Specific pixel
+    values, i.e., numbers that are not negative or percentages must come in
+    colon separated pairs, c.f., IRAF syntax.
+.fi
+.ih 
+EXAMPLES
+
+.nf
+   cl> gemsecchk gS20120101S001.fits[SCI,1] section="[10%]"
+.fi
+
+The input image has dimensions of 2040x2040. The output section returned by
+GEMSECCHK would be: "[205:1836,205:1836]".
+
+.nf
+   cl> gemsecchk gS20120101S001.fits[SCI,1] section="[-5]"
+.fi
+
+The input image has dimensions of 2040x2040. The output section returned by
+GEMSECCHK would be: "[6:2035,6:2035]"
+
+.nf
+   cl> gemsecchk gS20120101S001.fits[SCI,1] section="[-10:25%,4%]"
+.fi
+
+The input image has dimensions of 2040x2040. The output section returned by
+GEMSECCHK would be: "[11:1530,82:1959]"
+
+.nf
+   cl> gemsecchk gS20120101S001.fits[SCI,1] section="[-10:25%,15%:-40]"
+.fi
+
+The input image has dimensions of 2040x2040. The output section returned by
+GEMSECCHK would be: "[11:1530,307:2000]"
+
+.nf
+   cl> gemsecchk gS20120101S001.fits[SCI,1] section="[25:2001,30%]"
+.fi
+
+The input image has dimensions of 2040x2040. The output section returned by
+GEMSECCHK would be: "[25:2001,613:1428]"
+.ih
+SEE ALSO
+
+.endhelp

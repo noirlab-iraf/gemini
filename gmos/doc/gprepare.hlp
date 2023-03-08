@@ -1,0 +1,234 @@
+.help gprepare December2012 gemini.gmos
+.ih
+NAME
+gprepare - Prepare raw GMOS data for reductions
+.ih
+USAGE
+gprepare inimages
+.ih
+PARAMETERS
+.ls inimages
+List of raw GMOS images to prepare.  Can be a list of images.
+Wild cards are supported. The image names may include the directory
+path. The images must be in multi-extension FITS (MEF) format.
+.le
+.ls rawpath = ""
+Path for the directory where the raw GMOS images are located.  One may 
+set this parameter if the raw data are not located in the current 
+working directory, or specify a path in the input image file names.
+If \fIrawpath\fR != "" (ie. not an empty string) it will be combined 
+with any path given as part of the input image names.
+.le
+.ls outimages = ""
+Output MEF images. The parameter can be one single image name, 
+a list of images or a list file; as long as the number of output images matches
+the number of input images. \fIoutimages\fR has precedence over
+\fIoutpref\fR.
+.le
+.ls outpref = "g"
+Prefix for output images. Names of output images will be the names of 
+the input images with the prefix attached. \fIoutpref\fR is used 
+if \fIoutimages\fR="". If \fIoutpref\fR is used and does not contain 
+a directory path, the prepared images are written in the current directory.
+\fIoutpref\fR may contain a directory path, in which case this defines
+where the prepared images are written relative to the current directory.
+.le
+.ls fl_addmdf = no
+Attach the Mask Definition File (MDF) to the output images. 
+If \fIfl_addmdf\fR=yes, the task will 
+look for the FITS table given either by the keyword \fIkey_mdf\fR or by 
+the input parameter \fImdffile\fR, and check if it is a valid MDF. The 
+task will not attach an MDF to data taken in imaging mode. 
+Spectroscopic data should be processed with \fIfl_addmdf\fR=yes.
+If \fIfl_addmdf\fR=no no MDF will be attached and the output image will
+be a copy of the input image with the appropriate header modifications.
+.le
+.ls sci_ext = "SCI"
+Name of the MEF extension containing the science data.
+.le
+.ls key_mdf = "MASKNAME"
+Header keyword containing the name of the MDF associated with 
+the input image. \fIkey_mdf\fR has precedence over \fImdffile\fR (except
+for older IFU data, where the header name does not specify the MDF
+uniquely).
+.le
+.ls mdffile = ""
+Name of the MDF to attach if \fIfl_addmdf\fR="yes" and the 
+keyword \fIkey_mdf\fR is not found (or is simply "IFU") in the image
+header. If \fIinimages\fR is a list of images, the same MDF will be
+attached  to all of them.
+.le
+.ls mdfdir = "gmos$data/"
+Directory containing MDFs. The default value points to the directory
+which contains MDFs for longslit spectroscopy.
+.le
+.ls gaindb = "default"
+Database file containing the GMOS gain data. The default value for \fIgaindb\fR
+is gmos$data/gmosamps.dat.
+.le
+.ls key_ron = "RDNOISE"
+Header keyword for the read noise in electrons.
+.le
+.ls key_gain = "GAIN"
+Header keyword for the gain in electrons/ADU.
+.le
+.ls ron = 3.5
+Default read noise in electrons to use if the \fIgaindb\fR is not available 
+and the header keyword is not found.
+.le
+.ls gain = 2.2
+Default gain in electrons/ADU to use if the \fIgaindb\fR is not available and 
+the header keyword is not found.
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes the task use the logfile
+defined by gmos.logfile.
+.le
+.ls verbose = yes
+Print actions to the screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error. 
+This parameter is always set by the task, and should not be modified by 
+the user.
+.le
+.ih
+DESCRIPTION
+
+GPREPARE is used prepare raw GMOS images for reductions.
+GPREPARE can be used to attach the Mask Definition File (MDF) to 
+GMOS spectra. Input must be multi-extension FITS (MEF) files 
+containing the science pixel extensions only, or the 
+science pixel extensions plus the MDF (in any order). 
+If the output names are not given, a prefix (given by \fIoutpref\fR) 
+will be prepended to the input image names.
+If \fIoutpref\fR is used to define the output images and does not contain
+a directory path, the output images 
+are written in the current directory, independent of where the 
+input images are located.  If \fIoutpref\fR contains a directory path,
+then this defines where the images are written relative the current directory.
+The output image names are constructed by removing the directory path 
+from the input image names an prepending the \fIoutpref\fR.
+
+The MDF is attached if \fIfl_addmdf\fR=yes. Spectroscopic data should
+be processed with \fIfl_addmdf\fR=yes. The task will look for 
+the name of the file containing the MDF first from the image PHU under 
+the keyword defined by \fIkey_mdf\fR. 
+If \fIkey_mdf\fR is not defined or does not exist in the header (or if
+its value is simply "IFU" rather than "IFU-2", "IFU-R" etc.), it will 
+try the file defined as \fImdffile\fR. In this latter case, the task will 
+set \fIkey_mdf\fR=MASKNAME and write it to the PHU of the output image, 
+containing the name of the file. If both \fIkey_mdf\fR and \fImdffile\fR 
+are blank, or if the designated file does not exist, the task will exit 
+with an error.
+
+The task will first check the current directory for the requested MDF, and
+then check the directory defined by \fImdfdir\fR.
+The task will only attach MDFs to data taken in spectroscopic mode.
+
+If \fIgaindb\fR is available, the read noise and gain are read from this 
+file, and the values in the header are updated using the keywords given 
+by \fIkey_ron\fR and \fIkey_gain\fR. The task GGAIN is called for 
+these header updates.
+If \fIgaindb\fR is not available the read noise and gain are 
+read from the header keywords \fIkey_ron\fR and \fIkey_gain\fR. If these 
+header keywords are not in the headers, the read noise and gain are 
+defined by the parameters \fIron\fR and \fIgain\fR.
+
+If \fIfl_addmdf\fR is set to "no", no MDF will be attached and 
+the output image will be a copy of the input image with the appropriate 
+header modifications. 
+
+The following header keywords are created or updated:
+
+In the PHU (Primary Header Unit):
+.in 5
+
+OBSMODE : IMAGE, MOS or IFU. Identifies the observing mode, from the 
+MASKTYP keyword
+
+NSCIEXT : The number of SCI extensions
+
+NEXTEND : The total number of extensions
+
+GPREPARE: Time stamp for execution of the task
+ 
+GGAIN   : Time stamp for update of read noise and gain using the task GGAIN
+
+GEM-TLM : Time stamp for last modification with a task from the GEMINI package
+.in -5
+
+
+In the extension headers
+.in 5
+
+EXTNAME: name of the extension (SCI)
+
+EXTVER : extension version (1 to 3 or 1 to 6 for each science extension)
+
+RDNOISE: Updated with values from \fIgaindb\fR if available
+
+GAIN   : Updated with values from \fIgaindb\fR if available
+
+DISPAXIS : Set to 1 for spectroscopy data
+.in -5
+
+.ih
+EXAMPLES
+
+1. Prepare a single image, output to the current directory but getting
+the raw data from another directory.  
+
+.nj
+   cl> gprepare inimage rawpath="/d1/rawdata/2001aug04/" 
+.ju
+
+2. Prepare a list of images
+
+.nj
+   cl> gprepare @inlist outimages=@outlist 
+.ju
+
+3. Prepare a list of spectra, allowing for use of the prefix and 
+adding the MDF given if not found in the header.
+
+.nj
+   cl> gprepare @inlist outimages="" fl_addmdf+ key_mdf=MASKNAME \
+       mdffile=gmosmask_0001.fits
+.ju
+
+4. Same as (3) but overriding header information
+
+.nj
+   cl> gprepare @inlist outimages="" fl_addmdf+ key_mdf="" \
+       mdffile=gmosmask_0001.fits
+.ju   
+
+5. Prepare images from different directories, using the prefix to
+define the output image names. The output images are written in the
+current directory.
+
+.nj
+   cl> gprepare 2001dec24/N20011223S100,2001dec22/N20011221S100 \
+       outpref=g rawpath=/d1/gmosdata/
+.ju
+
+6. Prepare images from different directories using wild cards to define the
+input images, and using the prefix to
+define the output image names. The output images are written in the
+current directory.
+
+.nj
+   cl> gprepare 2001dec24/N20011223S10*,2001dec22/N20011221S10* \
+       outpref=g rawpath=/d1/gmosdata/
+.ju
+    
+    
+.ih
+TIME REQUIREMENTS
+.ih
+BUGS AND LIMITATIONS
+.ih
+SEE ALSO
+gmosinfo, ggain, gireduce, gbias, gbpm, giflat
+.endhelp

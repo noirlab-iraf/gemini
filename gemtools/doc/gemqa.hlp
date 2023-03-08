@@ -1,0 +1,86 @@
+.help gemqa Aug2004 gemini.gemtools
+.ih
+NAME
+gemqa -- Gemini data quality assessment
+.ih
+USAGE
+gemqa inimages finalint finaliq piconfig pitarget
+.ih
+PARAMETERS
+.ls inimages
+Images to update. Input images may be simple FITS, MEF or a mix of the 
+two types. For MEF files the extension should be defined 
+using \fIsci_ext\fR.
+.le
+.ls finalint (pass|fail|unknown)
+Value of keyword FINALINT, which shows if the total requested integration
+time was obtained.
+.le
+.ls finaliq (pass|fail|unknown)
+Value of keyword FINALIQ, which shows if the requested image quality
+was obtained. A tolerance factor is applied as determined by 
+Gemini policies.
+.le
+.ls piconfig (pass|fail|unknown)
+Value of keyword PICONFIG, which shows if the correct instrument
+configuration was used.
+.le
+.ls pitarget (pass|fail|unknown)
+Value of keyword PITARGET, which shows if the correct target was
+observed.
+.le
+.ls sci_ext = "0"
+Name or number of extension in MEF file to update.
+.le
+.ls logfile = "gemqa.log"
+Name of logfile
+.le
+.ls verbose = no
+Print actions to the screen.
+.le
+.ls status = 0
+This flag is non-zero after execution of GEMQA if a fatal
+error was encountered.
+.le
+.ih
+DESCRIPTION
+GEMQA is used to add the four header keywords that contain the results
+of the final Gemini data quality assessment. GEMQA is used by the 
+Gemini Staff and will only be used for the reduced co-added images.
+
+GEMQA adds the following keywords to the header:
+
+.nf
+FINALINT= 'pass    '           / Requested total integration time
+FINALIQ = 'pass    '           / Requested final image quality
+PICONFIG= 'pass    '           / Requested instrument configuration
+PITARGET= 'pass    '           / Requested target
+.fi
+
+The values may be "pass" or "fail".
+
+Also, GEMQA appends data processing tags, namely the image name prefix 
+and suffix, to the value of DATALAB to give each image a unique 
+identifier.
+
+.ih
+EXAMPLES
+1. To update one image that passed all criteria
+
+.nf
+    cl> gemqa r00aug02_100_add pass pass pass pass
+.fi
+
+2. To update a list of images for which the final image quality was
+insufficient
+
+.nf
+    cl> gemqa r00aug02_200_add,r00aug02_210_add,r00aug02_220_add \
+        pass fail pass pass
+.fi
+.ih
+BUGS
+.ih
+SEE ALSO
+gemhedit, hedit, imhead
+.endhelp

@@ -1,0 +1,231 @@
+.help msdefringe December2011 gemini.midir
+.ih
+NAME
+.sp 
+msdefringe -- Defringing routine for T-ReCS or Michelle one-D spectra
+.ih
+USAGE
+msdefringe inspec
+.ih
+PARAMETERS
+.ls inspec
+This is the file name for an extracted one-D spectrum, either a MEF file from 
+the MIDIR package routines such as MSTELLURIC, or a regular FITS 
+file from something such as APALL.
+.le
+.ls outspec = ""
+This is the file name for the output spectrum.  If it is blank, the output 
+file name is formed from the input file name by prefixing the \fIoutpref\fR to
+the original file name.
+.le
+.ls outpref "d"
+A single character which is prefixed to the input file name if \fIoutspec\fR 
+is not defined.
+.le
+.ls fl_lowres = yes
+A boolean variable flagging whether the spectrum is a low resolution spectrum 
+or not; in defringing the low resolution spectra the required frequency range 
+is set to pixels 158 through 164 by default, although it can still be changed 
+interactively, but for higher resolution the user has to set the range 
+(basically by trial and error) using the \fIfmin\fR and \fIfmax\fR 
+parameters.
+.le
+.ls fl_zerocut = yes
+A boolean variable flagging whether to remove negative values from the input
+spectrum or not.  If this is set to "yes" all negative values are set to 
+zero in the input spectrum.
+.le
+.ls fl_interpolate = yes
+A boolean variable flagging whether to filter by interpolation across the
+specified region or not.  If not, the values are set to zero, so all components
+of the given frequency are removed.
+.le
+.ls fmin = 18
+An integer value for the start of the filtering region.  This value should be 
+less than 161, because the filtering is done on both sides of central pixel of 
+the spectrum; this value should not be 1 since this zero frequency value 
+gives the mean level of the spectrum.
+.le
+.ls fmax = 32
+An integer value for the end of the filtering region.  This value should be 
+less than or equal to 161, because the filtering is done on both sides of 
+central pixel of the spectrum.
+.le
+.ls fl_mef = yes
+A boolean value flagging whether the spectrum is a MEF file, in which case 
+the spectrum is assumed to be in extension 1, or not.  Output spectra from the
+MIDIR package routines are MEF files of this type.  If a spectrum were 
+extracted via APALL, for example, the resulting file would be a 
+regular FITS file and for such files this flag should be set to "no".
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes the task use the logfile
+defined by \fImidir.logfile\fR.
+.le
+.ls verbose = yes
+Print actions to the terminal.
+.le
+.ls status = 0
+An integer flag for the exit status.  It is zero if the execution was 
+successful, and 1 if there was an error.
+.le
+.ih
+DESCRIPTION
+This routine carries out a Fourier filtering of a T-ReCS or Michelle spectrum 
+to attempt to remove the fringes that are seen superimposed on the continuum. 
+The routine uses the Fourier transform tasks in the 
+\fIstsdas.analysis.fourier\fR package.  What is done is to transform the input 
+spectrum to the Fourier domain, and then some of the frequency components are 
+filtered out.  The revised spectrum is transformed back to the spectral domain 
+and written to the output file.
+.sp
+Note that the task does not automatically load the 
+\fIstsdas.analysis.fourier\fR package, so this has to be done by the user 
+before using the routine.  Another thing to remember is that while the 
+\fIstsdas.analysis.fourier\fR routine FORWARD that is used here generally 
+normalizes the range of the Fourier transformed spectra to the range from zero 
+to one, here the Fourier spectra are set with a range of 1 to 320 pixels to 
+match the range of values for the \fIfmin\fR and \fIfmax\fR parameters.
+.sp
+If the spectrum is a low resolution spectrum then the fringes have a period of 
+about 2 pixels.  In that case the routine filters out the high frequency 
+components, within 3 frequency elements of the central pixel of the spectrum 
+in the Fourier domain.  For the higher resolution spectral modes the fringes 
+are of lower pixel frequency, and it is no longer possible to determine the 
+region of frequencies to filter out a priori.  For these types of spectra 
+one has to use the \fIfmin\fR and \fIfmax\fR values to set the frequency 
+range to screen out.  One then has to experiment with the frequency range
+to filter out, so as to find the best window.  One can set the range 
+interactively during the execution of the task (see cursor commands, below).
+.sp
+Another option in the filtering is whether to completely exclude the 
+frequencies in the windowing region or to use a linear interpolation from the 
+adjacent pixels on either side of the windowing region.  This is determined 
+by the \fIfl_interpolate\fR parameter.  If it is "yes" interpolation is done, 
+if it is "no" the filtered region is set to zero.
+.sp
+The screening is done to both the real and imaginary parts of the Fourier
+transformed spectrum.  If a pixel range k to l is specified, the same filtering
+is done to pixels 322-l through 322-k.  The lower bound of the filtering region
+has to be larger than 1.  This task never changes the zero frequency elements 
+of the Fourier spectra.
+.sp
+During the execution of the task two plots are automatically produced.  
+First, after the Fourier transform is done the real and imaginary parts are 
+plotted using SPLOT, with the real part in red and the imaginary part 
+in white.  It is then possible to use key commands to change the scaling so 
+one can look for the frequency components of the fringes.  Other key commands 
+allow one to re-set the \fIfmin\fR and \fIfmax\fR values from the plot.
+.sp
+After the Fourier plot is exited with the "q" key, the filtering is carried 
+out.  Once the corrected spectrum is obtained both the original and the 
+defringed spectra are plotted with SPLOT, and one is able to examine 
+the spectra to some degree using a few cursor commands.
+.ih
+CURSOR COMMANDS
+.sp
+A small set of cursor commands have been implemented for the two plots that
+are produced by this routine.  They are as follows--
+.sp
+.nf
+For both plots:
+
+   a  --  autoscale the plot 
+
+   e  --  change the scale of the plot; keys aside from "q" will be ignored
+          until "e" is pressed again, and the two points marked are used to 
+          define the range of the plot
+
+   p  --  print the position of the cursor
+
+   q  --  exit the plot
+
+For the Fourier spectrum plot only:
+
+   l  --  define the lower limit of the filtering window at the current 
+          cursor x position
+
+   u  --  define the upper limit of the filtering window at the current 
+          cursor x position
+
+For the original spectrum/defringed spectrum plot only:
+
+   r  --  reset the values and execute the task again
+
+   i  --  exit the routine without producing the output spectrum
+
+.fi
+.sp
+In the case of low resolution spectra one can use the "l" key to define the 
+lower limit of the filtering regions.  The upper limit of the filtering region 
+will be set by having the region symmetric about pixel 161, so any value set 
+with the "u" key will be ignored.
+.sp
+When the Fourier plot is produced, the frequencies being filtered are shown 
+on the left half of the plot (i.e. between the \fIfmin, fmax\fR values, not 
+the mirrored values on the right side of the plot) as a straight line.  If the 
+\fIfl_interpolate\fR option is "yes" then the line joins the two end 
+points of the filtering region in the imaginary part of the spectrum.  
+If \fIfl_interpolate\fR is "no" then the line is drawn at zero.
+.sp
+As some measure of trial and error may be needed in finding out how to filter 
+a spectrum, when the filtering has been done and the original spectrum is 
+plotted along with the defringed spectrum one has the option of using the "r" 
+key to abandon the current result and start over.  If this is the case then
+the task starts over, except that if the \fIfmin\fR and \fIfmax\fR parameters
+have been changed these values are used in the next iteration.  Until the 
+second plot is exited via the "q" key command the output file is not produced.
+.ih
+EXAMPLE
+1. The following shows the usage of msdefringe with a 
+low resolution N-band spectrum, if it is a normal fits file 
+(as would be produced using apall on a mid-IR raw spectrum):
+.sp
+.nf
+    re> msdefringe alphaCMa fl_mef- fl_zerocut- outspec="defringed" \
+    >>> fl_inter- logfile="defringe.log"
+    MSDEFRINGE 
+    MSDEFRINGE -------------------------------------------------------------
+    MSDEFRINGE Log opened at [Thu 09:28:50 02-Mar-2006]
+    MSDEFRINGE 
+    MSDEFRINGE --------------------
+    MSDEFRINGE Input Parameters:
+    MSDEFRINGE      inspec         = alphaCMa
+    MSDEFRINGE      outspec        = defringed
+    MSDEFRINGE      outpref        = d
+    MSDEFRINGE      fl_lowres      = yes
+    MSDEFRINGE      fl_zerocut     = no
+    MSDEFRINGE      fl_interpolate = no
+    MSDEFRINGE      fmin           = 18
+    MSDEFRINGE      fmax           = 32
+    MSDEFRINGE      fl_mef         = no
+    MSDEFRINGE      logfile        = defringe.log
+    MSDEFRINGE --------------------
+    Filtering range: 158:164
+.fi
+.sp
+The task will show two plots, first the fourier domain plot and then 
+after one exits that plot with "q" second the plot of the original and 
+defringed spectra is shown.  One needs to exit this plot with "q" as well.
+.sp
+The task is intrinsically interactive and the plotting cannot be disabled. 
+It should not be run with input or output re-directed from the terminal.  
+While this particular example is one where the default filtering gives a 
+good result, this is not always true even for low resolution N-band spectra,
+Users should expect to have to do some trial-and-error searching for the 
+best filtering.
+.ih
+BUGS AND LIMITATIONS
+If you try to defringe a spectrum which has no fringes in it, it is not 
+clear what will happen.  Ideally it will not have any effect.  Also, 
+if the background level at short or long wavelengths is slightly 
+negative rather than zero, as can happen due to slow changes in the 
+atmospheric conditions during an observation, then using the fl_zerocut 
+option can produce bad results.  If the average level of the spectrum 
+changes significantly after defringing this is the most likely reason 
+why.  If one re-runs the task with the fl_zerocut flag set to "no" the 
+problem should be resolved in such cases.
+.ih
+SEE ALSO
+forward, inverse (in the stsdas.analysis.fourier package), splot
+.endhelp

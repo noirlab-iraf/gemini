@@ -1,0 +1,229 @@
+.help mipstack December2011 gemini.midir
+.ih
+NAME
+mipstack -- Performs a straight average of the nod images within a given 
+data file, for Michelle polarimetry mode.
+.ih
+USAGE
+mipstack inimages
+.ih
+PARAMETERS
+.ls inimages
+The input image(s) to be processed by the task. It can be an image name, 
+a list of image names, a wild-card image name, or the "@" syntax can be 
+used to direct the task to read a list of file names.  These all must be 
+files that have been made by the TPREPARE or MPREPARE tasks.
+.le
+.ls outimages = ""
+The output image name(s) for the registered files.  If this field is left 
+blank the \fIoutpref\fR string is used to create new file names from the 
+input file names.  Otherwise the number of output file names must match 
+the number of input file names or an error condition occurs.  The field 
+must contain either a list of output file names or use the "@" syntax to 
+direct the task to read a list of file names.  The task tests for whether 
+the output images exist and exits with an error condition if any of them 
+do exist.
+.le
+.ls outpref = "s"
+A prefix string which is prefixed to each input image name to make
+the corresponding output image name if the output file name(s) are 
+not specified via the \fIoutimages\fR parameter.
+.le
+.ls rawpath = ""
+The path to the directory containing the T-ReCS or Michelle image files.  
+If the value is "" (empty string) the current directory is used.
+.le
+.ls frametype = "dif"
+A variable to mark which type of images are to be combined: the default is 
+"dif" for the difference frames, but it can also be "src" for the on-source 
+frames or "ref" for the sky reference frames.
+.le
+.ls combine = "average"
+A variable which can have the values "average" or "sum".  This determines 
+whether the combination of images is done via averaging or by summation. 
+This variable is passed to the IMCOMBINE task as its \fIcombine\fR 
+parameter.  Any value aside from "average" or "sum" produces an error.
+.le
+.ls fl_register = no
+A flag for whether the individual waveplate images should be registered 
+before being combined.  If the value is "yes" then all images at a given 
+waveplate position for each individual NOD position are registered to the 
+first image in the group.  Registration is done with the XREGISTER
+task.  The \fIregions\fR parameter determines what part of the image is used 
+in the registration process.  Normally registration using the whole image 
+does not work well.
+.le
+.ls regions = "[*,*]"
+When \fIfl_register\fR is "yes", this parameter determines the region(s) of 
+the image that is used in the registration.  While the default is the 
+entire image, this does not usually work well.  The region(s) should be 
+selected to be around some bright and compact object(s) in the field, if 
+at all possible.  This parameter is used by the IRAF task XREGISTER.
+.le
+.ls fl_stair = yes
+This is a flag for whether or not to try to remove channel to channel offsets
+in the stacked images.  This can only be done properly if the target does 
+not occupy a large fraction of the detector.
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes the task use the logfile
+defined by midir.logfile.
+.le
+.ls verbose = yes
+Print actions to the screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error. 
+This parameter is always set by the task, and should not be modified by 
+the user.
+.le
+.ih
+DESCRIPTION
+.sp
+This task is very similar to MISTACK, but is specialized for Michelle 
+polarimetry observations.  See the help for MISTACK for a discussion of 
+how the original images in the raw data file are combined to form a single 
+stacked frame.  This routine does nothing to files taken in normal mode
+rather than polarimetry mode.
+.sp
+What is different here is that the stacking of the individual images is done 
+for each of the four positions of the waveplate in Michelle.  The output image 
+therefore contains four extensions rather than one as in the case for 
+non-polarimetric observations.  The four extensions are for wave plate 
+positions of 0 degrees, 22.5 degrees, 45 degrees, and 67.5 degrees 
+respectively.  Each extension has five new FITS keywords:
+.sp
+.nf
+    WPLATE   : The waveplate angle, in degrees;
+    POLANGLE : The polarization selection angle, in degrees;
+    ANGROT   : The polarization angle offset of the instrument, in degrees;
+    T        : The waveplate transmission value;
+    E        : The waveplate efficiency value.
+.fi
+.sp
+The polarization selection angle is twice the waveplate angle, so it has 
+values of 0, 45, 90, and 135 degrees.  This header value can be used as the 
+\fIkeyword\fR parameter in the LINPOL routine (which is in the 
+noao.nproto package) to calculate polarization maps.  The other keywords
+are intended to allow the images to be analyzed with the "polpack" package,
+which is part of the starlink software.
+.sp
+The \fIfl_stair\fR flag is analogous to that in the MIPSTACK task: 
+if the value is "yes" then this task removes channel to channel offsets 
+from the Stokes I, U, and Q images as these are created.  This is done 
+by finding the medium pixel value for each of the sixteen channels in the 
+detector.  These median values are subtracted off the image sections of 
+the stacked Stokes images.  This will only work if the target object does 
+not fill one or more of the channels.in the detector, which are vertical 
+sections 20 pixels across.  The median levels in the various channels 
+differ by a few ADU in a typical image.  This can have an effect on the 
+polarization signature over the image if it is not removed.  One can run 
+the task with and without the \fIfl_stair\fR option set and subtract the 
+pairs of images that result to see what effect the staircase correction 
+has.  This should be done if the object in the field is large.
+.sp
+Each extension is a single image of dimension [320,240].  The primary header 
+is taken from the input image.
+.sp
+Once the stacked polarization file has been produced, the Stokes parameters 
+can be generated using the MIPTRANS task.
+.ih
+EXAMPLE
+.sp
+1. Here is an example where registration is used.  There is a bright star 
+in the field at position [207,159] so a21 by 21 box around this star 
+is used for the registration.  In this particular case the different 
+images need to be registered because of a drift over the observation 
+due to the cassegrain rotator being fixed.
+.sp
+.nf
+    mi> mipstack mN20050131S0056 fl_register+ regions="[197:217,149:169]"
+    MIPSTACK 
+    MIPSTACK ---------------------------------------------------------------
+    MIPSTACK Log opened at [Tue 23:37:30 06-Dec-2005]
+    MIPSTACK 
+    MIPSTACK --------------------
+    MIPSTACK Input Parameters:
+    MIPSTACK      inimages       = mN20050131S0056
+    MIPSTACK      rawpath        = 
+    MIPSTACK      outimages      = 
+    MIPSTACK      outpref        = s
+    MIPSTACK      logfile        = 
+    MIPSTACK      frametype      = dif
+    MIPSTACK      fl_register    = yes
+    MIPSTACK      region         = [197:217,149:169]
+    MIPSTACK      verbose        = yes
+    MIPSTACK --------------------
+    MIPSTACK   mN20050131S0056 --> smN20050131S0056.fits
+    MIPSTACK Instrument is:michelle
+    MIPSTACK Number of extensions is 32
+    Average shift from tmpregister22554fq to tmpregister12554eq is -2.149898 2.850101 pixels
+            Shifting image tmpregister22554fq to image tmpfile22554cq ...
+    Overlap region: [-1:317,4:242]
+    Vignetted overlap region: [1:317,4:240]
+    ...
+    ...
+    Average shift from tmpfile12554ws to tmpfile12554vq is -3.929655 4.444874 pixels
+            Shifting image tmpfile12554ws to image tmpregister12554zs ...
+    Overlap region: [-2:316,6:244]
+    Vignetted overlap region: [1:316,6:240]
+    MIPSTACK 
+    MIPSTACK Dec  6 23:37: IMCOMBINE
+    MIPSTACK   combine = average, scale = none, zero = none, weight = none
+    MIPSTACK   blank = 0.
+    MIPSTACK                 Images 
+    MIPSTACK          tmpfile12554dq
+    MIPSTACK      tmpregister12554tq
+    MIPSTACK      tmpregister12554qr
+    MIPSTACK      tmpregister12554fs
+    MIPSTACK 
+    MIPSTACK   Output image = tmpfinal2554bq, ncombine = 4
+    MIPSTACK 
+    MIPSTACK Dec  6 23:37: IMCOMBINE
+    MIPSTACK   combine = average, scale = none, zero = none, weight = none
+    MIPSTACK   blank = 0.
+    MIPSTACK                 Images 
+    MIPSTACK          tmpfile12554vq
+    MIPSTACK      tmpregister12554lr
+    MIPSTACK      tmpregister12554ks
+    MIPSTACK      tmpregister12554zs
+    MIPSTACK 
+    MIPSTACK   Output image = tmpfinal2554ft, ncombine = 4
+    tmpfinal2554ft -> smN20050131S0056.fits
+    MIPSTACK 
+    MIPSTACK Dec  6 23:37: IMCOMBINE
+    MIPSTACK   combine = average, scale = none, zero = none, weight = none
+    MIPSTACK   blank = 0.
+    MIPSTACK                 Images 
+    MIPSTACK          tmpfile12554hq
+    MIPSTACK      tmpregister12554oq
+    MIPSTACK      tmpregister12554vr
+    MIPSTACK      tmpregister12554as
+    MIPSTACK 
+    MIPSTACK   Output image = tmpfinal2554gt, ncombine = 4
+    tmpfinal2554gt -> smN20050131S0056.fits
+    MIPSTACK 
+    MIPSTACK Dec  6 23:37: IMCOMBINE
+    MIPSTACK   combine = average, scale = none, zero = none, weight = none
+    MIPSTACK   blank = 0.
+    MIPSTACK                 Images 
+    MIPSTACK          tmpfile12554zq
+    MIPSTACK      tmpregister12554gr
+    MIPSTACK      tmpregister12554ps
+    MIPSTACK      tmpregister12554us
+    MIPSTACK 
+    MIPSTACK   Output image = tmpfinal2554ht, ncombine = 4
+    tmpfinal2554ht -> smN20050131S0056.fits
+    deleted tmpon2554vp
+    MIPSTACK --------------------
+    MIPSTACK Exit status: SUCCESS
+    MIPSTACK Log closed at [Tue 23:37:34 06-Dec-2005]
+    MIPSTACK ---------------------------------------------------------------
+    MIPSTACK 
+.fi
+.ih
+BUGS AND LIMITATIONS
+.ih
+SEE ALSO
+mistack, miptrans, linpol, images.immatch.xregister
+.endhelp

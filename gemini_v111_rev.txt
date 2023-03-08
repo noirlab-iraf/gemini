@@ -1,0 +1,306 @@
+GEMINI (December2011)    Gemini IRAF package v1.11    GEMINI (December2011)
+
+Release date: December 30, 2011
+
+This document describes the revisions relative to the Gemini IRAF package v1.10
+
+The Gemini IRAF package v1.11 is compatible with IRAF v2.14
+(gemini_v111_for_iraf_2.14.tar.gz) and the 32-bit version of IRAF v2.15
+(gemini_v111_for_iraf_2.15.tar.gz). This release will run under both IRAF and
+PyRAF environments. Please note that PyRAF users who choose to upgrade to IRAF
+v2.15 will need to use PyRAF v1.11. Please refer to
+http://www.gemini.edu/sciops/data-and-results/processing-software/requirements 
+for other requirements on your IRAF installation including other required
+external packages.
+
+WARNING!! The Gemini IRAF package v1.11 is NOT compatible with the 64-bit
+version of IRAF v2.15.
+
+WARNING!! The Gemini IRAF package v1.11 does NOT support the new GMOS North e2v
+CCDs. However, this release is the foundation for the upcoming patch that will
+provide full support for the new GMOS North e2v CCDs. PIs with new GMOS North
+e2v data should install v1.11 of the Gemini IRAF package in preparation for the
+upcoming patch. Due to the unexpected use of 6-amp mode, the gmos package has
+undergone many changes to ensure compatibility with 6-amp data. 
+Characterization of the new CCDs (e.g., accurately measuring the gain) is still
+to be completed, along with the scientific verification of the code for the new
+GMOS North e2v CCDs. 
+
+The binaries distributed with the package were built on Red Hat 9 and 
+Mac OS X 10.5 Intel.
+
+
+PRIMARY REVISIONS
+=================
+
+1) GNIRS: a) Added support for the re-built GNIRS that is now installed at
+             Gemini North
+          b) Improved the data quality calculations for nsextract
+
+2) GEMINI: a) Added a new task (install_check.cl) that enables the user to
+              check their Gemini IRAF installation (details provided below)
+           b) Removed the dependency on the external package nmisc
+
+3) GEMTOOLS: a) Removed compatibility constraints on fitsutil; the Gemini IRAF
+                package is now compatible with any recent version of fitsutil
+
+4) GMOS: a) Improved the data quality calculations for gsextract
+         b) Updated the look-up tables for the gratings and filters
+         c) Improved the determination of the upper wavelength limit when
+            cutting spectroscopic data
+
+5) NIRI: a) Updated the look-up table to include the missing f32 configurations
+
+
+DETAILS OF THE REVISIONS
+========================
+
+A multitude of minor bug fixes are included in this release. They will not be
+listed here. Rather, only the most notable changes or those more likely to be
+of interest to the user will be highlighted.
+
+1) GNIRS
+------------------
+Instruments: GNIRS (parameter changes also affects NIFS, NIRI, Michelle, 
+                    T-ReCS)
+
+    a) The majority of the changes needed to support the re-built GNIRS now
+       installed at Gemini North are contained in the look-up tables in
+       gnirs$data/. Some modifications to the code and the task parameters
+       were also necessary to ensure support for GNIRS at Gemini North and
+       backward compatibility with old data from GNIRS at Gemini South.
+
+       The software will automatically detect whether the data comes from GNIRS
+       at Gemini South or GNIRS at Gemini North. However, the user will, in
+       some cases, have to select the correct look-up tables for the input task
+       parameters. This applies in particular to the pinhole list and to the
+       bad pixel mask (BPM). Please refer to the file gnirs$data/README for a
+       list and short description of the look-up tables found in gnirs$data/. 
+
+       Examples of how to reduce GNIRS data can be obtained by running the task
+       gnirsexamples. In addition, information on how to reduce GNIRS
+       cross-dispersed data can be found at http://www.gemini.edu/sciops/instruments/gnirs/data-format-and-reduction/reducing-xd-spectra
+
+       All users of the GNIRS package (GNIRS users of course, but also users of
+       near-IR and mid-IR spectroscopy instruments) should initialize their
+       uparm directory to avoid conflicts with old parameter files. To do
+       this, either type "unlearn gnirs" at the IRAF or PyRAF prompt, or at the
+       shell prompt type "rm uparm/*" from the iraf home directory (where the
+       login.cl is located). 
+
+    b) The marking of bad pixels in the data quality (DQ) plane by the task 
+       nsextract has been modified. Specifically, pixels are marked as bad in
+       the output DQ plane if more than 50% of the pixels in the input aperture
+       are bad. 
+
+Notable bug fixes: 
+  nsflat: With cross-dispersed data, the intermediate file used to calculate
+          the fit to the flat did not have the bad areas masked out correctly.
+          The effect was mostly to create noisier flats than ideal. The new
+          fix should improve the quality of the processed cross-dispersed 
+          flats.
+
+  nsoffset: When running nscombine interactively, the keystroke commands typed
+            by the user were not registered. The new fix now registers the
+            keystroke commands and enables nscombine to be run interactively.
+
+  nsextract: Correctly implemented the use of fl_project=yes (this section of
+             the code contained many bugs).
+
+2) GEMINI
+------------------
+Instruments: All
+
+    a) A task called install_check.cl has been added to the top level of the
+       Gemini IRAF package. To use this task to check a Gemini IRAF
+       installation, define and execute the task by typing the following at the
+       IRAF or PyRAF prompt:
+
+           ecl> task $install_check=/iraf/extern/gemini/install_check.cl
+           ecl> install_check
+
+       If the Gemini IRAF package is installed in a non-standard location
+       (i.e., somewhere other than /iraf/extern/gemini/), be sure to update the
+       path to the task in the task definition above.
+
+    b) All occurrences of nmisc.psfmeasure, nmisc.xregister and nmisc.fixpix
+       were replaced with calls to noao.obsutil.psfmeasure,
+       images.immatch.xregister and imexpr respectively. The Gemini IRAF
+       package v1.11 is no longer dependent on the external package nmisc. 
+
+3) GEMTOOLS
+------------------
+Instruments: All
+
+    a) For IRAF v2.15, the nhedit task was moved from fitsutil to the main IRAF
+       package imutil. The Gemini IRAF package was updated so that it is now
+       compatible with any recent version of fitsutil. In addition, the
+       gemhedit task now automatically uses whichever version of nhedit is
+       available, depending on the user's specific installation. Users can
+       benefit from this automatic selection by using gemhedit in their own
+       code.
+
+4) GMOS
+------------------
+Instruments: GMOS North and South
+
+    a) The marking of bad pixels in the data quality (DQ) plane by the task 
+       gsextract has been modified. Specifically, pixels are marked as bad in
+       the output DQ plane if more than 50% of the pixels in the input aperture
+       are bad. 
+       
+    b) New filters have been added to the gmos$data/GMOSfilters.dat look-up 
+       table. The new filters are Z_G0322 and Y_G0323.
+       
+       Also the Y offset value for the B600 grating has been improved. 
+       Manual adjustment of that value should no longer be needed.
+
+    c) The upper wavelength limit when cutting spectroscopic data is now
+       determined using the grating  wavelength interval, the upper limit of
+       the filter band-pass, the 2% quantum efficiency cut-off of the detector
+       in the red or the edge of the detector, whichever has the shortest
+       wavelength. In addition, the user can override this default behaviour.
+
+Notable bug fixes:
+  gsflat: Features in long slit flats were spatially offset in y from the
+          correct row by a grating-dependent number of rows. The new fix
+          creates more appropriate flats, which will improve the accuracy of
+          the correction of the pixel-to-pixel variations.
+
+5) NIRI
+------------------
+Instruments: NIRI
+
+    a) There were missing configurations for the f32 camera in the look-up 
+       table, which has now been updated to include the missing information.
+
+
+SUMMARY OF ALL CHANGED PARAMETERS
+=================================
+
+If a task listed below is causing problems, it is very likely that the task is
+accessing an old parameter file that does not contain the updated parameters
+and/or values. To resolve the problem, the old parameter files for the Gemini
+IRAF package must be removed from the uparm directory. To do this, at the IRAF
+or PyRAF prompt, load gemini, then type "unlearn gemini". If it is not
+desirable to remove all the old parameter files for the Gemini IRAF tasks, it
+is possible to "unlearn" the individual task. 
+
+Please see the appropriate help file for more information about the specific
+parameter changes listed below.
+
+    gemtools.gemhedit:
+      - New parameter:      delete
+
+    gmos.gbias:
+      - New default values: fl_over = yes
+                            sat = "default" (from 65000)
+                            nbiascontam = "default" (from 4)
+
+    gmos.gbpm:
+      - New default value:  sat = "default" (from 65000)
+
+      - New parameters:     fl_qecorr (future support, not yet implemented)
+                            qe_data (future support, not yet implemented)
+                            qe_datadir (future support, not yet implemented)
+
+    gmos.gdisplay:
+      - New default value:  gap = "default" (from 37)
+
+    gmos.gfreduce:
+      - New default values: fl_over = yes
+                            nbiascontam = "default" (from 4)
+
+      - New parameters:     fl_qecorr (future support, not yet implemented)
+                            qe_refim (future support, not yet implemented)
+                            fl_keep_qeim (future support, not yet implemented)
+                            qe_corrpref (future support, not yet implemented)
+                            qe_corrimages (future support, not yet implemented)
+                            qe_data (future support, not yet implemented)
+                            qe_datadir (future support, not yet implemented)
+
+    gmos.giflat:
+      - New default values: fl_over = yes
+                            sat = "default" (from 65000)
+                            nbiascontam = "default" (from 4)
+
+      - New parameters:     fl_qecorr (future support, not yet implemented)
+                            qe_data (future support, not yet implemented)
+                            qe_datadir (future support, not yet implemented)
+
+    gmos.gireduce:
+      - New default values: fl_over = yes
+                            sat = "default" (from 65000)
+                            nbiascontam = "default" (from 4)
+
+      - New parameters:     fl_qecorr (future support, not yet implemented)
+                            qe_refim (future support, not yet implemented)
+                            fl_keep_qeim (future support, not yet implemented)
+                            qe_corrpref (future support, not yet implemented)
+                            qe_corrimages (future support, not yet implemented)
+                            qe_data (future support, not yet implemented)
+                            qe_datadir (future support, not yet implemented)
+
+    gmos.girmfringe:
+      - New default values: statsec="default" (from "[SCI,2][*,*]")
+
+    gmos.gmosaic:
+      - New default value:  gap = "default" (from 37)
+
+      - New parameter:      key_ccdsec
+
+    gmos.gnsdark:
+      - New default values: fl_over = yes
+                            sat = "default" (from 65000)
+                            nbiascontam = "default" (from 4)
+
+    gmos.gsextract:
+      - New parameter:      database
+
+    gmos.gsflat:
+      - New default values: fl_over = yes
+                            sat = "default" (from 65000)
+                            nbiascontam = "default" (from 4)
+
+      - New parameters:     fl_qecorr (future support, not yet implemented)
+                            qe_refim (future support, not yet implemented)
+                            fl_keep_qeim (future support, not yet implemented)
+                            qe_corrpref (future support, not yet implemented)
+                            qe_corrimages (future support, not yet implemented)
+                            qe_data (future support, not yet implemented)
+                            qe_datadir (future support, not yet implemented)
+                            wave_limit
+                            minval
+                            fl_seprows
+
+    gmos.gsreduce:
+      - New default values: fl_over = yes
+                            sat = "default" (from 65000)
+                            nbiascontam = "default" (from 4)
+
+      - New parameters:     fl_qecorr (future support, not yet implemented)
+                            qe_refim (future support, not yet implemented)
+                            fl_keep_qeim (future support, not yet implemented)
+                            qe_corrpref (future support, not yet implemented)
+                            qe_corrimages (future support, not yet implemented)
+                            qe_data (future support, not yet implemented)
+                            qe_datadir (future support, not yet implemented)
+                            wave_limit
+
+    gmos.mostools.mdfplot:
+      - New parameter:      instrume (future support for F2 MOS)
+
+    gnirs.nsextract:
+      - New parameters:     fl_vardq
+                            fl_usetabap
+                            weights
+
+    gnirs.nsmdfhelper:
+      - New parameters:     ixovershoot
+                            slitwidth
+
+    gnirs.nsprepare:
+      - New default value:  bpm = "gnirs$data/gnirsn_2010oct12_bpm.fits"
+
+    gnirs.nswedit:
+      - New parameter:      arrayid

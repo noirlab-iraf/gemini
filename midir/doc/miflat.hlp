@@ -1,0 +1,93 @@
+.help miflat November2011 gemini.midir
+.ih
+NAME
+miflat -- Derive flat field and bad pixel mask for MID-IR images
+.ih
+USAGE
+miflat inimage1 inimage2 outimage
+.ih
+PARAMETERS
+.ls inimage1 = ""
+The name of a T-ReCS or Michelle STARE mode image file to be used to make 
+the flat field frame.  Unlike most of the tasks in the \fImidir\fR package, 
+lists of files, wild-card file names, or lists (the "@" syntax) cannot be 
+used for the file specifications for this task.
+.le
+.ls inimage2 = ""
+The name of a second T-ReCS or Michelle STARE mode image file to be used to 
+make the flat field frame.
+.le
+.ls rawpath = ""
+The optional path to where the input images are found.  If blank the 
+input images are assumed to be in the current directory.
+.le
+.ls outimage = ""
+The name for the output flat field image.
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes the task use the logfile
+defined by midir.logfile.
+.le
+.ls verbose = yes
+Print actions to the screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error. 
+This parameter is always set by the task, and should not be modified by 
+the user.
+.le
+.ih
+DESCRIPTION
+This task is used to combine two T-ReCS or Michelle stare mode images into 
+a flat field frame.  The images to be used must be the output files from the 
+TPREPARE or MPREPARE tasks.  Also the files must be from the same 
+instrument.  What is done is to take the two average frames from the 
+observations, subtract the one with lower signal from the one with higher 
+signal, and divide the resulting image by its median pixel value.  The file 
+that results is stored in the output MEF file.  This file can then be used in 
+the MIREDUCE procedure.
+.sp
+Both input images must be taken in STARE mode.
+.sp
+The task makes some checks on the input files, but it is up to the user to 
+insure that these files are of the same exposure time, are in the same filter, 
+and so on.  The user needs to examine the resulting output file to insure that 
+it is suitable for flat fielding.  Such checks cannot be made automatically in 
+the procedure to cover all possible cases.
+.sp
+The task works on one pair of input images at a time, and produces a single 
+output image.  The task does not accept lists of images for the input or 
+output images.
+.sp
+One can specify a path to the input images using the \fIrawpath\fR parameter. 
+The output file is created in the current directory.
+.ih
+EXAMPLE
+1. Create a flatfield, flatsi1, from two input images located in the directory
+/home/user/data:
+
+.nf
+    cl> miflat rS20030916S0010 rS20030916S0011 flatsi1 \
+    >>> rawpath="/home/user/data"
+.fi
+
+This command would look in directory "/home/user/data" for two files, which 
+would have been previously produced using MIREDUCE with the flatfielding 
+option, \fIfl_flat\fR, set to "no".  These files would have to be created with 
+the \fIstackoption\fR parameter set to "stack".  The original observations 
+would normally have been carried out in stare mode.
+.sp
+The two files would be copied to temporary images in the current directory, 
+then the task will determine which one of them has the larger median value, 
+and on this basis decide with image is to be subtracted from the other.  The 
+difference image will then be divided by its median value to produce the 
+output image "flatsi1".
+.ih
+BUGS AND LIMITATIONS
+This routine has not been tested with any Michelle flat field observations, 
+and only for one attempted flat field observation with T-ReCS.
+.ih
+SEE ALSO
+mireduce, tprepare, mprepare
+.endhelp
+

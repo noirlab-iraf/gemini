@@ -1,0 +1,185 @@
+GEMINI (Jan2004)	Gemini IRAF package v1.5	GEMINI (Jan2004)
+
+Release date: January 9, 2004
+
+This document describes the revisions relative to the Gemini IRAF package v1.4. 
+
+This version of the Gemini IRAF package requires IRAF V2.12.2.
+
+PRIMARY REVISIONS:
+
+1) Tasks have been ported to IRAF 2.12.2.
+2) New mkpkg supporting configuration for multiple architectures.
+3) New package for mid-IR imaging data (gemini.midir).
+      This new package offers support for T-ReCs and Michelle data.
+4) New tasks.
+5) New functionalities/parameters.
+      In particular, the GMOS package now supports GMOS-South data, with the
+      exception of GMOS-S IFU data which are not supported with this release.
+6) Bug fixes
+
+
+DETAILS OF THE REVISIONS:
+
+1) Port to IRAF 2.12.2
+
+   All the gemini package tasks are compatible with IRAF 2.12.2.  The following 
+   tasks had to be modified to reflect the changes in IRAF 2.12.2:
+
+     gemtools.gemoffsetlist	gemtools.gemcombine
+     gemtools.imcoadd	   	gemtools.gemhedit
+     gemtools.wmef	   	gemtools.gemseeing
+
+     gmos.gbpm             	gmos.gmosaic
+     gmos.gdark 	   	gmos.gprepare
+     gmos.gfapsum	   	gmos.gsappwave
+     gmos.gfcombine	   	gmos.gscalibrate
+     gmos.gfcopy	   	gmos.gscrmask
+     gmos.gfextract	   	gmos.gscut
+     gmos.gfresponse	   	gmos.gsflat
+     gmos.gfskysub	   	gmos.gsreduce
+     gmos.gftransform	   	gmos.gsskysub
+     gmos.ggain 	   	gmos.gsslitfunction
+     gmos.giflat	   	gmos.gstransform
+     gmos.gireduce	   	
+  
+     niri.meanvar          	niri.nscut
+     niri.nifastsky	   	niri.nsextract
+     niri.niflat	   	niri.nsflat
+     niri.niflat	   	niri.nsreduce
+     niri.nireduce	   	niri.nssdist
+     niri.nisky 	   	niri.nsslitfunction
+     niri.nprepare	   	niri.nsstack
+     niri.nsappwave	   	niri.nstelluric
+     niri.nscalibrate	   	niri.nstransform
+     niri.nscombine		niri.nswavelength
+     
+     flamingos.fprepare
+     
+     oscir.obackground
+     oscir.oflat
+     oscir.oreduce
+
+     quirc.qfastsky            quirc.qreduce
+     quirc.qflat	       quirc.qsky
+
+2) New mkpkg
+
+   This GEMINI external package can be configured for various architectures, a
+   functionality common to most external packages.  Before compiling, the
+   package should be configured by typing: mkpkg -p gemini <arch>, where <arch>
+   is the architecture.  See gemini.readme and the mkpkg file itself for more
+   details.
+
+3) New MIDIR package
+
+   Basic support for the reduction of imaging data from T-ReCS and Michelle is 
+   now available.  The tasks included in this release are listed below.  Please
+   note that "miflat" should be used only on T-ReCS data.
+   
+   Michelle Specific Tasks:
+      mprepare - Prepare Michelle data for further reduction with the MID-IR 
+                 tasks. 
+      mview - Interactively view each frame in a Michelle file; allows user to 
+              mark nodsets as "bad".
+
+   T-ReCS Specific Tasks:
+      tbackground - Performs statistics on frames in a T-ReCS file; allows user 
+                    to mark nodsets/savesets as "bad".
+      tcheckstructure - Checks the structure of a T-ReCS file.
+      tprepare - Prepare T-ReCS data for further reduction with the MID-IR tasks.
+      tview - Interactively view each frame in a T-ReCS file; allows user to 
+              mark nodsets/savesets as "bad".
+
+   Imaging:
+      miflat - Derive flat field and bad pixel mask for MID-IR images; miflat 
+               does not apply the flat field correction.  (T-ReCS data only.)
+      miregister - Registers and stacks the nod images within a given data file.
+      mireduce - Reduce images from MID-IR Instruments (Bad pixel correction, 
+                 stacking, flat field)
+      mistack - Performs a straight stack of the nod images within a given data 
+                file.
+      miview - View MID-IR data frames that have been mprepared or tprepared.
+
+
+4) New tasks
+   
+   gmos.gifringe - Derive fringe frame for GMOS images
+   gmos.girmfringe - Subtract fringe frame from GMOS images
+   gmos.gnscombine - Combine Nod-and-Shuffle GMOS data frames into a master 
+                     frame
+   gmos.gsdrawslits - Draw slits from MDF on a GMOS image
+   gmos.mostools.mdfplot - Plot Mask Definition File
+   
+   niri.nsressky - Script to remove residual sky from NIRI longslit spectra.
+   
+   midir: New package. See item 3)
+
+5) New functionalities/parameters
+
+   gemtools.gemcombine:
+       - Allows rejection with only 2 input images.
+       - Parameter nkeep now defaults to 1 rather than 0.
+
+   gemtools.gemseeing:
+   gemtools.imcoadd:
+      - Support for GMOS-S.
+   
+   gmos.gdisplay:
+      - Support for GMOS-S, 6-amplifier mode, and all readmodes
+      - New "output" file parameter.
+   
+   gmos.ggain:
+   gmos.gprepare:
+   gmos.gsappwave:
+   gmos.gsextract:
+   gmos.gsskysub:
+      - Support for GMOS-S.
+   
+   gmos.giflat:
+      - Support for GMOS-S and 6-amplifier mode.
+      - New parameters: fl_bias, fl_trim
+      - New functionalities: 
+           o The user can select whether or not the images should be 
+	     bias-subtracted or trimmed.
+	   o A new type of rejection algorithm is offered (crreject).
+   
+   gmos.gmosaic:
+      - Support for GMOS-S and 6-amplifier mode.
+      - Modified logfile output for rotations.
+   
+   gmos.gnsskysub:
+      - Support for 6-amplifier mode.
+   
+   gmos.gscut:
+      - Support for GMOS-S.
+      - New parameter for extra slit width for MOS (yadd).
+   
+   gmos.gsflat:
+      - Allow detector by detector fitting.
+   
+   gmos.gsreduce:
+      - Allow flatfields with 3 science extensions to match the new gsflat
+        functionality.
+   
+6) Bug fixes
+
+   Various minor bug fixes have been done all over the package.  Below is a
+   truncated list summarizing a few of the most relevant ones from a user's
+   point of view.
+
+   gemtools.gemhedit:
+       - Fix a segmentation violation problem under Linux7.3
+
+   gmos.giflat:
+       - Fix normsec and statsec to work for any binning and number of
+         amplifiers.
+
+   gmos.gireduce:
+       - Fix a segmentation violation problem under some Linux systems.
+       - No longer crash when no flats are found.
+
+   gmos.gmosaic:
+       - Fix handling of WCS.
+
+

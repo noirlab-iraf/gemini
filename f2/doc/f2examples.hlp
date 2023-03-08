@@ -1,0 +1,38 @@
+.help f2examples August2012 gemini.f2
+.ih
+NAME
+f2examples -- Print FLAMINGOS-2 data reduction examples to the screen
+.ih
+USAGE
+f2examples example
+.ih
+PARAMETERS
+.ls example (imaging|longslit|MOS)
+Example script to print to the screen.
+.le
+.ih
+DESCRIPTION
+This task displays example scripts (from the f2$doc directory) for different
+instrument configurations.
+
+To use the examples, copy them and replace the file numbers with the file 
+numbers of your data. It is recommended to run each task separately, on the
+IRAF or PyRAF command line, at least until you are satisfied with the
+reduction. 
+
+.nf
+    Example       File
+    ------------------------------------
+    imaging       f2_imaging_example.cl
+    longslit      f2_longslit_example.cl
+    MOS           f2_mos_example.cl
+    -----------------------------------
+.fi
+
+.ih
+BUGS AND LIMITATIONS
+The data used are not distributed with this package and may not yet be public.
+.ih
+SEE ALSO
+f2info, f2infoimaging, f2infols, f2infomos
+.endhelp

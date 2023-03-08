@@ -1,0 +1,6 @@
+# Copyright(c) 2000-2017 Association of Universities for Research in Astronomy, Inc.
+#
+# Package parameters for the quirc package
+ 
+logfile,s,h,"quirc.log",,,"Logfile for tasks in the quirc package"
+version,s,h,"20Jul2017",,,"Package version date"

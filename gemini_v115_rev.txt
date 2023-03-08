@@ -1,0 +1,163 @@
+GEMINI (June2022)      Gemini IRAF package v1.15     GEMINI (June2022)
+
+Release date: June 8, 2022
+
+This document describes the revisions relative to the Gemini IRAF package
+v1.16.
+
+All users are encouraged to use Anaconda (https://www.continuum.io/downloads)
+and AstroConda (https://astroconda.readthedocs.io/) to install IRAF and the 
+Gemini IRAF package.  Quick instructions can be found on the Gemini website at: 
+https://www.gemini.edu/observing/phase-iii/understanding-and-processing-data/data-processing-software/download-latest
+
+A tarball is also available from the Gemini website.  Manual installation
+instructions for the Gemini IRAF package are included in the 
+gemini_readme.txt file.  The tarball, gemini_v115.tar.gz, can be obtained from
+https://www.gemini.edu/observing/phase-iii/understanding-and-processing-data/data-processing-software/download-latest
+
+The Gemini IRAF package v1.15 has been fully tested and vetted *only* in the 
+PyRAF environment.  Most of the package works under IRAF CL, however we have
+experienced irregularities here and there.  Therefore, we encourage people to
+use PyRAF to avoid problems.
+
+WARNING!! The Gemini IRAF package v1.16 does NOT work reliably with any of the
+version of IRAF v2.16 as distributed by NOAO.  AstroConda contains a version of 
+IRAF v2.16 modified for compatibility with Gemini IRAF and modern operating 
+systems.
+
+If updating an older installation of the Gemini IRAF package, it is 
+recommended that users initialize their uparm directories by typing 
+"rm uparm/*" in their iraf home directory (ie., where mkiraf was executed /
+where the login.cl file is located).  NOTE: if you wish to make a note of any
+stored parameters, please do so before running this command.
+
+The binaries distributed with the package were built on CentOS 5 and 
+Mac OS X 10.10.  See gemini_readme.txt for more information. 
+
+
+PRIMARY REVISIONS
+=================
+1) F2 package:    
+          a) Support for F2 MOS data.
+          b) Support for new JH and HK filters and reshuffling of J-low
+
+2) GNIRS package: 
+          a) Support for F2 MOS data.
+          b) Support for new JH and HK filters and reshuffling of J-low
+          c) For F2, use X/YOFFSET instead of WCS.
+          d) For GNIRS, prefer QH flats for cross-correlation
+
+3) MOSTOOLS package:
+          a) Support for F2 MOS data.
+
+4) GMOS package:  
+          a) Added support for new B480 gratings
+          b) Fix GMOS-S Hamamatsu mosaic transformation for binned data.
+
+
+DETAILS OF THE REVISIONS
+========================
+
+Only the most notable changes or those more likely to be of interest to 
+the users are highlighted, minor bug fixes are not.
+
+1) F2
+----------------
+Instrument: F2
+
+    a) Support for F2 MOS
+
+       Several changes to support F2 MOS data.  Also see the GNIRS package.
+       Added a F2 MOS reduction example.
+
+    b) Support for new JH and HK filters and reshuffling of J-low
+
+       Modifications and additions to several lookup tables to support the
+       new filters and the reshuffling of the J-lo filter within the
+       instrument.  Note that the LYOT wheel now contains the J-lo filter.
+
+
+2) GNIRS
+----------------
+Instrument: F2
+
+    a) Support for F2 MOS
+
+       Major work throughout the GNIRS package to support F2 MOS data.
+       The GNIRS package tasks are use for all the Gemini Near-IR 
+       spectroscopy data.
+
+    b) Support for new filters.
+
+       Modifications and additions to several lookup tables to support the
+       new JK and HK filters and the reshuffling of the J-lo filter within the 
+       instrument. Note that the LYOT wheel now contains the J-lo filter.
+       Updated wavelength info for R3K+K-long.
+
+       Modification to the code to read the modified lookup tables.
+
+    c) Use XOFFSET and YOFFSET keywords instead of WCS
+
+       For F2, use the XOFFSET and YOFFSET keyworkds to determine the positional
+       offsets between observations instead of absolute WCS because the
+       latter is not reliable enough.
+
+Instruments: GNIRS
+
+    d) Prefer QH flats for cross-correlation
+
+       QH flats are more uniformly illuminated and therefore preferred
+       for the shift measurements.
+
+
+3) MOSTOOLS
+----------------
+Instrument: F2
+
+    a) Support for F2 MOS
+
+       Laser cutter transformations for both the North and the South 
+       cutters added.
+
+
+4) GMOS
+----------------
+Instrument GMOS
+
+    a) Added support for new B480 gratings
+
+       New values in the lookup tables to support the new B480 gratings.
+
+    b) Fix GMOS-S Hamamatsu mosaic transformation for binned data.
+
+       The old mosaic transformations had a small inaccuracy that affected
+       binned data. 
+
+
+SUMMARY OF ALL CHANGED PARAMETERS
+=================================
+
+If a task listed below is causing problems, it is very likely that the task is
+accessing an old parameter file that does not contain the updated parameters
+and/or values.  To resolve the problem, the old parameter files for the 
+Gemini IRAF package must be removed from the uparm directory.  To do this, 
+initialize the uparm directory by typing "rm uparm/*" in your iraf home 
+directory (ie., where you ran mkiraf / where your login.cl file is located).
+NOTE: if you wish to make a note of any stored parameters, please do so before
+running this command.  If it is not desirable to remove all the old parameter
+files for the Gemini IRAF tasks, it is possible to "unlearn" the individual
+task.
+
+Please see the appropriate help file for more information about the specific
+parameter changes listed below.
+
+    gnirs.nstransform:
+      - New parameters:     reference
+
+    gnirs.nxdisplay:
+      - New parameters:     extname
+                            z1, z2
+                            verbose
+                            sversion
+
+    

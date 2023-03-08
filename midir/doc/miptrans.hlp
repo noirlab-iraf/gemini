@@ -1,0 +1,173 @@
+.help miptrans November2011 gemini.midir
+.ih
+NAME
+miptrans -- Carry out a calculation of the Stokes parameters from a 
+stacked Michelle polarimetry file
+.ih
+USAGE
+miptrans inimages
+.ih
+PARAMETERS
+.ls inimages
+The input image(s) to be processed by the task. It can be an image name, 
+a list of image names, a wild-card image name, or the "@" syntax can be 
+used to direct the task to read a list of file names.  These all must be 
+files that have been made by the MIPSTACK task.
+.le
+.ls outimages = ""
+The output image name(s) for the transformed files.  If this field is left 
+blank the \fIoutpref\fR string is used to create new file names from the 
+input file names.  Otherwise the number of output file names must match 
+the number of input file names or an error condition occurs.  The field 
+must contain either a list of output file names or use the "@" syntax to 
+direct the task to read a list of file names.  The task tests for whether 
+the output images exist and exits with an error condition if any of them 
+do exist.
+.le
+.ls outpref = "p"
+A prefix string which is prefixed to each input image name to make
+the corresponding output image name if the output file name(s) are 
+not specified via the \fIoutimages\fR parameter.
+.le
+.ls rawpath = ""
+The path to the directory containing the Michelle image files.  
+If the value is "" (empty string) the current directory is used.
+.le
+.ls fl_register = no
+A boolean variable that flags whether the four input images at the four 
+waveplate positions should be registered (using the XREGISTER task 
+in the images.immatch package) before the transformation is done.  If the 
+value is "yes" then the \fIregions\fR parameter must be set to whichever 
+part of the images contains a bright source.  If the entire image is used
+for registration the results may be poor.  Generally it is best to define a 
+small box around a bright object when doing registration.
+.sp
+Note that registering the images at the different waveplate positions 
+may not be a good thing to do.  If the different component images are 
+distinctly different due to the object having a strong polarization the 
+registration may be wrong and the resulting polarization images will 
+therefore also be wrong.
+.le
+.ls regions = "[*,*]"
+This parameter specifies an image section to be used for registration of the 
+individual wave-plate images before the calculation of the Stokes parameters 
+is done, if the \fIregister\fR parameter is set to "yes".
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes the task use the logfile
+defined by \fImidir.logfile\fR.
+.le
+.ls verbose = yes
+Set this for logging to the screen as well as the log file.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error. 
+This parameter is always set by the task, and should not be modified by 
+the user.
+.le
+.ih
+DESCRIPTION
+.sp
+This task takes the four Michelle polarimetry mode images and uses the standard
+equations to calculate the Stokes parameters for linear polarization, I, U and 
+Q.
+.sp
+There is an option to register the images with the XREGISTER routine 
+before carrying out the transformation.  This is recommended if there is a 
+relatively bright object in the field.  If this is done, a box needs to be 
+defined around the object, with something like 10 pixels space on all sides. 
+The image section to use for registration is defined in the \fIregions\fR 
+parameter.  Generally using the entire image for registration does not produce 
+the best results, especially because of the possible presence of the negative 
+chop beam images on the detector when doing imaging polarimetry.  When the 
+registration is requested the pixel offsets are printed to the terminal.  
+These offsets should not be large.  Offsets that are significantly more than 
+1 pixel in x or in y are probably not correct.
+.sp
+The formulae used for the transformation are as follows, where the four 
+wave-plate images at 0, 22.5, 45, and 67.5 degrees are denoted by I00, I45, 
+I90, and I135 respectively:
+.sp 
+U = I00 - I90
+.sp
+Q = I45 - I135
+.sp
+I = (I00 + I45 + I90 + I135)/2
+.sp
+The output image is a MEF file with three image extensions, each of dimension 
+[320,240].  These are I, U, and Q, respectively.  The primary image header 
+is taken from the input file.
+.ih
+EXAMPLE
+1.  Applying MIPTRANS without registration.
+.sp
+.nf
+    mi> miptrans smN20050131S0056
+    MIPTRANS 
+    MIPTRANS ---------------------------------------------------------------
+    MIPTRANS Log opened at [Wed 00:02:26 07-Dec-2005]
+    MIPTRANS 
+    MIPTRANS --------------------
+    MIPTRANS Input Parameters:
+    MIPTRANS      inimages       = smN20050131S0056
+    MIPTRANS      outimages      = 
+    MIPTRANS      outpref        = p
+    MIPTRANS      rawpath        = 
+    MIPTRANS      fl_register    = no
+    MIPTRANS      regions        = [*,*]
+    MIPTRANS      logfile        = 
+    MIPTRANS      verbose        = yes
+    MIPTRANS --------------------
+    tmp22554lx -> psmN20050131S0056.fits
+    tmp12554kx -> psmN20050131S0056.fits
+    MIPTRANS --------------------
+    MIPTRANS Exit status: SUCCESS
+    MIPTRANS Log closed at [Wed 00:02:27 07-Dec-2005]
+    MIPTRANS ---------------------------------------------------------------
+    MIPTRANS
+.fi
+.sp
+2.  Applying MIPTRANS with registration.
+.sp
+.nf
+    mi> miptrans smN20050131S0056 outpref="q" fl_register+ \
+    >>> region="[197:217,149:169]"
+    MIPTRANS 
+    MIPTRANS ---------------------------------------------------------------
+    MIPTRANS Log opened at [Wed 00:02:56 07-Dec-2005]
+    MIPTRANS 
+    MIPTRANS --------------------
+    MIPTRANS Input Parameters:
+    MIPTRANS      inimages       = smN20050131S0056
+    MIPTRANS      outimages      = 
+    MIPTRANS      outpref        = q
+    MIPTRANS      rawpath        = 
+    MIPTRANS      fl_register    = yes
+    MIPTRANS      regions        = [197:217,149:169]
+    MIPTRANS      logfile        = 
+    MIPTRANS      verbose        = yes
+    MIPTRANS --------------------
+    Average shift from smN20050131S0056[2] to smN20050131S0056 is -0.828392 0.8535824 pixels
+            Shifting image smN20050131S0056[2] to image tmp42554xx ...
+    Overlap region: [1:319,2:240]
+    Average shift from smN20050131S0056[3] to smN20050131S0056 is -0.03076458 0.03674078 pixels
+            Shifting image smN20050131S0056[3] to image tmp52554yx ...
+    Overlap region: [1:319,2:240]
+    Average shift from smN20050131S0056[4] to smN20050131S0056 is -0.8254318 1.170082 pixels
+            Shifting image smN20050131S0056[4] to image tmp62554zx ...
+    Overlap region: [1:319,3:241]
+    Vignetted overlap region: [1:319,3:240]
+    tmp22554vx -> qsmN20050131S0056.fits
+    tmp12554ux -> qsmN20050131S0056.fits
+    MIPTRANS --------------------
+    MIPTRANS Exit status: SUCCESS
+    MIPTRANS Log closed at [Wed 00:02:57 07-Dec-2005]
+    MIPTRANS ---------------------------------------------------------------
+    MIPTRANS 
+.fi
+.ih
+BUGS AND LIMITATIONS
+.ih
+SEE ALSO
+mipstack, images.immatch.xregister
+.endhelp

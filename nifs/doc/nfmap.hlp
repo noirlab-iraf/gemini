@@ -1,0 +1,225 @@
+.help nfmap December2011 gemini.nifs
+.ih
+NAME
+nfmap -- Extract a channel map from a NIFS data cube
+.ih
+USAGE
+nfmap inimage wavelength npix
+.ih
+PARAMETERS
+.ls inimage
+The name of a processed NIFS data cube image, which must be the output of 
+NFCUBE.  This is assumed to be a MEF file.  Only 1 file can be processed 
+at a time.
+.le
+.ls wavelength = 0.0
+The central wavelength of the region to be extracted for the map.  The value 
+must be given in Angstroms.  Normally this would be the wavelength of a 
+spectral line.
+.le
+.ls npix = 9
+The number of pixels about the specified wavelength to be extracted.  If an 
+even number of pixels is specified it is rounded up so the extraction region 
+is symmetric about the pixel nearest to the specified wavelength.
+.le
+.ls velocity = 0.0
+A velocity offset value for the region to be used to make the map.  This 
+value is given in km/second.  The total shift must be less than 100 pixels 
+from the line center.
+.le
+.ls outimage = ""
+If given, this is the output file name.  Otherwise the output file name is 
+formed from the \fIoutpref\fR parameter and the input file name.
+.le
+.ls outpref = "m"
+If the \fIoutimage\fR parameter is blank, this prefix is added to the input 
+file name to create the output file name.
+.le
+.ls fl_cont = yes
+A flag for whether to subtract off a continuum image.  If the value is yes 
+then the CONT1 and CONT2 parameters define adjacent regions (relative to the 
+line center) which are used to create a continuum map.
+.le
+.ls cont1 = "-5:-8"
+This string gives one range of values relative to the line center that is to 
+be used for making a continuum map.  Regions on each side of the line center 
+must be defined. The images for the two regions are either averaged or 
+interpolated (depending on the \fIfl_interp\fR flag value) to make a continuum 
+image.
+.le
+.ls cont2 = "5:8"
+This string gives a second range of values relative to the line center that 
+is to be used for making a continuum map.  Regions on each side of the line 
+center must be defined. The images for the two regions are either averaged or 
+interpolated (depending on the \fIfl_interp\fR flag value) to make a continuum
+image.
+.le
+.ls fl_interp = no
+A flag for whether to make a continuum map from adjacent pixels to then 
+subtract off of the map made with the pixels specified by \fIwavelength\fR and 
+\fInpix\fR.
+.le
+.ls logfile = ""
+Name of the logfile for the task.  If it is blank, the NIFS package
+\fIlogfile\fR name is used.  If that too is not defined, "nifs.log" is used.
+.le
+.ls verbose = yes
+A flag for whether more verbose messages should be written to the terminal.
+.le
+.ls status = 0
+A exit status value, which is zero for a successful completion and some 
+positive value if there is a error.
+.le
+.ih
+DESCRIPTION
+This task extracts images from a NIFS data cube, assumed to be produced by 
+the NFCUBE routine, for a specified wavelength range.  The motivation for this 
+routine is to be able to make emission line maps from NIFS datacubes.  The 
+user has the option of simply extracting an image for one or more spectral 
+pixels at a certain derived wavelength or to extract a "continuum" image 
+from wavelength pixels adjacent to the specified wavelength range and subtract 
+this off of the image from the "line" image.  In the case of a velocity 
+resolved spectral line it is also possible to specify a velocity shift of 
+the "line" region with respect to the given wavelength.
+.sp
+The task uses the wavelength parameters written to the header by the NFCUBE 
+routine to transform from wavelength to pixel number.  The spectra are assumed 
+to be linearized to a common linear wavelength scale.  The wavelength that 
+is used as input for the task is the same as one would find plotting one of 
+the individual spectra in the data cube with SPLOT.
+.sp
+The "line" region is specified by a central wavelength in Angstroms and a 
+window size in pixels.  The window size, specified by \fInpix\fR, should be an 
+odd number.  If \fInpix\fR is not an odd number, the value is incremented to 
+make it odd.  From the wavelength given and the header parameters the task 
+finds the nearest pixel to the specified wavelength.  This is taken as a 
+"base" pixel value.  If a \fIvelocity\fR value is specified the central 
+wavelength is shifted according to the Doppler formula to obtain the target 
+wavelength, rather than just using the input \fIwavelength\fR value.  Once the 
+base pixel has been found, all values thereafter are calculated relative to 
+this pixel.
+.sp
+Given an odd value \fInpix\fR the pixel range used for making the image is 
+taken to go from -(\fInpix\fR-1)/2 to +(\fInpix\fR-1)/2 with respect to the 
+base pixel.  The spectrum pixels for this range in each spacial pixel are 
+averaged together to form a two-dimensional image, normally of dimension 
+[65,69].
+.sp 
+If the \fIfl_cont\fR flag is set to yes then a second image is made using 
+adjacent spectral pixels above and below the base pixel.  These ranges are 
+determined by the \fIcont1\fR and \fIcont2\fR parameters.  The task checks to 
+make sure that the adjacent spectral region defined by these parameters does 
+not overlap with the region used to make the line map.  Both maps are averaged 
+so that the number of spectral pixels in the continuum regions can be anything 
+that is needed.  The default action is to simply average over all the spectral 
+pixels defined by the \fIcont1\fR and \fIcont2\fR strings.  However there is 
+also the option of interpolating between the \fIcont1\fR and \fIcont2\fR 
+regions to form the continuum map, which is to be used if the continuum slope 
+is significant around where a spectral line is located.  In that case two 
+continuum images are formed, one for the pixel range specified by \fIcont1\fR 
+and one for that specified by \fIcont2\fR.  Then a weighted average of the two 
+images is made, with the weight value depending on how far the center of the 
+spectral region is from the base pixel.
+.sp
+It is assumed that \fIcont1\fR and \fIcont2\fR strings define one region at 
+longer wavelength than the line wavelength and a second region at shorter 
+wavelength than the line wavelength.
+.sp
+The output file contains a single MEF extension holding the output 
+two-dimensional image.
+.sp
+The task shows a plot of the collapsed spectrum with the central line region 
+marked.  This plot also shows the two continuum regions as well if that 
+option is being used.  Each region is marked by a bar.  The bar indicating 
+the line region is plotted at a y level near the maximum of the values in 
+the plot, while the two bars for the continuum regions (if these are plotted) 
+are at a lower y value.
+.sp
+Channel maps can be obtained by setting \fInpix\fR to 1 and taking different 
+velocity values.  As the line wavelength will not generally be exactly at 
+an integer pixel value, users need to see from the logfile which spectral 
+pixel is being extracted.  A small amount of trial and error may be needed 
+for this purpose.  The task prints out the equivalent velocity value for the 
+pixel spacing that it is using.
+.ih
+EXAMPLES
+1.  Extracting an image in the Pa Beta line at 1.282 microns:
+.sp
+.nf
+    ni> nfmap ctfrusnN20051112S0164 12819. 9 verbose+
+    NFMAP 
+    NFMAP ------------------------------------------------------------------
+    NFMAP Log opened at [Wed 15:36:07 15-Mar-2006]
+    NFMAP 
+    NFMAP --------------------
+    NFMAP Input Parameters:
+    NFMAP      inimage        = ctfrusnN20051112S0164
+    NFMAP      wavelength     = 12819.
+    NFMAP      velocity       = 0.
+    NFMAP      npix           = 9
+    NFMAP      outpref        = m
+    NFMAP      outimage       = 
+    NFMAP      fl_cont        = yes
+    NFMAP      cont1          = -5:-8
+    NFMAP      cont2          = 5:8
+    NFMAP      fl_interp      = no
+    NFMAP      logfile        = 
+    NFMAP      verbose        = yes
+    NFMAP --------------------
+    NFMAP The pixel scale of  1.060 Angstroms corresponds to   24.800 km/s at 12819.000 Angstroms
+    NFMAP The wavelength specified,  12819.000 Angstroms, corresponds to pixel 1296.42.
+    NSMAP Pixel nearest specified wavelength: 1296
+    NSMAP Line extraction region: pixels 1292 to 1300
+    NSMAP Continuum region 1: pixels 1288 to 1291
+    NSMAP Continuum region 2: pixels 1301 to 1304
+    NFMAP --------------------
+    NFMAP Exit status: SUCCESS
+    NFMAP Log closed at [Wed 15:36:08 15-Mar-2006]
+    NFMAP ------------------------------------------------------------------
+    NFMAP 
+.fi
+.sp
+2.  The second example shows the extraction of a single channel map by 
+specifying a velocity, and setting \fInpix\fR to 1 so that the image for 
+the single spectral pixel is created.
+.sp
+.nf
+    ni> nfmap ctfrusnN20051112S0164 12819. 1 outimage=channelmap \
+    >>> velocity=15.         
+    NFMAP 
+    NFMAP ------------------------------------------------------------------
+    NFMAP Log opened at [Wed 15:40:00 15-Mar-2006]
+    NFMAP 
+    NFMAP --------------------
+    NFMAP Input Parameters:
+    NFMAP      inimage        = ctfrusnN20051112S0164
+    NFMAP      wavelength     = 12819.
+    NFMAP      velocity       = 15.
+    NFMAP      npix           = 1
+    NFMAP      outpref        = m
+    NFMAP      outimage       = channelmap
+    NFMAP      fl_cont        = yes
+    NFMAP      cont1          = -5:-8
+    NFMAP      cont2          = 5:8
+    NFMAP      fl_interp      = no
+    NFMAP      logfile        = 
+    NFMAP      verbose        = yes
+    NFMAP --------------------
+    NFMAP The pixel scale of  1.060 Angstroms corresponds to   24.800 km/s at 12819.000 Angstroms
+    NFMAP The shifted wavelength specified,  12819.641 Angstroms, corresponds to pixel 1297.02.
+    NSMAP Pixel nearest specified wavelength: 1297
+    NSMAP Line extraction region: pixels 1297 to 1297
+    NSMAP Continuum region 1: pixels 1288 to 1291
+    NSMAP Continuum region 2: pixels 1301 to 1304
+    NFMAP --------------------
+    NFMAP Exit status: SUCCESS
+    NFMAP Log closed at [Wed 15:40:01 15-Mar-2006]
+    NFMAP ------------------------------------------------------------------
+    NFMAP 
+.fi
+.ih
+BUGS AND LIMITATIONS
+.ih
+SEE ALSO
+nfcube
+.endhelp

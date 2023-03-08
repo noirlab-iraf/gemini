@@ -1,0 +1,111 @@
+.help gadimschk March2013 gemini.gsaoi
+.ih
+NAME
+gadimschk -- Check region of GSAOI image against another, including
+             statistics sections.
+.ih
+USAGE
+gadimschk inimage
+.ih
+PARAMETERS
+.ls inimage
+Input GSAOI image to check region against. Only one extension of an image
+allowed. Full name only, no wild cards allowed. Image name must include
+extension designation, i.e., extension index or EXTNAME and EXTVERSION. Region
+to be checked must also be included, although if if entire region of input
+image is to be checked then the section can be omitted. The region specified
+will be checked against the dimensions of the input image. If the specified
+region does not lie within the bounds of the image the task will halt with an
+error.
+.le
+.ls section = ""
+Area of input image to check and then compare to \fIchkimage\fR. Allowed
+syntax, i.e., standard and non-standard IRAF syntax, can be found in the help
+for GEMSECCHK.
+.le
+.ls chkimage = ""
+Second image against which the region of \fIinimage\fR is to be compared. Only
+one extension of an image allowed. Full name only, no wild cards allowed. Image
+name must include extension designation, i.e., extension index or EXTNAME and
+EXTVERSION.
+.le
+.ls key_check = "CCDSEC" (CCDSEC|DETSEC)
+Image header keyword to perform the comparison with.
+.le
+.ls out_chkimage = ""
+This is the output parameter for this task and should not be altered by the
+user. \fIout_chkimage\fR contains the section of \fIchkimage\fR that represents
+the same area as that designated by the area of \fIinimage\fR. If the entire
+area of \fIchkimage\fR matches the region specified by \fIinimage\fR then
+"[*,*]" will be appended to the output name, i.e., a section will always be
+returned. However, should the area specified by \fIinimage\fR not lie wholly
+within \fIchkimage\fR the task will halt with an error.
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes use of the logfile
+defined by gsaoi.logfile.
+.le
+.ls verbose = yes
+Print actions to screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted
+with an error. This parameter is set by the task and should not be
+modified by the user.
+.le
+.ih
+DESCRIPTION
+
+GADIMSCHK checks the region specified by \fIinimage\fR against the dimensions
+of the extension specified by \fIinimage\fR to make sure that the region is
+within the bounds of the input extension. If not, the task will halt with an
+error.
+
+Should an image and extension be supplied in the \fIchkimage\fR parameter, then
+the region of the extension specified by \fIinimage\fR will be compared against
+the extension specified by \fIchkimage\fR. The comparison is done in the frame
+of reference by the header keyword specified by \fIkey_check\fR. If the region
+of \fIinimage\fR is wholly within \fIchkimage\fR then the region of
+\fIchkimage\fR which it describes (including the input \fIchkimage\fR name) is
+returned by the \fIout_chkimage\fR parameter. Should it not be wholly within
+\fIchkimage\fR then the task will halt with an error.
+.ih
+EXAMPLES
+
+.nf
+   cl> gadimschk S20120101S001.fits[1][*,50:2500]
+.fi
+
+As the maximum array dimensions of this image extension are 2048x2048
+(full-frame) gadimschk will halt with an error as the section specified does
+not lie wholly within the dimensions of the extension supplied.
+
+.nf
+   cl> gadimschk S20120101S001.fits[1] \
+           chkimage=gsaoi$data/gsaoibpm_high_full.fits[DQ,1]
+.fi
+
+The \fIchkimage\fR is the static BPM supplied with the GSAOI package. The input
+image is still full-frame. The dimensions in the coordinate reference CCDSEC of
+the input extension and the input \fIchkimage\fR match exactly. Therefore, the
+output parameter will be:
+
+\fIout_chkimage\fR=gsaoi$data/gsaoibpm_high_full.fits[DQ,1][*,*]
+
+
+.nf
+   cl> gadimschk gS20120101S001.fits[SCI,1][100:1000,50:2000] \
+           chkimage=gsaoi$data/gsaoibpm_high_full.fits[DQ,1]
+.fi
+
+The image has now been prepared and trimmed, meaning the dimensions no longer
+match those of the \fIchkimage\fR exactly. However, they still lie wholly
+within the dimensions of \fIchkimage\fR. Therefore, the output parameter will
+be:
+
+\fIout_chkimage\fR=gsaoi$data/gsaoibpm_high_full.fits[DQ,1][105:1005,55:2005]
+.ih
+SEE ALSO
+
+.endhelp
+

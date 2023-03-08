@@ -1,0 +1,12 @@
+    quirc - Reduction tasks for Hokupa'a/QUIRC data
+    oscir - Reduction tasks for OSCIR data
+     nifs - Reduction tasks for NIFS data
+     niri - Reduction tasks for NIRI data
+    gnirs - Reduction tasks for GNIRS data
+     gmos - Reduction tasks for GMOS-N and GMOS-S data
+    midir - Reduction tasks for T-ReCS and Michelle data
+flamingos - Reduction tasks for Flamingos-I data
+       f2 - Reduction tasks for FLAMINGOS-2 data
+    gsaoi - Reduction tasks for GSAOI data
+ gemtools - Generic tools developed for Gemini observations
+

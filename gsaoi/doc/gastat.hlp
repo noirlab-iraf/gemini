@@ -1,0 +1,153 @@
+.help gastat May2013 gemini.gsaoi
+.ih
+NAME
+gastat -- Calculate requested statistic for GSAOI image
+.ih
+USAGE
+gastat inimage
+.ih
+PARAMETERS
+.ls inimage
+Input GSAOI image to calculate statistic for. Path to image must be included in
+\fIinimage\fR. Only one image at a time. No wild cards allowed. Can be prepared
+or raw.
+.le
+.ls stattype "mean" (mean|mode|midpt)
+Type of statistic to compute
+.le
+.ls statsec = "[*,*]"
+Statistics section to use (relative to the input arrays). Assumes all input
+arrays (extensions) have the same dimensions. Allowed syntax, i.e., standard
+and non-standard IRAF syntax, can be found in the help for GEMSECCHK.
+.le
+.ls statextn = "DETECTOR" (DETECTOR|ARRAY|<extnname,extnver>|<index>)
+How to calculate the statistic specified by \fIstattype\fR for the
+image. \fIstatextn\fR="ARRAY" means to calculate the statistic for the region
+specified by \fIstatsec\fR separately for each individual
+array, i.e., 4 values will be calculated. \fIstatextn\fR="DETECTOR" means
+calculate the statistic using the areas specified by \fIstatsec\fR from each
+individual array but treat them as one pixel array, i.e., only 1 value is
+calculated. Or an extension index or EXTNAME and EXTVERSION can be supplied,
+returning the calculated statistic for the region specified in \fIstatsec\fR for
+that specified extension.
+.le
+.ls fl_mask = yes
+Mask non-good pixels when calculating statistics? Good pixels are assumed to
+have a value of 0 in the data quality planes.
+.le
+.ls badpix = "gsaoi$data/gsaoibpm_high_full.fits"
+Static MEF bad pixel mask. If \fIfl_mask\fR=yes but there are no extensions
+present within the input file with the EXTNAME equal to \fIdq_ext\fR, then the
+file specified by \fIbadpix\fR is used (but assumes then extensions are named
+"DQ"). 
+.le
+.ls calc_stddev = no
+Calculate the standard deviation?
+.le
+.ls lower = INDEF
+Lower good data value
+.le
+.ls upper = INDEF
+Maximum good data value
+.le
+.ls nclip = 0
+Number of clipping iterations
+.le
+.ls lsigma = INDEF
+Lower side clipping factor in sigma (only if \fInclip\fR > 0)
+.le
+.ls usigma = INDEF
+Upper side clipping factor in sigma (only if \fInclip\fR > 0)
+.le
+.ls outstat = INDEF
+Output parameter for this task containing the calculated statistic value(s) and
+should not be altered by the user. This is a comma separated list containing a
+value for each input extension regardless whether \fIstatextn\fR is "DETECTOR"
+or an individual extension. In these cases the value will be the same for each
+extension. The list is order by extension index if not prepared or extension
+version for prepared files.
+.le
+.ls stddev = INDEF
+Output parameter for this task containing the calculated standard deviation
+value(s) (if (\fIcalc_stddev\fR=yes) and should not be altered by the
+user. This is a comma separated list containing a value for each input
+extension regardless whether \fIstatextn\fR is "DETECTOR" or an individual
+extension. In these cases the value will be the same for each extension. The
+list is order by extension index if not prepared or extension version for
+prepared files.
+.le
+.ls sci_ext = "SCI"
+Name of the MEF extension containing the science data.
+.le
+.ls dq_ext = "DQ"
+Name of the MEF extensions containing the data quality information. This cannot
+be set to the same value as \fIsci_ext\fR.
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes use of the logfile
+defined by gsaoi.logfile.
+.le
+.ls verbose = yes
+Print actions to screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted
+with an error. This parameter is set by the task and should not be
+modified by the user.
+.le
+.ih
+DESCRIPTION
+
+GASTAT calculates statistical values for the input GSAOI image. This value can
+be calculated for a specified extension, each individual extension
+(\fIstatextn\fR="ARRAY") or the entire image (\fIstatextn\fR="DETECTOR"). If
+\fIstatsec\fR is set this region of the specified extensions will be used in
+the calculation. The standard deviation can also be returned.
+
+Non-good pixels can be excluded from the calculation of the statistic, with
+\fIfl_mask\fR=yes.
+.ih 
+EXAMPLES
+
+.nf
+   cl> gastat gS20120101S001.fits[SCI,1] fl_mask-
+.fi
+
+This will return the mean (including non-good pixels) for the extension
+SCI,1. The fits kernel designation SCI,1 will override the \fIstatextn\fR in
+this case. For the purposes of this example, lets say the mean is 1100.0, then
+the output parameter \fIoutstat\fR will look like:
+
+1100.0,1100.0,1100.0,1100.0
+
+.nf
+   cl> gastat gS20120101S001.fits statsec=[100:2000,100:200]
+.fi
+
+This will calculate the mean for the entire detector but using the region
+specified by \fIstatsec\fR from each input extension, treating them like
+one array - the image is tiled internally. The image contains data quality
+planes which are used to exclude non-good pixels from those regions. For the
+purposes of this example, lets say the mean is 2560.35, then
+the output parameter \fIoutstat\fR will look like:
+
+2560.35,2560.35,2560.35,2560.35
+
+.nf
+   cl> gastat gS20120101S001.fits stattype="midpt" statextn="ARRAY" \
+           fl_mask- calc_stddev+
+.fi
+
+This will calculate the median separately for each input extension including
+all non-good pixels. It will also calculate the standard deviation for this
+calculation too. The output parameter will look like:
+
+\fIoutstat\fR = 2456.32,2561.0,2645.25,2345.69
+
+\fIstddev\fR = 102.3,125.6,150.56,189.0
+.ih
+SEE ALSO
+
+GADIMSCHK, MIMSTATISTICS
+.endhelp
+

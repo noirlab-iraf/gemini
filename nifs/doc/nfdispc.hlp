@@ -1,0 +1,228 @@
+.help nfdispc November2011 gemini.nifs
+.ih
+NAME
+nfdispc -- Display a series of channel maps from a NIFS data cube
+.ih
+USAGE
+nfdispc inimage cmin cmax
+.ih
+PARAMETERS
+.ls inimage
+The name of a processed NIFS data cube image, which must be the output of 
+NIFCUBE.  This is assumed to be a MEF file.  Only 1 file can be specified 
+at a time.
+.le
+.ls cmin
+The channel number, or wavelength, for the first channel to be displayed.  
+It is taken to be a channel number unless \fIfl_wavelength\fR is "yes" in which
+case it is taken to be a wavelength value in Angstroms.
+.le
+.ls cmax
+The channel number, or wavelength, for the last channel to be displayed.  
+It is taken to be a channel number unless \fIfl_wavelength\fR is "yes" in which
+case it is taken to be a wavelength value in Angstroms.
+.le
+.ls fl_wavelength = no
+A flag for whether the \fIcmin\fR and \fIcmax\fR values are wavelengths or 
+channel numbers.  If set to "yes" the \fIcmin\fR and \fIcmax\fR values are 
+assumed to be wavelengths in Angstroms.
+.le
+.ls fl_pause = no
+A flag for whether to enter IMEXAM after each channel image is displayed.
+.le
+.ls frame = 1
+Display frame to be loaded (\fIdisplay.frame\fR).
+.le
+.ls zscale = no
+Apply an automatic intensity mapping algorithm when loading the image.
+(\fIdisplay.zscale\fR).
+.le
+.ls zrange = yes
+Map the full range of the image intensity to the full range of the display.
+(\fIdisplay.zrange\fR).
+.le
+.ls z1 = 0., z2 = 0.
+Minimum and maximum image intensity to be mapped to the minimum and maximum
+display levels (\fIdisplay.z1\fR, \fIdisplay.z2\fR).
+.le
+.ls ztrans = "linear"
+Transformation of the image intensity levels to the display levels
+(\fIdisplay.ztrans\fR).
+.le
+.ls lutfile = ""
+Name of the text file containing the look up table when \fIztrans\fR=user
+(\fIdisplay.lutfile\fR).
+.le
+.ls logfile = ""
+Name of the logfile for the task.  If it is blank, the NIFS package logfile 
+name (\fInifs.logfile\fR) is used.  If neither are defined, "nifs.log" is used.
+.le
+.ls verbose = yes
+A flag for whether verbose messages should be written to the terminal.
+.le
+.ls status = 0
+A exit status value, which is zero for a successful completion and some 
+positive value if there is a error.
+.le
+.ih
+DESCRIPTION
+This task displays a series of channel images to the standard display 
+from file \fIinimage\fR, which is assumed to be an output file from the 
+NIFCUBE routine.  These data cubes contain a three-dimensional image with the 
+first two dimensions being the spatial dimensions and the third dimension 
+being the spectral dimension, where the spectra are all resampled to a 
+common linear wavelength scale.  This task extracts image sections for a
+range of pixels in the third image dimension and displays these one 
+after another.  Output files from NIFCUBE are MEF files with the data cube 
+in extension 1.
+.sp
+The \fIcmin\fR and \fIcmax\fR values determine which planes of the data cube 
+will be displayed.  If \fIfl_wavelength\fR=no then these values are truncated 
+to integer values and all image planes between these values are displayed in 
+order from lowest to highest index.  If \fIfl_wavelength\fR=yes then the 
+two values are assumed to be wavelengths in Angstroms.  In that case the 
+wavelength parameters in the primary header are used to transform the 
+wavelengths into pixel values, which are then rounded off to the nearest 
+pixel.  If \fIcmin\fR > \fIcmax\fR then the values are swapped.  If 
+\fIcmin\fR=\fIcmax\fR then only one channel map is displayed.  If the 
+\fIcmin\fR and \fIcmax\fR values do not correspond to any allowed pixel values 
+in the spectral axis then an error message is printed and the task exits.  
+Otherwise whatever part of the specified range that is allowed is used.  For 
+example if one specifies \fIcmin\fR=-100 and cmax=\fI10\fR with 
+\fIfl_wavelength\fR set to "no" then actually planes 1 to 10 would be 
+displayed.
+.sp
+If the \fIfl_pause\fR flag is set to "yes" then after each image is displayed 
+the task enters IMEXAM and the user can examine the image.  The task 
+continues once the user exits IMEXAM with the "q" key command.
+.sp
+The parameters \fIframe\fR, \fIzscale\fR, \fIzrange\fR, \fIz1\fR, \fIz2\fR, 
+\fIztrans\fR, and \fIlutfile\fR are all passed on to DISPLAY to control the 
+details of how the images are displayed.
+.sp
+Messages from the task are written to the file set by the \fIlogfile\fR 
+parameter.  The level of verbosity of these messages is determined by 
+the \fIverbose\fR flag.
+
+.ih
+EXAMPLES
+1.  Showing images around the Pa Beta line at 1.282 microns:
+.sp
+.nf
+    cl> nfdispc ctfrusnN20051112S0164 12810. 12830. fl_wavelength+ verbose+
+    NFDISPC 
+    NFDISPC ----------------------------------------------------------------
+    NFDISPC Log opened at [Thu 10:20:25 16-Mar-2006]
+    NFDISPC 
+    NFDISPC --------------------
+    NFDISPC Input Parameters:
+    NFDISPC      inimage        = ctfrusnN20051112S0164
+    NFDISPC      cmin            = 12810.
+    NFDISPC      cmax            = 12830.
+    NFDISPC      fl_wavelength   = yes
+    NFDISPC      fl_pause        = no
+    NFDISPC      zscale          = no
+    NFDISPC      zrange          = yes
+    NFDISPC      z1              = 0.
+    NFDISPC      z2              = 0.
+    NFDISPC      ztrans          = linear
+    NFDISPC      lutfile         = 
+    NFDISPC      verbose        = yes
+    NFDISPC --------------------
+    NFDISPC Displaying wavelength 12810.071491241 (pixel 1288)
+    z1=-19.10106 z2=278.1397
+    NFDISPC Displaying wavelength 12811.13192749 (pixel 1289)
+    z1=-18.75418 z2=301.8707
+    NFDISPC Displaying wavelength 12812.192363739 (pixel 1290)
+    z1=-100.1109 z2=361.6513
+    NFDISPC Displaying wavelength 12813.252799988 (pixel 1291)
+    z1=-19.57936 z2=481.4097
+    NFDISPC Displaying wavelength 12814.313236237 (pixel 1292)
+    z1=-21.98046 z2=547.6043
+    NFDISPC Displaying wavelength 12815.373672485 (pixel 1293)
+    z1=-14.46826 z2=559.8842
+    NFDISPC Displaying wavelength 12816.434108734 (pixel 1294)
+    z1=-11.06677 z2=1746.237
+    NFDISPC Displaying wavelength 12817.494544983 (pixel 1295)
+    z1=-1.813986 z2=14059.89
+    NFDISPC Displaying wavelength 12818.554981232 (pixel 1296)
+    z1=-0.2103673 z2=41901.39
+    NFDISPC Displaying wavelength 12819.61541748 (pixel 1297)
+    z1=-27.1043 z2=43745.73
+    NFDISPC Displaying wavelength 12820.675853729 (pixel 1298)
+    z1=0. z2=15196.81
+    NFDISPC Displaying wavelength 12821.736289978 (pixel 1299)
+    z1=-7.155656 z2=2089.896
+    NFDISPC Displaying wavelength 12822.796726227 (pixel 1300)
+    z1=-8.93107 z2=689.1794
+    NFDISPC Displaying wavelength 12823.857162476 (pixel 1301)
+    z1=-18.51421 z2=478.7507
+    NFDISPC Displaying wavelength 12824.917598724 (pixel 1302)
+    z1=-19.03918 z2=359.2381
+    NFDISPC Displaying wavelength 12825.978034973 (pixel 1303)
+    z1=-25.78828 z2=316.1607
+    NFDISPC Displaying wavelength 12827.038471222 (pixel 1304)
+    z1=-15.65284 z2=322.7629
+    NFDISPC Displaying wavelength 12828.098907471 (pixel 1305)
+    z1=-20.29987 z2=281.3601
+    NFDISPC Displaying wavelength 12829.159343719 (pixel 1306)
+    z1=-13.10044 z2=245.6213
+    NFDISPC Displaying wavelength 12830.219779968 (pixel 1307)
+    z1=-12.25119 z2=228.42
+    NFDISPC --------------------
+    NFDISPC Exit status: SUCCESS
+    NFDISPC Log closed at [Thu 10:20:32 16-Mar-2006]
+    NFDISPC ----------------------------------------------------------------
+    NFDISPC 
+.fi
+.sp
+2.  The second example shows setting some of the display parameters
+explicitly, and suppressing messages.  Messages would only be 
+generated if an error occurred.
+.sp
+.nf
+    cl> nfdispc ctfrusnN20051112S0164 12800. 12840. fl_wavelength+ verbose- \
+    >>> zrange- zscale- z1=0. z2=44000.
+.fi
+.sp
+3.  A third example shows specifying a specific pixel value along the 
+spectral dimension.
+.sp
+.nf
+    cl> nfdispc ctfrusnN20051112S0164 1296 1296
+    NFDISPC 
+    NFDISPC ----------------------------------------------------------------
+    NFDISPC Log opened at [Thu 10:54:11 16-Mar-2006]
+    NFDISPC 
+    NFDISPC --------------------
+    NFDISPC Input Parameters:
+    NFDISPC      inimage        = ctfrusnN20051112S0164
+    NFDISPC      cmin            = 1296.
+    NFDISPC      cmax            = 1296.
+    NFDISPC      fl_wavelength   = no
+    NFDISPC      fl_pause        = no
+    NFDISPC      zscale          = no
+    NFDISPC      zrange          = yes
+    NFDISPC      z1              = 0.
+    NFDISPC      z2              = 0.
+    NFDISPC      ztrans          = linear
+    NFDISPC      lutfile         = 
+    NFDISPC      verbose        = yes
+    NFDISPC --------------------
+    NFDISPC Displaying pixel plane 1296
+    z1=-0.2103673 z2=41901.39
+    NFDISPC --------------------
+    NFDISPC Exit status: SUCCESS
+    NFDISPC Log closed at [Thu 10:54:11 16-Mar-2006]
+    NFDISPC ----------------------------------------------------------------
+    NFDISPC 
+.fi
+.ih
+BUGS AND LIMITATIONS
+When \fIfl_wavelength\fR is "no" the task does not attempt to read the 
+header for the parameters related to the wavelength scale.  In that 
+case one does not see which wavelength corresponds to a given pixel.
+.ih
+SEE ALSO
+nifcube, display, imexam
+.endhelp

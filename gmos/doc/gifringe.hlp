@@ -1,0 +1,224 @@
+.help gifringe January2015 gemini.gmos
+.ih
+NAME
+gifringe -- Creates a fringe image to be used to remove fringing from a GMOS 
+image (IMAGING mode only)
+.ih
+USAGE
+gifringe inimages outimage
+.ih
+PARAMETERS
+.ls inimages 
+List of input GMOS flat fielded images. A comma-separated list or a list 
+directed input can be used. Directory names should not be included as part of 
+the image names. All images must be in multi-extension FITS (MEF) format. 
+.le
+.ls outimage
+The output fringe image.
+.le
+.ih
+ZERO LEVEL PARAMETERS
+.sp 1
+.ls typezero = "mean" (mean|midpt|skyfile|keyword)
+Operation for determining zero-point corrective value for each image. 
+.le
+.ls skysec = "default"
+Used only when \fItypezero\fR = mean or midpt. Image section used to 
+determine mean or midpt statistics. The format is [EXTNAME,EXTVER][x1:x2,y1:y2]
+The default \fIskysec\fR value is: 
+
+[100/xbin:1800/xbin,100/ybin:4500/ybin]
+
+of the central CCD, where xbin and ybin are the binning in the x and y 
+direction respectively, defined by the CCDSUM keyword in each \fIsci_ext\fR
+extension. These image section values correspond to the central region of the 
+center CCD.
+.le
+.ls skyfile = ""
+Used when \fItypezero\fR = skyfile. Needs to be a list of zero levels, one for 
+each input image.
+.le
+.ls key_zero  = "OFFINT"
+Used when \fItypezero\fR = keyword. \fIkey_zero\fR  needs to be in the header 
+of each science extension of each input image. 
+.le
+.ih
+MASK PARS
+.sp 1
+.ls msigma = 4.
+Sigma threshold above sky for masking objects in the field.
+.le
+.ls bpm = ""
+Name of bad pixel mask file or image
+.le
+.ls fl_mask = no
+Use \fIdq_ext\fR planes to mask bad pixels during calculation of skylevel and object detection?
+.le
+
+.ih
+GEMCOMBINE PARAMETERS
+.sp 1
+Please see the GEMCOMBINE help pages for further details. 
+.le
+.ls combine = "median" (average|median)
+Type of combining operation of the zero-point corrected individual images. 
+.le
+.ls reject =  "avsigclip" (none|minmax|sigclip|avsigclip)
+Type of rejection operation.  Note in general "avsigclip" works well even for
+a few images.
+.le
+.ls scale = "none" (none|mode|median|mean|exposure|@<file>|!<keyword>)
+Multiplicative image scaling to be applied.
+.le
+.ls weight = "none" (none|mode|median|mean|exposure|@<file>|!<keyword>)
+Weights to be applied during the final averaging.
+.le
+.ls statsec = "[*,*]"
+Section of images to use in computing image statistics for scaling,
+weighting, and normalizing.  If no section is given then the entire region of 
+the input is sampled (for efficiency the images are sampled if they are big 
+enough).
+.le
+.ls expname = "EXPTIME"
+Image header keyword use for scaling.  
+.le
+.ls nlow = 1,  nhigh = 1 (minmax)
+The number of low and high pixels to be rejected.
+.le
+.ls nkeep = 0 (avsigclip)
+The minimum number of pixels to retain (\fInkeep\fR > 0) or the maximum 
+number to reject (\fInkeep\fR < 0).
+.le
+.ls mclip = yes (avsigclip)
+Use the median rather than the average with high and low values excluded.
+.le
+.ls lsigma = 3., hsigma = 3. (avsigclip)
+Low and high sigma clipping factors.
+.le
+.ls sigscale = 0.1 (avsigclip)
+Poisson correction to sigma parameter.
+.le
+.ls sci_ext = "SCI"
+Name of the MEF extension containing the science data.
+.le
+.ls var_ext = "VAR"
+Name of the MEF extensions containing the variance frame.
+.le
+.ls dq_ext = "DQ"
+Name of the MEF extensions containing the data quality array.
+.le
+.ls fl_vardq = no
+Propagate the data quality and variance extensions. 
+.le
+.ls logfile = ""
+Name of the logfile containing error and warning messages. When
+\fIlogfile\fR="",  the name of the logfile is gmos.log. 
+.le
+.ls glogpars = ""
+A pset file used by the Gemini IRAF logging facility to store personal 
+preferences that take effect package-wide for the logging system.
+.le
+.ls verbose = yes
+Print informative messages and warnings to screen?
+.le
+.ls status = 0
+Exit status of the script. It will be non-zero if the task halted with an
+error. This parameter is set by the task and should not be modified by the
+user.
+.le
+
+.ih
+DESCRIPTION
+
+GIFRINGE creates a fringe image \fIoutput\fR by combining (with
+GEMCOMBINE) a set of flatfielded images \fIinput\fR taken with GMOS
+in imaging mode only.  The output fringe image \fIoutput\fR has the
+same number of extensions as the input images \fIinput\fR. Full
+frame fringe images may be inspected by using the task GDISPLAY. It is
+recommended to paste the images and set the stretch when displaying
+the \fIoutput\fR, e.g.
+
+.nf
+    cl> gdisplay output 1 fl_paste+ z1=-500 z2=500
+.fi
+
+Before the input images are combined, a zero-point correction 
+is determined using the method specified by \fItypezero\fR.
+There are three options for finding zero level value: mean/midpt, 
+skyfile and header keyword. If \fItypezero\fR is 
+set to "mean" or "median," corresponding values within 
+\fIskysec\fR are computed with IMSTAT and used as the zero level. The default 
+region for \fIskysec\fR is defined as the inner region 
+of the center CCD. The second option for determining the zero level 
+is reading a skyfile. The file \fIskyfile\fR needs to have 
+as many input rows as the number of input images. The third method of 
+determining zero level is \fItypezero\fR = keyword. The zero level value
+is found in each science extension header under the keyword \fIkey_zero\fR.
+
+GIFRINGE first creates an approximate fringe frame by combining
+the flat fielded images \fIinput\fR with GEMCOMBINE, 
+using the \fIcombine\fR algorithm. The statistic for \fIcombine\fR is
+computed within the \fIstatsec\fR region. 
+
+The approximate fringe frame is then subtracted from each of the
+flat fielded images \fIinput\fR. The resulting images are used to
+mask the objects in each frame using the task NPROTO.OBJMASKS.  
+The sigma threshold above the sky is set with the parameter \fImsigma\fR. 
+With the approximate fringe frame subtraction, \fImsigma\fR can
+be as low as 4 without risk of masking the fringe pattern.
+The best fringe frames are produced by images with few extended or
+saturated objects and many dither positions.
+
+Once the objects have been masked, the final fringe frame is created by
+combining the flat fielded images \fIinput\fR with GEMCOMBINE,
+using the \fIcombine\fR algorithm, and the same zero-point offsets
+as described above. Pixels identified by the object masking are
+excluded. 
+
+Note that the \fIinput\fR should be reduced with GIREDUCE before
+processing with GIFRINGE.
+
+The header of the output image is updated. The keywords GIFRINGE (time stamp of
+GIFRINGE) and GEM-TLM (time of last 
+modification by the GMOS package) are added to the primary header unit. 
+
+The resulting fringe frame is used in GIRMFRINGE to subtract off the 
+fringe pattern from the science frames.
+
+.ih
+EXAMPLES
+1.  Create a fringe image rgN20031023S0164_fringe using flat fielded images 
+listed in zfile:
+
+.nf
+   gm> gifringe @zlist rgN20031023S0164_fringe
+.fi
+2.  Create a fringe image rgN20031023S0164_fringe using flat fielded images 
+listed in zfile use a file of zero levels:
+
+Contents of skyfile
+.nf
+   gm> type skyfile.list
+   7000
+   5532 
+   6000
+   gm> type zlist
+   N20070803S0125
+   N20070803S0126
+   N20070803S0127
+   gm> gifringe @zlist fringe typezero=skyfile skyfile="skyvalue.lst"
+.fi  
+.ih
+TIME REQUIREMENTS
+.ih
+BUGS AND LIMITATIONS
+Improvements to the (previously semi-functional) variance and
+data quality propagation in the GMOS package have undergone limited
+testing; the accuracy of the results should still be verified at
+each step by the scientist, particularly for spectroscopic data
+reduction tasks.
+.ih
+SEE ALSO
+gmosinfo, gmosinfoimag, gprepare, gireduce, gemcombine, girmfringe, 
+imstatistics, imcombine, objmasks, gdisplay
+.endhelp

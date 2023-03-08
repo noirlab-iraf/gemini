@@ -1,0 +1,468 @@
+GEMINI (July2006)        Gemini IRAF package v1.9         GEMINI (July2006)
+
+Release date: July 28, 2006
+
+This document describes the revisions relative to the Gemini IRAF package v1.8.
+
+This version of the Gemini IRAF package is compatible with, and requires, the
+IRAF patch release V2.12.2a (http://iraf.net).
+
+Also, the August 2005 version of FITSUTIL is mandatory.  Note that the external
+packages have not yet been moved to IRAF.net.  They can be obtained from the
+former IRAF website (http://iraf.noao.edu).
+
+
+PRIMARY REVISIONS:
+1) New package for the reduction of NIFS data (gemini.nifs)
+2) Support for Michelle polarimetry imaging data reduction
+3) New mid-IR spectroscopy routines
+4) More new tasks
+5) More new functionalities and parameter changes
+6) Bug fixes
+
+DETAILS OF THE REVISIONS:
+
+1) New package for NIFS data (gemini.nifs).
+
+   The current package offers support for the processing of NIFS IFU data.
+   The gemini.nifs packages uses some of the GNIRS spectroscopy tasks:  
+   the NIFS package automatically loads the GNIRS package to obtain access to
+   those tasks.  The NIFS package itself contains the NIFS specific tasks.
+   
+   The NIFSINFO task offers an overview of the tasks found in the package.
+   Data reduction examples for the baseline calibration, the telluric standards,
+   and the science observations are available by invoking NIFSEXAMPLES.
+
+   (i) New tasks in NIFS:
+   
+       - nifs.nfacquire   -- Collapse flip-mirror frame into an image of the 
+                             field for acquisition.
+       - nifs.nfdispc     -- Display a series of channel maps from a data cube.
+       - nifs.nfextract   -- Extract a 1-D spectrum from a transformed frame.
+       - nifs.nffitcoords -- Compute 2-D dispersion and distortion maps.
+       - nifs.nffixbad    -- Fix bad pixels in NIFS frames.
+       - nifs.nfimage     -- Collapse unprocessed disperse spectral frame into
+                             a 2-D image.
+       - nifs.nfmap       -- Extract a channel map from a NIFS data cube.
+       - nifs.nfprepare   -- Prepare NIFS data for reduction.
+       - nifs.nfsdist     -- Establish S-distortion calibration.
+       - nifs.nftelluric  -- Correct telluric absorption in transformed frame.
+       - nifs.nftransform -- Rectify 2-D NIFS spectra.
+       - nifs.nifcube     -- Create data cubes from NIFS format files.
+       
+       Documentation:
+       - nifs.nifsinfo     -- Overview of the NIFS package.
+       - nifs.nifsexamples -- Print data reduction examples to the screen.
+       
+       Utility tasks:
+       - nifs.nfcheck  (hidden task)
+       - nifs.nfckcal  (hidden task)
+       - nifs.nfpad    (hidden task)
+       - nifs.nfwcs    (hidden task)
+
+
+
+2) Support for the new Michelle imaging polarimetry mode.
+
+   The Michelle imaging polarimetry mode has recently been commissioned at
+   Gemini North.  This release includes new tasks for the data reduction of
+   such data.
+   
+   The MIDIRINFO task offers a section with information specific to imaging
+   polarimetry with Michelle.  A data reduction example for imaging 
+   polarimetry is available by invoking MIDIREXAMPLES.
+   
+   (i) New polarimetry tasks in MIDIR
+   
+       - midir.mipsplit  -- Write polarimetry waveplate images to series of
+                            simple FITS file.
+       - midir.mipsstk   -- Combine individual Stokes images from MIPSTOKES
+                            into a single set of images.
+       - midir.mipstack  -- Straight average of nod images.
+       - midir.mipstokes -- Calculate Stokes parameters for each nod pair.
+       - midir.miptrans  -- Calculate Stokes parameters form stacked
+                            polarimetry file.
+   
+   (ii) New functionalities/parameters in MIDIR for polarimetry support
+   
+       midir.mireduce:
+       midir.mprepare:
+         - New functionalities:
+             * Recognize polarimetry data based on header content
+             * Process polarimetry data
+
+
+
+3) New mid-IR spectroscopy routines for Michelle and T-ReCS.
+
+   Several new tasks have been added to the MIDIR package for the reduction
+   of Michelle and T-ReCS spectroscopy data.  Those tasks address such issues
+   as flat field correction, de-fringing, and telluric correction.  A 'wrapper'
+   spectroscopy reduction task is now available in MSREDUCE.
+   
+   (i) New spectroscopy tasks in MIDIR
+   
+       - midir.msabsflux  -- Telluric correction and absolute calibration
+       - midir.msdefringe -- Defringing of T-ReCS or Michelle 1-D spectra
+       - midir.msflatcor  -- Bias and flat corrections for Michelle spectra 
+       - midir.msreduce   -- Wrapper routine for reduction of T-ReCS or 
+                             Michelle spectra
+   
+   (ii) New functionalities/parameters in MIDIR for spectroscopy support
+   
+        A large suite of spectral energy distribution files for spectrum 
+        calibration has been added in midir$data/.  Please refer to the README 
+        file in midir$data/.
+        
+        midir.mistack:
+          - New functionalities:
+              * The "frametype" option will work with Michelle NOD mode 
+                spectroscopic observations.  If frametype is either "src" or
+                "ref" one gets the stacked sky frames for the nods, while if
+                the value is "dif" one gets the difference between NOD A and
+                NOD B, which shows the source spectrum in positive and negative
+                forms as is usual for near-IR observations dithered along the
+                slit.
+   
+
+4) More new tasks.
+
+   (i) GEMTOOLS
+       
+       - gemtools.gemcube -- Build data cube.  Used by nifs.nifcube.
+       - gemtools.gemdate -- Get FITS format date string (hidden task).
+       - gemtools.gemisnumber -- Check if a string is a number, and if so,
+                                 of which type (hidden task).
+       
+   
+   (ii) GNIRS
+
+       - gnirs.nstelluric -- Calculate and apply telluric correction
+                             (this is a re-release, as the task was pulled
+                             out of v1.8)
+   (iii) MIDIR
+   
+       - midir.mcheckheader -- Make Michelle headers GSA-compatible.
+                               (GSA=Gemini Science Archive)
+
+   (iv) NIRI
+   
+       - niri.nisupersky -- Make deeper object masks for NISKY.
+
+
+5) More new functionalities and parameter changes.
+
+   (i) GEMTOOLS
+
+       gemtools.gemarith:
+       gemtools.gemexpr:
+          - New default value:
+              * logfile = ""
+              
+       gemtools.gemcombine:
+          - New parameters
+              * masktype
+              * maskvalue
+
+   (ii) GMOS
+   
+       gmos.gdisplay:
+          - New functionality:
+              * Flagging of saturated pixels and/or pixels above some threshold.
+          - New parameters:
+              * fl_sat
+              * signal
+       
+       gmos.gfquick:
+          - New functionality:
+              * Outputs P,Q coordinates intead of X,Y.
+          - New default values:
+              * xpos1 = "default"  (was 1210)
+              * nslit = "default"  (was 2)
+              * yoffu = "default"  (was 12)
+       
+       gmos.gbias:
+       gmos.gifringe:
+          - New functionality:
+              * Expose two new GEMCOMBINE parameters (masktype, maskvalue) 
+                instead of using hardcoded values.
+          - New parameters:
+              * masktype
+              * maskvalue
+       
+       gmos.gmosaic:
+          - New functionalities:
+              * Support for variance and data quality frames.
+              * Option to convert a 'short' image to 'real' before mosaicing.
+          - New parameter:
+              * fl_vardq
+              * var_ext
+              * dq_ext
+              * fl_real
+              
+       gmos.gprepare:
+          - New functionality:
+              * Set the keyword DISPAXIS (instead of relying on GSAPPWAVE).
+       
+       gmos.gscut:
+          - New MDF column:
+              * Calculate and add column SPECCEN (y-center of spectrum,
+                type 'real') to MDF.  This is for future development.
+       
+       gmos.gsflat:
+          - New functionality:
+              * Expose two new GEMCOMBINE parameters (masktype, maskvalue)
+                instead of using hardcoded values.
+          - New parameters:
+              * masktype
+              * maskvalue
+          - Modified header keyword:
+              * Changed the slit correction time stamp to GSLITCOR as 
+                GSSLITFUNC conflicts with the GSSLITFUNCTION (not released)
+                time stamp.
+
+       gmos.gstransform:
+          - New parameters:
+              * gratingdb
+              * filterdb
+              * key_dispaxis
+              * dispaxis
+              
+
+   (iii) GNIRS
+   
+       gnirs.nsflat:
+          - New functionality:
+              * Expose two new GEMCOMBINE parameters (masktype, maskvalue)
+                instead of using hardcoded values.
+          - New parameters:
+              * masktype
+              * maskvalue          
+          - New default value:
+              * process : for cross-dispersed data 'auto' defaults to 'fit'
+                          (used to default to 'trace')
+              * statsec = "default"
+              * fitsec = "default"
+                  For statsec and fitsec, "default" means "[*,*]" for NIRI,
+                  and "MDF" for everything else.  This is a cosmetic change
+                  mostly.
+                          
+       gnirs.nsheaders:
+          - New parameter:
+              * key_instrument
+              
+       gnirs.nsprepare:
+          - New default value:
+              * bpm = "gnirs$data/gnirs_2005sep24_bpm.fits"
+              (this a new BPM for gnirs)
+       
+       gnirs.nsreduce:
+       gnirs.nsslitfunction:
+       gnirs.nssky:
+       gnirs.nssdist:
+       gnirs.nscombine:
+       gnirs.nsstack:
+       gnirs.nschelper:
+          - New functionality:
+              * Expose two new GEMCOMBINE parameters (masktype, maskvalue)
+                instead of using hardcoded values.
+          - New parameters:
+              * masktype
+              * maskvalue          
+       
+       gnirs.nswavelength:
+          - New parameter:
+              * fl_median (default is 'yes' for GNIRS data, 'no' otherwise)
+          - New default values:
+              * coordlist = "gnirs$data/lowresargon.dat"
+              * threshold = 100.  (was 0.)
+              
+       gnirs.nvnoise:
+          - New functionality:
+              * Bad pixel fixing when calculating statistics.
+          - New parameters:
+              * statsec
+              * fl_boundary
+    
+       gnirs$data/nsappwave.fits:
+          - New functionalities:
+              * Support for NIFS
+              * New lens designations for Short cameras
+
+       gnirs$data/config.fits:
+          - New functionality:
+              * New lens designations for Short cameras
+   
+
+   (iv) MIDIR
+          
+       midir.miflat:
+          - New functionality:
+              * MIFLAT now outputs a MEF file rather than a simple FITS file.
+              
+       midir.mireduce:
+          - New functionalities:
+              * Ability to "rescue" incomplete raw data files.
+              * Output a variance frame.
+              * Ability to define the region to use for registration.
+              * Requires flat (produced by MIFLAT) to be a MEF file.
+          - New parameters
+              * fl_rescue
+              * fl_variance
+              * region
+              
+       midir.miregister:
+          - New functionalities:
+              * Write World Coordinate System header keywords to the science
+                extension.  (Instead of just the Primary Header Unit.)
+              * Output a variance frame.
+              * Ability to define the region to use for registration.
+          - New parameters:
+              * fl_variance
+              * regions
+              
+       midir.mistack:
+          - New functionalities:
+              * Write World Coordinate System header keywords to the science
+                extension.  (Instead of just the Primary Header Unit.)
+              * Output a variance frame.
+          - New parameter:
+              * fl_variance
+    
+       midir.mprepare:
+          - New functionality:
+              * Ability to "rescue" incomplete raw data files.
+              * Support for polarimetry data.
+          - New parameter:
+              * fl_rescue
+       
+       gnirs.nswavelength for Michelle via gnirs$data/michelle.dat:
+       gnirs.nswavelength for T-ReCS via gnirs$data/trecs.dat:
+          - New default value:
+              * nswavelength.coordlist = "gnirs$data/sky.dat"
+              
+
+   (iv) NIRI
+   
+       niri.nisky:
+          - New functionality:
+              * Always write NISKYMSK keyword, even if fl_keepmasks=no.
+          - New parameter:
+              * fl_nifastsky
+    
+       gnirs.nswavelength for NIRI via gnirs$data/niri.dat
+          - New default value:
+              * nswavelength.coordlist = "lowresargon.dat"
+
+
+6) Bug fixes.
+
+   This list is not exhaustive.
+   
+     gmos.gireduce:
+        * Fixed behaviour when fl_over+ and fl_trim-.  The code was resetting
+          DATASEC and marking the image as TRIMMED even though that was not
+          the case.
+          
+     gmos.gsappwave:
+        * Fixed a typo in the WCS of the variance (VAR) plane 
+          (e.g. C1_1 -> CD1_1).
+     
+     gmos.gscalibrate:
+        * Fixed variance and data quality plane propagation.
+        
+     gmos.gscut:
+        * GSCUT expects the database to be named 'database', yet APFIND was
+          using whatever specred.database was set to.  This dependency on the
+          specred.database user setting has been removed.  In the future,
+          we plan to remove the hardcoding the database name.
+     
+     gmos.gsextract:
+        * Fixed extraction of the variance (VAR) plane from APALL output.
+     
+     gmos.gsflat:
+        * Fixed a major bug that was introduced in Gemini 1.7 (and patched
+          in 1.7.2 and 1.8.1).  When several flats were used as input, GSFLAT
+          was using only the first input flat in the list.  This occured only
+          when fl_detec=no.
+     
+     gmos.gsstandard:
+        * The parameter 'caldir' could not easily be reset because of 
+          hardcoded checks.  It offers more flexibility now.
+          
+     gmos.gstransform:
+        * Correctly handle variance and data quality planes.
+        * Correctly set NEXTEND keyword value when fl_vardq = yes.  This 
+          miscount might have affected some users' personal software depending 
+          on NEXTEND.
+
+     gnirs$nsflat:
+        * Correctly propagate the input's header keywords.
+        * Fixed and improved the handling of NIRI darks to address specific
+          problems reported by some users.  Please refer to the new NIRI
+          spectroscopy example for the correct reduction procedure
+          (niri.niriexamples)
+        * The 'fitsec' and 'statsec' features were not working correctly when
+          set to something else than the data's default (MDF or [*,*]).  This
+          has been fixed for 'process=fit' (now recommended for all data).
+
+     gnirs.nsreduce:
+        * Correctly propagate the DQ plane header keywords.
+        * Checks whether the outputs already exists at the *beginning* of
+          the task rather than go through a lengthy process and crash if
+          they do.
+    
+     gnirs.nsappwave:
+        * Large (~300%) improvement in efficiency, and more robust.
+        * Actually propagate the MDF.  The previous version was losing the
+          MDF along the way.
+     
+     gnirs$data/gnirs-xd-short-32-mdf.fits:
+        * This MDF was incorrect for the higher orders.  This was not
+          noticed earlier because before Jul/Aug 2005, the higher orders
+          could not be seen properly because of the poor XD filter
+          transmission in the blue.
+
+     midir.miregister:
+        * The tmp files were not deleted properly resulting in all frames in
+          for all images a list of files, up to the current file, being stacked.
+        * Number of files that can be processed in one call set to 100.
+        * Set EXTNAME and EXTVER for variance plane.
+        
+     midir.mistack:
+        * The tmp files were not deleted properly resulting in all frames in
+          for all images a list of files, up to the current file, being stacked.
+        * Number of files that can be processed in one call set to 100.
+        * Remove system dependence on the command "sed".  This was problem for
+          some Unix users.
+        * Set EXTNAME and EXTVER for variance plane.
+
+     midir.mprepare:
+        * Remove system dependence on the command "sed".  This was problem for
+          some Unix users. 
+        * Make EXTVER (the extension version) increment correctly for the 
+          science extensions.
+        * Actually handle already prepared images instead fo just flagging them.
+    
+     midir.tprepare:
+        * FITS extensions of the output file now have EXTNAME and EXTVER set.
+
+
+7) Updates to reduction examples
+
+   (i) gnirs.gnirsexamples
+   
+       - Improved cross-dispersed (XD) and longslit (LS) examples.
+
+   (ii) midir.midirexamples
+   
+       - Now included are examples for michelle spectroscopy and polarimetry.
+   
+   (iii) niri.niriexamples
+    
+       - imaging
+           * Added an 'unlearn' warning.       
+       - spectroscopy
+           * Updated to reflect the correct way to handle the darks.
+           * Added an 'unlearn' warning.
+

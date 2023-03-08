@@ -1,0 +1,143 @@
+.help gadisplay August2012 gemini.gsaoi
+.ih
+NAME
+gadisplay -- display GSAOI images
+.ih
+USAGE
+gadisplay inimages
+.ih
+PARAMETERS
+.ls inimages
+List of raw or prepared GSAOI images to reduce.\fIinimages\fR Can be a list of
+image names or numbers (comma separated or @ lists), or a range of images
+numbers - wild cards are supported. The image names may include the directory
+path. The images must be in multi-extension FITS (MEF) format. The file
+extension ".fits" may or may not be included. See help for GAIMCHK for examples
+of all syntax allowed.
+.le
+.ls frame = 1
+Display frame for image to be loaded in
+.le
+.ls rawpath = ""
+Path to the directory where the images are located. One may
+set this parameter if the raw data are not located in the current
+working directory, or specify a path in the input image file names.
+If \fIrawpath\fR is supplied it will be prefixed to any path given as part of
+the input image names.
+.le
+.ls rootname = ""
+Root name of image(s) if supplying image number(s); blank for today's UT. For
+example, rootname="S20120101S". If \fIrootname\fR=\fIgaprep_pref\fR a
+GAPREPAREd version with the \fIgaprep_pref\fR will be display instead if it
+exists in the current working directory.
+.le
+.ls gapfile = ""
+Bad pixel file with information about the array gaps in
+.le
+.ls badpix = "gsaoi$data/gsaoibpm_high_full.fits"
+Static MEF bad pixel mask.
+.le
+.ls colgap = 153
+Average vertical gap between arrays (trimmed, full-frame)
+.le
+.ls linegap = 148
+Average horizontal gap between arrays (trimmed, full-frame)
+.le
+.ls fl_fixpix = no
+Interpolate across chip gaps?
+.le
+.ls fl_norm = no
+Normalize each array if image is not already flat fielded?
+.le
+.ls fl_nodqo = no
+Turn off all data quality and BPM overlays?
+.le
+.ls fl_bpmover = no
+Overlay static Bad Pixel Mask?
+.le
+.ls fl_satnl = yes
+Flag non-linear/saturated pixels?
+.le
+.ls fl_usedq = no
+Use data quality planes instead of static BPM?
+.le
+.ls fl_imexam = no
+Enter imexamine when displaying image?
+.le
+.ls time_gap = 0
+Time in seconds to leave before displaying images, when \fIfl_imexam\fR=no
+.le
+.ls z1 = 0., z2 = 0.
+Lower and upper limit for display if not auto scaling. See help for DISPLAY
+command for more information.
+.le
+.ls ztrans = "linear" (linear|log|none|user)
+Grey level transformation. See help for DISPLAY command for more information.
+.le
+.ls nonlin = 32000
+Non-linearity level to use if keyword not found.
+.le
+.ls satura = 50000
+Saturation level to use if keyword not found.
+.le
+.ls gaprep_pref = "g"
+Prefix for GAPREPAREd images.
+.le
+.ls key_datasec = "DATASEC"
+Header keyword for data section
+.le
+.ls key_ccdsec = "CCDSEC"
+Header keyword for array section
+.le
+.ls key_nlc = "NONLINEA"
+Header keyword for non-linearity level
+.le
+.ls key_sat = "SATURATI"
+Header keyword for saturation level
+.le
+.ls sci_ext = "SCI"
+Name of the MEF extension containing the science data.
+.le
+.ls var_ext = "VAR"
+Name of the MEF extensions containing the calculated variance planes.
+.le
+.ls dq_ext = "DQ"
+Name of the MEF extensions containing the data quality information.
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes use of the logfile
+defined by gsaoi.logfile.
+.le
+.ls verbose = yes
+Print actions to screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted
+with an error. This parameter is set by the task and should not be
+modified by the user.
+.le
+.ih
+DESCRIPTION
+
+GADISPLAY displays GSAOI data (raw, prepared and mosaiced). If the images are
+not mosaiced they are pasted into one extension then displayed. Depending on
+the flags set and or the presence of data quality planes in the input images,
+overlays of bad, non-linear and saturated pixels can be displayed too.
+
+.ih
+EXAMPLES
+
+.nf
+   cl> gadisplay 30-45 rootname="S20120101S" rawpath=rawdir$ time_gap=5
+.fi
+
+This will display images 30-45 with rootname of "S20120101S", e.g.,
+S20120101S0030.fits, located in the directory specified by the IRAF
+environmental variable "rawdir". There will be a gap of 5 seconds between
+displaying each image.
+.ih
+SEE ALSO
+
+DISPLAY, IMEXAM
+
+.endhelp

@@ -1,0 +1,24 @@
+# Copyright(c) 2006-2011 Association of Universities for Research in Astronomy, Inc.
+
+# GEMCUBE
+
+input,s,a,,,,List of input images
+output,s,a,,,,List of output images
+
+masks,s,h,"",,,List of output masks
+weights,s,h,"",,,List of output weights
+logfiles,s,h,"STDOUT",,,List of output logfiles
+
+bpm,s,h,"",,,List of input bad pixel masks
+scale,s,h,"",,,List of input scale maps
+wt,s,h,"",,,List of input weight maps
+
+wcsreference,s,h,"",,,WCS reference image or string
+wttype,s,h,"drizzle","|nearest|drizzle|linear",,Weighting type
+drizscale,s,h,"1.",,,Drizzle scale factors (x y z)
+blank,r,h,0.,,,Output blank value
+
+geofunc,pset,h,"gfwcs",,,Geometry function
+
+memalloc,r,h,100.,1,,Memory to allocate for in-memory images
+

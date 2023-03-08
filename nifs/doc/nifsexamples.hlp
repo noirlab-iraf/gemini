@@ -1,0 +1,40 @@
+.help nifsexamples December2011 gemini.nifs
+.ih
+NAME
+nifsexamples -- Display example NIFS processing scripts
+.ih
+USAGE
+nifsexamples example
+.ih
+PARAMETERS
+.ls example (calibration|telluric|science)
+The example to display.  These are identified by the type of data that is 
+being reduced.  For a given dataset, a calibration reduction must be run 
+before either the telluric or science reduction can be finished.  In order to 
+telluric correct the science data, the telluric reduction must have been run 
+through it's entirety.  The calibration example script includes notes and hints
+on how to run the reduction for different wavelength settings.  Reduction of 
+telluric and science data is similar for different wavelength regimes.  See 
+the NIFSINFO help file for descriptions on each task and a step-by-step 
+narrative example of a data NIFS reduction.
+.ih
+DESCRIPTION
+This task displays example scripts (from the nifs$doc directory) for
+different data configurations.
+.sp
+The test data were taken from NIFS Science Verification observations.
+.ih
+EXAMPLE
+1.  Display the NIFS calibration reduction example.
+.sp
+.nf
+    ni> nifsexamples calibration
+.fi
+.ih
+BUGS AND LIMITATIONS
+The data used are not distributed with this package.
+.ih
+SEE ALSO
+nifsinfo
+.endhelp
+

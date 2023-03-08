@@ -1,0 +1,77 @@
+.help mdfplot November2011 gemini.gmos.mostools
+.ih
+NAME
+mdfplot -- Plot Mask Definition File
+.ih
+USAGE
+mdfplot intable instrume
+.ih
+PARAMETERS
+.ls intable
+Mask Definition File (MDF) file to be plotted. The MDF is the 
+FITS file distributed with MOS data for GMOS and Flamingos-2.
+.le
+.ls instrume
+Name of the Instrument to use. The choices are GMOS-N, GMOS-S, 
+and F2.
+.le
+.ls fl_ps = yes
+Make PostScript file of the plot on disk.
+Setting \fIfl_inter\fR = no and \fIfl_ps\fR = no produces no output.
+.le
+.ls barcode = "default"
+Assign barcode automatically based on the name of the MDF.
+This parameter is primarily used by Gemini staff internally when
+assigning barcodes to the GMOS and F2 masks. The barcode is shown
+on the plot, but has otherwise no use for the off-site user.
+.le
+.ls fl_inter = yes
+Examine plot interactively by giving the user a graphics cursor
+after the plot has been made.
+Setting \fIfl_inter\fR = no and \fIfl_ps\fR = no produces no output.
+.le
+.ls fl_over = yes
+Allow the task to overwrite an existing PostScript file on disk.
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes the task use the
+logfile defined by mostools.logfile.
+.le
+.ls verbose = yes
+Print actions to the screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error. 
+This parameter is always set by the 
+task and should not be modified by the user. 
+.le
+.ih
+DESCRIPTION
+MDFPLOT provides a way to visualize the Mask Definition Files (MDF) distributed
+with MOS data from GMOS-N and GMOS-S and F2 (Flamingos-2)
+The task makes a plot of the mask frame (thick solid line) with the MOS field 
+shown (thick dashed lines). The slits (usually small rectangles) are plotted 
+in the correct size relative to the mask size.  Tilted slits are shown 
+correctly.  The two circles in the right hand side of the GMOS plots are the 
+mask registration holes used to mount the mask in the frame.
+
+This task uses Igi language commands to draw the MOS masks for GMOS and F2. 
+The files are mdfplot.igi for GMOS and mdfplotf2 for F2.
+
+Columns from the MDFs may also be plotted versus each other using
+GEMTOOLS.MGOGRAPH 
+.ih
+EXAMPLES
+1. Plot a distributed MDF
+
+.nf
+    cl> mdfplot GN2003BQ021-01
+.fi
+.ih
+TIME REQUIREMENTS
+.ih
+BUGS AND LIMITATIONS
+.ih
+SEE ALSO
+gemtools.mgograph, tables.ttools
+.endhelp

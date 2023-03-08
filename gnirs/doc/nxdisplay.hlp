@@ -1,0 +1,37 @@
+.help nxdisplay December2011 gemini.gnirs
+.ih
+NAME
+.nf
+nxdisplay -- Quick display of cross-dispersed data
+.fi
+.ih
+USAGE
+nxdisplay image frame
+.ih
+PARAMETERS
+.ls image
+The MEF image to display.  This should contain GNIRS cross-dispersed data,
+cut (using NSCUT, probably via NSREDUCE) so that different orders are in
+different extensions.
+.le
+.ls frame = 1
+The destination frame in the image display.
+.le
+.ih
+DESCRIPTION
+
+This task displays all the science extensions for GNIRS cross-dispersed
+data to a single frame in the image display.
+.ih
+EXAMPLE
+
+.nf
+  cl> nxdisplay image
+.fi
+.ih
+BUGS AND LIMITATIONS
+The task forces stdimage to imt2048.
+.ih
+SEE ALSO
+nscut, nsreduce
+.endhelp

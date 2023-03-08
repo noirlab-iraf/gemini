@@ -1,0 +1,59 @@
+####
+# Database file containing array/amplifier characteristic values for the GSAOI
+# instrument 
+####
+
+# Column information
+
+# CCDNAME (used instead of each individual amplifier)
+
+# READOUT_MODE: bright - LNRS = 2; faint - LNRS = 8; very faint -  LNRS = 16
+
+# GAIN is in [e-/ADU]
+
+# READNOISE is in [ADU]; this is for one read only!
+
+# SATURATION [ADU]
+
+# NONLIN_5% corresponds to the % of saturation value where counts depart >5%
+# from linearity BEFORE non-linearity correction.
+
+# NONLIN_2% corresponds to the % of saturation value where counts depart >2%
+# from linearity AFTER the non-linearity correction is applied
+
+# Currently the only thing that changes between the different modes is the
+# READNOISE 
+
+####
+# General information
+
+# CCDNAME  INFO  GAIN  SATURATION  NONLIN_5%  NONLIN_2%
+  G1       info 2.434       52400       0.73       0.97
+  G2       info 2.010       50250       0.64       0.97
+  G3       info 2.411       53700       0.76       0.98
+  G4       info 2.644       52300       0.75       0.96
+
+####
+# READNOISE information
+
+# Bright readmode (lnrs == 2)
+# CCDNAME  READOUT_MODE  READNOISE
+  G1       bright            10.9
+  G2       bright             9.5
+  G3       bright            11.3
+  G4       bright            12.2
+
+# Faint readmode (lnrs == 8)
+# CCDNAME  READOUT_MODE  READNOISE
+  G1       faint              5.6
+  G2       faint              4.9
+  G3       faint              5.9
+  G4       faint              6.3
+
+# Very faint readmode (lnrs == 16)
+# CCDNAME  READOUT_MODE  READNOISE
+  G1       very_faint         4.2
+  G2       very_faint         3.7
+  G3       very_faint         4.4
+  G4       very_faint         4.8
+

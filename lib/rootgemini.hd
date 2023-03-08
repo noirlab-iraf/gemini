@@ -1,0 +1,9 @@
+# Copyright(c) 2000-2005 Association of Universities for Research in Astronomy, Inc.
+#
+# Help definitions for the  gemini  package
+
+gemini       men = gemini$gemini.men,
+             hlp = gemini$gemini.men,
+             sys = gemini$gemini.hlp,
+             pkg = gemini$gemini.hd,
+             src = gemini$gemini.cl

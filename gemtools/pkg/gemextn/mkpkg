@@ -1,0 +1,17 @@
+# Make the GEMEXTN task
+
+$checkout libpkg.a ../../
+$update libpkg.a
+$checkin libpkg.a ../../
+$exit
+
+libpkg.a:
+	gemexappend.x   <error.h> <mach.h> "gemerrors.h" "gemextn.h"
+	gemexchkout.x   <error.h> "gemextn.h" "../../lib/imexplode.h"
+	gemexexpand.x   <error.h> "gemextn.h" "../../lib/imexplode.h"
+	gemexfilter.x   <error.h> <mach.h> "gemextn.h" "../../lib/imexplode.h"
+	gemexomit.x     "gemextn.h"
+	gemexverify.x   <error.h> <imhdr.h> <mef.h> "gemerrors.h" "gemextn.h" "../../lib/imexplode.h"
+	gemtemplate.x
+	t_gemextn.x     <ctotok.h> <error.h> "gemerrors.h" "gemextn.h"
+	;

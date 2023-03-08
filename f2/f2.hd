@@ -1,0 +1,21 @@
+# Copyright(c) 2010-2012 Association of Universities for Research in Astronomy, Inc.
+#
+# Help directory for the f2 package
+
+$doc = "f2$doc/"
+
+# Generic preparations
+f2prepare        hlp = doc$f2prepare.hlp, src=f2$f2prepare.cl
+
+# Spectroscopic tasks
+f2cut            hlp = doc$f2cut.hlp, src=f2$f2cut.cl
+f2display        hlp = doc$f2display.hlp, src=f2$f2display.cl
+
+# Cookbooks
+f2info           hlp = doc$f2info.hlp, src=f2$f2info.cl
+f2infoimaging    hlp = doc$f2infoimaging.hlp, src=f2$f2infoimaging.cl
+f2infols         hlp = doc$f2infols.hlp, src=f2$f2infols.cl
+f2infomos        hlp = doc$f2infomos.hlp, src=f2$f2infomos.cl
+
+# Examples
+f2examples       hlp = doc$f2examples.hlp, src=f2$f2examples.cl

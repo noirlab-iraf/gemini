@@ -1,0 +1,141 @@
+.help girmfringe January2015 gemini.gmos
+.ih
+NAME
+girmfringe -- removes fringing from a GMOS image by subtracting a scaled 
+fringe image (IMAGING mode only)
+.ih
+USAGE
+girmfringe inimages fringe
+.ih
+PARAMETERS
+.ls inimages
+Input GMOS flat fielded images. The images must be in multi-extension FITS 
+(MEF) format. 
+.le
+.ls outimages = ""
+The output images.
+.le
+.ls outpref = "f"
+Prefix of output image names. Names of output images will be the names of
+the input images with the prefix attached. \fIoutpref\fR is used if 
+\fIoutimages\fR="".
+.le
+.ls fringe
+The fringe image created by GIFRINGE. It is assumed that this image has a flat 
+mean background of zero.
+.le
+.ls fl_statscale = no
+Flag that determines if the frame image should be scaled by either the ratio 
+of the standard deviations of the \fIinimages\fR frame over the standard 
+deviation of the \fIfringe\fR frame (\fIfl_statscale\fR = yes) or scaled by 
+the ratio of the exposure 
+times (\fIfl_statscale\fR = no). 
+.le
+.ls statsec = "default"
+The image section used to determine the scale factor if \fIfl_scale\fR = 0. 
+The  MEF extension name and version and the image section must be identified. 
+The format for this  parameter is: [EXTNAME,EXTVER][x1:x2,y1:y2]. The default 
+\fIstatsec\fR is [*,*] of the data that forms the central CCD.
+.le
+.ls scale = 0.0
+Scale value to be multiplied by the fringe image. If the scale=0.0, then the 
+auto-scale algorithms would be used.
+.le
+.ls fl_propfvardq = no
+Propagate the variance and data quality information from the fringe frame to
+the output fringe corrected images? Both input images and fringe frame must
+have variance and data quality planes for this flag to work.
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes the task use the logfile
+defined by gmos.logfile.
+.le
+.ls verbose = yes
+Print actions to the screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error. 
+This parameter is always set by the task, and should not be modified by 
+the user.
+.le
+.ih
+DESCRIPTION
+
+GIRMFRINGE subtracts a fringe image \fIfringe\fR from the flatfielded images
+(\fIinimages\fR) taken with GMOS in imaging mode only. The output de-fringed 
+images \fIoutimages\fR have the same number of extensions as the
+input images in \fIinimages\fR. Full frame fringe images may be 
+inspected by using the task GDISPLAY. It is recommended to paste the 
+images and set the stretch when displaying the \fIoutimages\fR, e.g.
+
+.nf
+    cl> gdisplay outimage 1 fl_paste+
+.fi
+
+in order to evaluate the results of the task. 
+
+At this point, we are still working on the auto-scale algorithm. Therefore, 
+we suggest that the scale be determined manually. As a reference, the typical 
+scale for the i-band with GMOS-N is 1. The typical scale in the z-band is 
+between 0.9 and 1.1 for both: GMOS-N and GMOS-S.
+
+       The \fIoutimages\fR is calculated by using the following formula:
+.nf
+       (1)  C = A - s * B
+.fi
+
+where
+.nf
+        A             Input image           (\fIinimages\fR parameter)
+        B             Fringe image          (\fIfringe\fR parameter)
+        s             fringe image scale factor 
+        C             de-fringed image      (\fIoutimages\fR parameter)
+
+.fi
+There are two auto_scale algorithms used by the task. If 
+\fIfl_statscale\fR = yes then the scale parameter (s) is computed by
+
+
+        (2)   s = stddev(A) / stddev(B)
+
+where the standard deviation is computed within the \fIstatsec\fR region. 
+If \fIfl_statscale\fR = no then the scale parameter (s) is computed by
+
+        (3)   s = exptime(A) / exptime(B)
+
+
+The   output   of   this   task   is a  fringe  corrected  images or 
+multiextension file and log information with  the  computed  fringe amplitude.
+.ih
+EXAMPLES
+1.  Remove fringing from a file with scaling by the statistics:
+
+.nf
+   gm> girmfringe rgN20031023S0164 rgN20031023S0164_fringe fl_stat=yes scale=0.
+
+The scale found by GIRMFRINGE is  0.99
+
+2.  Remove fringing from a file with scaling by the ratio of the exposure 
+times:
+
+girmfringe rgN20031023S0164 rgN20031023S0164_fringe fl_stat=yes scale=0.  
+
+The scale found by GIRMFRINGE is 0.98
+
+3.  Remove fringing from a file with a manual scale:
+
+girmfringe rgN20031023S0164 rgN20031023S0164_fringe scale=0.9 
+
+Note that for this example, the manual scale produced a better final image 
+than the auto-scale algorithms.
+.fi
+.ih
+TIME REQUIREMENTS
+.ih
+BUGS AND LIMITATIONS
+We suggest to examine the computed scale value and adjusted it if needed.
+.ih
+SEE ALSO
+gifringe, gmosinfo, gmosinfoimag, gprepare, gireduce, imstatistics, imcombine, 
+gdisplay
+.endhelp

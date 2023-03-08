@@ -1,0 +1,173 @@
+.help gstransform March2012 gemini.gmos
+.ih
+NAME
+gstransform -- Rectify and/or wavelength calibrate GMOS spectra
+.ih
+USAGE
+gstransform inimages
+.ih
+PARAMETERS
+.ls inimages
+Input spectra. Lists and wildcards are supported. The task is 
+designed for MEF files.
+Directory names should not be included as part of the image names.
+.le
+.ls outimages = ""
+Output spectra (MEF). Lists are supported. The number of output 
+spectra must match the number of input spectra.
+.le
+.ls outprefix = "t"
+Prefix  for  output images. Names of output images are the names
+of the input images with a prefix attached. \fIoutprefix\fR is used
+if \fIoutimages\fR="".
+.le
+.ls fl_stran = no
+Apply the S-distortion correction.
+.le
+.ls sdistname = ""
+List of S-distortion image root names (excluding the extension .fits) of images
+that were used to establish the S-distortion with GSSDIST. GSSDIST is not yet
+released. The number of entries must either match the number of input images or
+it should be one. \fIdatabase\fR must exist.
+.le
+.ls fl_wavtran = yes
+Apply the wavelength calibrations.
+.le
+.ls wavtraname = ""
+List of lamp image root names (excluding the extension .fits) of images that
+were used to establish the wavelength calibration with GSWAVELENGTH. The number
+of entries must either match the number of input images. 
+\fIdatabase\fR must exist.
+.le
+.ls database = "database"
+Directory for files containing calibration files (feature input data 
+and fitting output).
+.le
+.ls fl_vardq = no
+Transform variance and data quality planes if they exist.
+.le
+
+.ih
+PARAMETERS USED BY TRANSFORM
+.le
+.ls interptype = "linear" (nearest|linear|poly3|poly5|spline3)
+Interpolation type for TRANSFORM.
+.le
+.ls lambda1 = INDEF
+First output wavelength. If \fIlambda1\fR = INDEF then the smallest value
+corresponding to a pixel from the image is used to create the coordinate
+map.
+.le
+.ls lambda2 = INDEF
+Last output wavelength. If \fIlambda2\fR = INDEF then the largest value
+corresponding to a pixel from the image is used to create the coordinate
+map.
+.le
+.ls dx = INDEF
+Output pixel interval. If \fIdx\fR = INDEF then the interval is set to
+yield the specified number of pixels. If \fIlambdalog\fR = yes, \fIdx\fR must 
+be specified as a base 10 logarithm.
+.le
+.ls nx = INDEF
+Number of output pixels. If \fInx\fR = INDEF and if the pixel interval is
+also INDEF then the number of output  pixels  is  equal  to  the number of
+input pixels.
+.le
+.ls lambdalog = no
+Logarithmic x coordinate for TRANSFORM.
+.le
+.ls ylog = no
+Logarithmic y coordinate for TRANSFORM.
+.le
+.ls fl_flux = yes
+Conserve flux per pixel in the transform.
+.le
+
+.ih
+PARAMETERS USED BY GSAPPWAVE
+.le
+.ls gratingdb = "gmos$data/GMOSgratings.dat"
+Database file with GMOS grating information.
+.le
+.ls filterdb = "gmos$data/GMOSfilters.dat"
+Database file with GMOS filter information.
+.le
+.ls key_dispaxis = "DISPAXIS"
+Header keyword for dispersion axis.
+.le
+.ls dispaxis = 1
+Dispersion axis, if not defined from the header.
+.le
+
+.ih
+GENERAL PARAMETERS
+
+These general parameters are applicable to all GMOS tasks.
+.le
+.ls sci_ext = "SCI", var_ext = "VAR", dq_ext = "DQ"
+Name or number of the science, variance and data quality extensions,
+respectively.
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes the task use the logfile
+defined by gmos.logfile.
+.le
+.ls verbose = yes
+Print actions to the screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error. 
+This parameter is always set by the task, and should not be modified by 
+the user.
+.le
+
+.ih
+DESCRIPTION
+
+GSTRANSFORM is used for rectifying and applying wavelength calibration
+to GMOS spectra. 
+GSWAVELENGTH or GSSDIST must first have been used to establish
+the wavelength calibration and the S-distortion.
+GSTRANSFORM may be used if only the wavelength calibration or
+only the S-distortion have been established.
+GSSDIST is not yet released.
+
+.nf
+Normally GSTRANSFORM is used on 
+  - output from GSWAVELENGTH to check rectification of lamps
+  - output from GSREDUCE (science spectra)
+.fi
+
+Longslit or MOS spectra are rectified and wavelength calibrated using
+TRANSFORM. In this case it is possible to correct both for
+S-distortion and apply a 2D wavelength solution. 
+
+.ih
+EXAMPLES
+
+1. Apply 2D wavelength calibration to the science extensions of a MOS
+image processed with GSREDUCE.
+
+.nf
+ge> gstransform gsN20020210S016.fits  outprefix=t fl_stran- fl_wavtran+ \
+>>> wavtraname=gsN20020210S015 fl_vardq-
+.fi
+
+2. Wavelength calibrate extracted IFU spectra.
+
+.nf
+ge> gstransform gfN20020217S018.fits fl_stran- fl_wavtran+ \
+>>> wavtraname=gfN20020127S006
+.fi
+
+.ih
+BUGS AND LIMITATIONS
+Improvements to the (previously semi-functional) variance and
+data quality propagation in the GMOS package have undergone limited
+testing; the accuracy of the results should still be verified at
+each step by the scientist, particularly for spectroscopic data
+reduction tasks.
+.ih
+SEE ALSO
+gmosinfo, gmosinfospec, gmosexeamples, transform, gswavelength, gsreduce
+.endhelp

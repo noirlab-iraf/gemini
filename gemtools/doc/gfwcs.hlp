@@ -1,0 +1,176 @@
+.help gfwcs December2011 gemini.gemtools
+.ih
+NAME
+gfwcs -- Geometry function for gemcube task
+.ih
+USAGE
+gfwcs
+.ih
+PARAMETERS
+.ls axis1 = INDEF, axis2 = INDEF, axis3 = INDEF
+Mapping of input axes to output axes.  The parameter name refers to the
+output axis.  For example the parameter \fIaxis2\fR refers to the second
+output axis.  The value of the parameter refers to the input axis to be
+mapped to that output axis.  If the value is INDEF the input and output
+axes are the same; e.g. \fIaxis2\fR=INDEF becomes \fIaxis2\fR=2.  It is
+an error if the same input axis is mapped to more than one output axis.
+If the output is not three dimensional then the \fIaxis3\fR parameter
+is ignored.
+.le
+
+The parameters of this geometry function apply only if a new output image
+is being created and no reference world coordinate system is defined.
+.ls cmin1 = INDEF, cmin2 = INDEF, cmin3 = INDEF
+The minimum world coordinate for the output image axis.  If the value
+is INDEF then the minimum value from all the input images contributing to
+the output is used.
+.le
+.ls cmax1 = INDEF, cmax2 = INDEF, cmax3 = INDEF
+The maximum world coordinate for the output image axis.  If the value
+is INDEF then the maximum value from all the input images contributing to
+the output is used.
+.le
+.ls cdi_j = "INDEF"
+The output sampling (pixel scale and orientation matrix) for output image
+axis j.  The values are the partial derivatives of the world coordinate
+assigned to axis i with respect to the pixel coordinate axis j.  A value
+of "INDEF" will default to the matching term from the input image with
+the smallest matrix norm (the sum of the squares of all the CD terms).
+The special values "+INDEF" and "-INDEF" may be used to set the sign of
+the value keeping the default absolute value the same.
+.le
+.ls nonspatial = 3
+The output image axis that corresponds to the non-spatial axis.
+.le
+.ls square = ""
+If two whitespace separated integer output axes are specified then the
+size of the output pixels along those axes are made the same as the one
+with the smallest pixel size.
+.le
+.ls rotate = yes
+Allow input pixels to be rotated relative to output pixels?  If no the
+CD matrix is made diagonal by setting the non-diagonal elements to zero.
+This is normally used only when the input and output orientations are
+nearly the same apart from small distortions.  In this case ignoring
+the non-diagonal elements makes the overlap fraction calculation faster
+and minimizes aliasing artifacts.
+.le
+.ih
+DESCRIPTION
+A geometry function evaluates the position, size, shape, and orientation
+of the input pixels in world coordinates.  It also defines the output world
+coordinate system (WCS) and image size based on the input images and,
+if one is specified, a WCS reference image provided an existing output
+image is not being updated.
+
+The GFWCS function simply uses the input world coordinate system, including
+a feature to use mappings from the FITCOORDS task as described below,
+to compute the world coordinate of the center of an input pixel as well
+as the the orientation, and the shape of the pixels.  It supports only
+rectangular pixels (2D) or voxels (3D).  This is natural for regular raster
+image data as well as for image slicer IFU data.  For efficiency it
+ignores any variations with position applies the same orientation and
+size to all pixels.
+
+The WCS dimensionality of the output image is determined by the WCS
+dimensionality of the input images, which must be the same for all the
+input images contributing to the output image.  If a reference WCS is
+supplied the WCS dimensionality must also match the input dimensionality.
+The output image physical dimensionality will be the same as the WCS
+dimensionality.
+
+It is important to understand that the dimensionality of the input WCS is
+not necessarily the same as the physical (pixel raster) dimensionality
+though it must be at least equal.  A higher WCS dimensionality may be
+the result of extracting a slice of a higher dimensional image or by
+defining the WCSDIM keyword to have a larger value than the NDIM keyword
+and providing the additional WCS keywords for the additional world
+coordinate axes.  Therefore, if one wants to use this function driver
+to create a three dimensional output cube from a set of two dimensional
+images, such as image slicer IFU data, or even a 2- or 3-dimensional
+image from one dimensional images, such as a fiber-fed IFU, the WCS of the
+input images must be created so that the mapping to the missing dimension
+is represented in the WCS.
+
+The mapping of input axes to output axes is set by the \fIaxis\fR
+parameters.  If not specified the input axes map to the output in
+order.
+
+The pixel sizes, orientation, and coverage of the output image is
+set either by a reference WCS or by a combination of defaults and
+parameters of this geometry function as described in the PARAMETERS
+section.  Use of a WCS reference allows any output sampling to be
+represented.  The GFWCS parameters are also fairly general though
+a little complex.
+
+The size of the output image is set either by the \fIcmin\fR and \fIcmax\fR
+parameters and the \fIcd\fR sampling parameters.  But generally some or all
+of these are left indefinite so that the output is automatically adjusted
+to contain some or all of the input data at a resolution appropriate for
+the input data.  A common mode, beyond leaving all parameters at there
+indefinite default, is to just set the pixel sizes using the \fIcd\fR
+parameters.  This is done particularly when creating an output with finer
+resolution and using dithering and drizzling to enhance the resolution of
+the input.  By leaving the \fIcmin\fR and \fIcmax\fR parameters indefinite
+the size of the image will be set to include the range of the input data.
+
+The \fIsquare\fR parameter requires a little elaboration.  Often one wants
+resampled images which includes two celestial axes to produce square
+pixels; i.e. have the same sampling along the spatial axes.  This
+parameter allows specifying the pair of axes to be set with the same
+scale.  One key application of this is when creating data cubes from
+image slicer IFU data where the slit width sampling is generally lower
+than the spatial sampling along the slit.  The \fIsquare\fR parameter
+sets the sampling to be the finest represented by the input but applied
+to the two specified axes.
+
+The \fIrotate\fR parameter selects whether to allow the input pixel/voxel
+orientation to be rotated relative to the output pixel/voxel orientation.
+When the mapping of the output is close to that of the input there may
+be small relative rotations, such as caused by distortions, which are
+not significant but which can introduce some some small artifacts due to
+the approximations used to compute overlaps.  Even ignoring numerical
+artifacts, sampling from one rectangular grid to another with relative
+rotations can produce undesirable aliasing patterns.  By setting the
+\fIrotate\fR parameter to "no", especially when the input and output raster
+orientations are nearly the same, can produce a better result which is
+still scientifically correct given that pixel sampling always introduces
+some level of approximation due to the loss of higher spatial frequencies.
+
+There is a special feature of this geometry function that supports
+the mapping functions from the IRAF long slit package task FITCOORDS.
+These mapping functions may be thought of as a type of non-linear WCS
+in the the input image, which is why they are included in this geometry
+function.  See the FITCOORDS task description for more information about
+these mappings and how they are recorded in text files.
+
+The functions are specified in the input image headers as follows.
+The keyword FCDB may be used to specify a directory containing the mapping
+files.  This is used relative to the working directory if an absolute
+path is not given.  The name of the mapping files may be given by the
+keywords FCFILEn where n is an integer sequence number which starts with 1.
+The names of the mappings, as specified in the mapping files, are
+specified by the keywords FCFITn where n is an integer sequence number.
+As a shortcut, the FCFILE keyword may be absent and the file name will
+be the name of the mapping with "fc" prepended; i.e. fcabc where the
+mapping name is specified as "abc".  Any number of mapping files may be
+given but they must be encoded in the header keywords as a sequence since
+the geometry function will start with 1 and stop when a FCFITn keyword
+is not found in the sequence.
+
+The axis in the input image to which a mapping applies is defined in the
+mapping file.  When there is more than one mapping file for an axis
+the average of the evaluated coordinates is used as the final value.
+
+After the mappings are evaluate based on the input pixel coordinate,
+the resultant value is used in the evaluation of the standard WCS.
+Therefore, if the FITCOORDS mapping is to some absolute world coordinate,
+the WCS for that axis should be a one-to-one linear mapping.  If, instead,
+the mapping is from observed image pixel to an undistorted image pixel
+(such as for removing S-distortions), the WCS for that axis can be used
+to map this ideal undistorted pixel coordinate to a final world coordinate.
+
+.ih
+SEE ALSO
+gemcube, fitcoords.
+.endhelp

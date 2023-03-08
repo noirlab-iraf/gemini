@@ -1,0 +1,193 @@
+.help stsdas2objt December2011 gemini.gmos.mostools
+.ih
+NAME
+stsdas2objt -- Make Object Table from an STSDAS or FITS table
+.ih
+USAGE
+stsdas2objt intable
+.ih
+PARAMETERS
+.ls intable
+Input table, which can be an STSDAS or a FITS table.
+Lists of tables are not supported.
+.le
+.ls image = "default"
+Image containing the WCS information for the \fIintable\fR.
+The image is also required for other header information that is included
+in the output Object Table.
+If \fIimage\fR="default" and 
+the \fIintable\fR has a root name and an extension, e.g.,
+rootname.mag, the matching image names is assumed to be rootname.fits.
+.le
+.ls fl_wcs = no
+Calculate WCS info from the WCS in the header of \fIimage\fR.
+If \fIfl_wcs\fR=no, it is assume that the input table contains
+columns for RA and DEC.
+.le
+.ls outtable = "default"
+Output table.
+If \fIouttable\fR="default" and 
+the \fIintable\fR has a root name and an extension, e.g.,
+rootname.mag, then \fIouttable\fR=rootname_OT.fits.
+.le
+.ls instrument = "gmos"  (gmos|flamingos)
+Instrument for which to make Object Table.
+.le
+.ls id_col = "id"
+Column name of object id. The column has to be an integer column.
+The column is required.
+.le
+.ls mag_col = "mag"
+Column name for magnitude. The column contains reals. The column is required.
+.le
+.ls x_col = "x_ccd"
+Column name for X pixel coordinate. The column contains reals. The column is
+required. 
+.le
+.ls y_col = "y_ccd"
+Column name for Y pixel coordinate. The column contains reals. The column is
+required. 
+.le
+.ls ra_col = "RA"
+Column name for RA. The column contains RA in hours; the print format is
+irrelevant.  The column may be present in the input table. If the column is not
+present in the input table it should be calculated from the WCS information in
+\fIimage\fR and the task should be run with \fIfl_wcs\fR=yes.
+.le
+.ls dec_col = "DEC"
+Column name for DEC. The column contains DEC in degrees; the print format is
+irrelevant.  The column may be present in the input table. If the column is not
+present in the input table it should be calculated from the WCS information in
+\fIimage\fR and the task should be run with \fIfl_wcs\fR=yes.
+.le
+.ls pri_col = "priority"
+Column name for input priorities. The column must be a single character column.
+The allowed values in the column are "0", "1", "2", "3", and "X", which are the
+same values as used by the GMOS mask making software.
+.le
+.ls other_col = ""
+List of names of other columns to including in the output Object Table.
+The list may be a comma separated list of column names.
+.le
+.ls priority = "2"
+Default priority for the objects.
+.le
+.ls logfile = ""
+Logfile for the task. If \fIlogfile\fR="", the file name defined by
+mostools.logfile is used as the logfile.
+.le
+.ls verbose = no
+Print actions to the screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error. 
+This parameter is always set by the 
+task and should not be modified by the user. 
+.le
+.ih
+DESCRIPTION
+The task converts STSDAS tables or FITS tables to 
+Object Tables. \fIintable\fR may come from any source or software
+that creates STSDAS tables or FITS tables. Most commonly this
+task is used to convert outout from SExtractor (FITS tables) to
+Object Tables. 
+
+If the user has ASCII tables that need to be converted to Object
+Tables, this may be accomplished by first creating an STSDAS table
+using TCREATE in the package TTOOLS, and then process that STSDAS table
+with STSDAS2OBJT.
+
+The task uses the WCS information in \fIimage\fR to derive the
+RA and DEC from the x- and y-coordinate information in \fIintable\fR.
+
+Typical columns in the output Object Table may be
+
+.nf
+    -------------------------------------------
+    ID               I             %9d ##              
+    RA               R          %16.6f H               
+    DEC              R          %16.6f deg             
+    MAG              R           %8.4f magnitudes      
+    x_ccd            R          %10.3f pixels          
+    y_ccd            R          %10.3f pixels          
+    slitsize_y       R           %6.1f arcsec          
+    slitsize_x       R           %6.2f arcsec          
+    slittilt         R           %6.1f ""              
+    slitpos_y        R           %6.2f arcsec          
+    CLASS_STARR      R           %5.2f ""              
+    MAG_BESTG        R           %8.4f mag             
+    MAG_BESTI        R           %8.4f mag             
+    G_I              R           %6.3f ""              
+    R_I              R           %6.3f ""              
+    G_R              R           %6.3f ""              
+    THETA_IMAGER     R           %5.1f deg             
+    ELLIPTICITYR     R           %8.3f ""              
+    priority         CH*1           %d ""              
+.fi
+
+The columns x_ccd, y_ccd, MAG, ID, RA and DEC are required by the 
+mask making software. The presence of the other columns depends on
+the columns in \fIintable\fR and the choice on which columns to 
+define as \fIother_col\fR.
+The full example script available as 
+
+.nf
+    cl> help stsdas2objt option=sysdoc
+.fi
+
+shows the details of this.
+
+The following information is collected from the header of \fIimage\fR
+and included in the header of the output Object Table
+
+.nf
+     Keyword  Example                   Description
+  --------------------------------------------------------------------
+  #K PID_IMAG GN-2001B-Q-10             Program ID for imaging
+  #K PID_SPEC GN-2001B-Q-10             Program ID for spectroscopy
+  #K DATEIMAG 2001-11-17                Observing date for image
+  #K TIMEIMAG 14:08:25.6                Observing time for image
+  #K RA_IMAG  9.7158333333333           RA for image
+  #K DEC_IMAG 46.9875                   DEC for image
+  #K FILTER   r_G0303                   FILTER for image
+  #K ADCMODE  1                         ADCMODE  (1=not used, 0=used)
+  #K DATE_OT  Thu 18:14:18 06-Dec-2001  Time stamp for Object Table
+  #K TIME_OT  Thu 18:14:18 06-Dec-2001  Time stamp for Object Table
+  #K EXTSOFT  FITS/STSDAS table         Source of input table
+  #K GEMSOFT  Gemini IRAF package gmos v1.3   Gemini Software version
+  #K INSTRUME GMOS-N                    Instrument
+  #K PIXSCALE 0.0727                    Pixel scale for image
+.fi
+
+.ih
+EXAMPLES
+1. Full example script is available as
+
+.nf
+    cl> help stsdas2objt option=sysdoc
+.fi
+
+2. Make and Object Table from output from an STSDAS table defining the
+required columns as well as a number of other columns to include
+
+.nf
+    cl> stsdas2objt A851out id_col=number x_col=x_imager y_col=y_imager \
+        mag_col=mag_bestr ra_col=RA_J2000 dec_col=DEC_J2000 \
+        verbose+ image=mrgN20011116S080_add.fits priority="none" \
+        other_col="slitsize_y,slitsize_x,slittilt,slitpos_y,z_morph,\
+        class_starr,mag_bestg,mag_besti,g_i,r_i,g_r,theta_imager,\
+        ellipticityr,priority" 
+
+.fi
+
+The matching image is mrgN20011116S080_add.fits
+The output Object Table will be named A851out_OT.fits
+
+.ih
+TIME REQUIREMENTS
+.ih
+BUGS AND LIMITATIONS
+.ih
+SEE ALSO
+app2objt
+.endhelp

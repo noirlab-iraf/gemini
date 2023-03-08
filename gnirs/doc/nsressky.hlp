@@ -1,0 +1,118 @@
+.help nsressky November2011 gemini.gnirs
+.ih
+NAME
+nsressky -- Subtract residual sky lines from rectified spectra
+.ih
+USAGE   
+nsressky inimages
+.ih
+PARAMETERS
+.ls inimages
+List of input 2D spectra.  These should ideally have been run through
+NSTRANSFORM (so that sky lines are perpendicular to the dispersion
+axis), but this is not verified by the code.
+.le
+.ls outspectra = ""
+List of output spectra.  There must be an equal number of input and output 
+images.  If \fIoutspectra\fR is not defined, then \fIoutprefix\fR will
+be used instead
+.le
+.ls outprefix = "s"
+Prefix to use in generating output file names if \fIoutspectra\fR is
+undefined.
+.le
+.ls sample = "*"
+Sample of pixels in the spatial direction to be used to fit the sky.
+This can be a comma-delimited list of ranges (e.g. "50:100,150:175").
+.le
+.ls function = "chebyshev"
+Function to fit to the image columns. The options are "legendre"  
+(legendre  polynomial),  "chebyshev" (chebyshev   polynomial),   
+"spline1"   (linear   spline),   and  "spline3" (cubic spline).
+.le
+.ls order = 2
+The order of the polynomials or the number of spline pieces.
+.le
+.ls dispaxis = 1
+Dispersion axis if not defined in the header.
+.le
+.ls fl_inter = no
+Fit interactively?
+.le
+.ls logfile = ""
+Name of logfile.
+.le
+.ls verbose = yes
+Verbose output?
+.le
+.ls status = 0
+Exit status.  Equal to 0 for proper completion, greater than 0 if an 
+error occurred.
+.le
+
+.ih 
+DESCRIPTION 
+
+NSRESSKY subtracts sky lines from 2D spectra.  All input images must
+be in multi-extension FITS format.  Normally, the input images will
+already be sky-subtracted with NSREDUCE and rectified with
+NSTRANSFORM.  A low order polynomial is fit to each spatial column/row
+(depending on instrument format) of the image and subtracted.
+
+Regions to fit can be specified either with the \fIsample\fR parameter
+or interactively.  When run interactively, the user will be prompted
+in the graphics window for the first spatial cross-section to fit.
+Once the fit is acceptable (e.g., after using 's' to mark sky regions away
+from emission), hit 'q' and then 'Enter' to fit the remaining data.
+
+The output image is in multi-extension FITS (MEF) format.  If the
+input images have variance and data-quality planes, then these are
+propagated to the final image.
+
+.ce
+VARIANCE PROPAGATION
+
+The task does not alter the variance array of the processed data.  Since 
+the subtracted sky level is not known exactly, this is incorrect.
+However, it is the best possible approach because:
+.ls Well Constrained
+Typically the sky level is measured by fitting a fairly large number of
+points, so the uncertainty in the final value is significantly less than 
+the error at any particular pixel.
+.le
+.ls Correlated
+For a given wavelength, the value subtracted from one point is strongly 
+correlated with the value at another.  So even if a reasonably correct value
+was subtracted from each pixel, the result is going to break most 
+assumptions made in later processing.
+.le
+.ls Not Needed Anyway
+There is no need to run this task before extracting a spectrum.  Sky
+subtraction in NSEXTRACT will make a better attempt at handling variance
+propagation.
+.le
+.ih
+EXAMPLES
+
+1. Interactively remove residual sky lines using default parameters.
+
+.nf
+        cl> nsressky rs1nN20020303S0100 fl_inter+
+.fi
+
+2. Run non-interactively and set the sample range to fit.
+
+.nf
+        cl> nsressky rs1nN*.fits sample="60:120,160:210"
+.fi
+
+.ih
+REVISIONS
+
+.ih
+LIMITATIONS
+The input images must be in multi-extension FITS format.
+.ih
+SEE ALSO
+fit1d, nsreduce, nstransform, nssdist 
+.endhelp

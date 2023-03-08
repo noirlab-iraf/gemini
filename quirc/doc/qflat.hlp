@@ -1,0 +1,300 @@
+.help qflat November2011 gemini.quirc
+.ih
+NAME
+qflat -- Derive flat field and/or bad pixel mask for QUIRC
+.ih
+USAGE
+qflat lampson
+.ih
+PARAMETERS
+.ls lampson
+List of input imaging sky flats or dome flats taken with the lamps on.
+.le
+.ls lampsoff = ""
+List of input imaging flats taken with the lamps off.
+.le
+.ls darks = ""
+List of input short dark images (used to help identify bad pixels).
+.le
+.ls flatimage = ""
+Output flat image file name.  At least one of \fIflatimage\fR and 
+\fIbpmimage\fR must be defined for QFLAT to work.
+.le
+.ls flattitle = "default"
+Title for flat image. 
+.le
+.ls bpmimage = ""
+Output bad pixel mask file name.  At least one of \fIflatimage\fR and 
+\fIbpmimage\fR must be defined for QFLAT to work.
+.le
+.ls bpmtitle = "default"
+Title for output bad pixel mask.
+.le
+.ls logfile = ""
+Name of logfile.  If empty, then the package logfile (\fIquirc.logfile\fR) is 
+used. If neither is defined, then \fIlogfile\fR="quirc.log" is used.
+.le
+.ls thresh_flo = 1000.
+Value in ADU below which pixels in the input flats will be flagged
+as bad pixels.
+.le
+.ls thresh_fup = 40000.
+Value in ADU above which pixels in the input flats will be flagged
+as bad pixels.
+.le
+.ls thresh_dlo = -50.
+Value in ADU below which pixels in the input dark(s) will be flagged
+as bad pixels.
+.le
+.ls thresh_dup = 200.
+Value in ADU above which pixels in the input dark(s) will be flagged
+as bad pixels.
+.le
+.ls normstat = "mean" (mean|midpt)
+Type of statistic to use when determining the value by which the
+combined flat field image will be normalized.
+.le
+.ls combtype = "default" (default|average|median)
+Type of combining operation performed to produce the combined flat field
+image.  The choices are "default",
+"average" or "median".  The median uses the average of the two central
+values when the number of pixels is even.  In the case of dome flats,
+the default operation is average.  When sky images are being combined
+to produce a sky flat (\fIfl_rmstars\fR = yes), the default combination type 
+is as defined in the help pages for the procedure QSKY.
+.le
+.ls rejtype = "avsigclip" (none|minmax|ccdclip|crreject|sigclip|avsigclip|pclip)
+Rejection algorithm used in combining the flat field or dark images.  
+The algorithms are described in the help for IMCOMBINE.
+.le
+.ls scale = "none" (none|mode|median|mean|exposure|@<file>|!<keyword>)
+Multiplicative image scaling to be applied when combining flat or dark images.
+.le
+.ls zero = "none" (none|mode|median|mean|@<file>|!<keyword>)
+Additive offsets to apply to the images to be combined.
+.le
+.ls weight = "none" (none|mode|median|mean|exposure|@<file>|!<keyword>)
+Weights to be applied during the combining of flat and dark images.  
+.le
+.ls statsec = "[*,*]"
+Section of images to use in computing image statistics for scaling,
+weighting, and normalizing.  If no section is given then the entire input 
+image is sampled.
+.le
+.ls  key_exptime = "EXPTIME"
+Image header keyword containing the exposure time.  Exposure time is used 
+with the exposure scaling and weighting
+options.
+.le
+.ls lthreshold = INDEF, hthreshold = INDEF
+Low and high thresholds to be applied to the input pixels.  This is done
+before any scaling, rejection, and combining.  If INDEF the thresholds
+are not used.
+.le
+.ls nlow = 1,  nhigh = 1 (minmax)
+The number of low and high pixels to be rejected by the "minmax" algorithm.
+.le
+.ls nkeep = 0
+The minimum number of pixels to retain or the maximum number to reject
+when using the clipping algorithms (ccdclip, crreject, sigclip,
+avsigclip, or pclip).  
+.le
+.ls mclip = yes (ccdclip, crreject, sigclip, avsigclip)
+Use the median as the estimate for the true intensity rather than the
+average with high and low values excluded in the "ccdclip", "crreject",
+"sigclip", and "avsigclip" algorithms?  
+.le
+.ls lsigma = 3., hsigma = 3. (ccdclip, crreject, sigclip, avsigclip, pclip)
+Low and high sigma clipping factors for the "ccdclip", "crreject", "sigclip",
+"avsigclip", and "pclip" algorithms.  
+.le
+.ls key_ron="RON", key_gain="GAIN", ron = "15.0", gain = "1.85" 
+Header keywords containing the readout noise in electrons and gain in 
+electrons/DN.  
+These parameters are used with the "ccdclip" and "crreject"
+algorithms.  \fIron\fR and \fIgain\fR are only used if the keywords
+\fIkey_ron\fR and \fIkey_gain\fR are empty.  
+.le
+.ls snoise = "0.0" (ccdclip, crreject)
+Sensitivity noise as a fraction. 
+.le
+.ls sigscale = 0.1 (ccdclip, crreject, sigclip, avsigclip)
+This parameter determines when poisson corrections are made to the
+computation of a sigma for images with different scale factors. 
+.le
+.ls pclip = -0.5 (pclip)
+Percentile clipping algorithm parameter.  
+.le
+.ls grow = 0.0
+Radius in pixels for additional pixel to be rejected in an image with a
+rejected pixel from one of the rejection algorithms.  
+.le
+.ls fl_rmstars = no
+Remove stars in sky flats using the QSKY routine?
+.le
+.ls fwhmpsf = 4.
+Initial value for the FWHM of the stellar PSF.  Used by QSKY when
+\fIfl_rmstars\fR = yes.  If \fIfl_gemseeing\fR = yes, this value will
+be replaced by the value measured by GEMSEEING.
+.le
+.ls fl_gemseeing = no
+If this flag is set to "yes", GEMSEEING will be used to improve the 
+results from QSKY by automatically determining the FWHM of the PSF.  
+This makes the task run more slowly, and can sometimes cause it to hang.  
+Please set \fIfl_gemseeing\fR to "no" if you encounter problems when using
+\fIfl_rmstars\fR to remove stars from sky flats.  When 
+\fIfl_gemseeing\fR = no it is very important that \fIfwhmpsf\fR is
+close to the real FWHM of the PSF.
+.le
+.ls fl_keepmasks = no
+If QSKY is used to combine sky flats, the masks of objects can be
+retained if \fIfl_keepmasks\fR = yes.
+.le 
+.ls verbose = no
+Print actions to the screen.
+.le
+.ls status = 0
+This flag is non-zero after execution of QFLAT if a fatal error was
+encountered.
+.le
+.ih 
+DESCRIPTION 
+
+A QUIRC bad pixel mask and/or flat field image are produced from input 
+sky images or dome flats (lamps on and off).  Short dark images can be
+used to identify additional bad pixels not identified in the flats. 
+QFLAT will produce either a flat field image, a bad pixel mask, or both.
+
+QFLAT can work on flat field images taken with dome lights on and off, or
+on sky images.  If the input flats are unregistered sky flats,  they are 
+combined using QSKY to remove the stars (\fIfl_rmstars\fR = yes).
+If the input flats are dome flats, then it is best to subtract a set
+of exposures taken with the same exposure time with the dome lamps off.
+This removes any thermal emission from dust on the dewar window, for
+example.  The \fIlampson\fR - \fIlampsoff\fR combined image 
+(or cleaned sky image) 
+is normalized using the statistic \fInormstat\fR within \fIstatsec\fR 
+to produce the output \fIflatfile\fR (if specified).
+
+The bad pixel mask is produced by flagging pixels exceeding the upper
+and lower threshold values in both the combined flats and darks 
+(\fIthresh_flo\fR, \fIthres_fup\fR, \fIthresh_dlo\fR, \fIthresh_dup\fR).
+
+After processing the header of the output flat is updated with
+information about the processing. The following keywords are added
+or updated.
+    
+.le
+Keyword   Explanation
+.le
+--------  ------------
+.le
+GEM-TLM   Time of the last modification done with the GEMINI package
+.le
+QFLAT     Time of processing with QFLAT
+.le
+QFLTNORM  Flat field normalization constant
+.le
+QFLTCOMB  QFLAT combination type
+.le
+QFLTRMST  "Yes" if stars were removed from sky flats
+.le
+QFLTZERO  Statistic used for calculating additive offsets
+.le
+QFLTSCAL  Statistic used for calculating scale factor for combining
+.le
+QFLTWEIG  Statistic used for calculating weights for combining
+.le
+QFLTSTAT  Statistics section of the image used by QFLAT
+.le
+QFLTREJE  QFLAT rejection type
+.le
+QFLTLTHR  Low threshold used in combining images
+.le
+QFLTHTHR  High threshold used in combining images
+.le
+QFLTGROW  Radius for additional pixel rejection
+.le
+QFLTNLOW  number of low pixels rejected (QFLTREJE=minmax)
+.le
+QFLTNHIG  number of high pixels rejected (QFLTREJE=minmax)
+.le
+QFLTLSIG  low sigma rejection threshold 
+.le
+QFLTHSIG  high sigma rejection threshold
+.le
+QFLTNKEE  Minimum (maximum) number of pixels to keep (reject)
+.le
+QFLTMCLI  "Yes" if median used in clipping algorithms
+.le
+QFLTSIGS  Tolerance for sigma clipping scaling correction
+.le
+QFLTPCLI  Percentile clipping factor (QFLTREJE=pclip)
+.le
+QFLTSNOI  Sensitivity noise in electrons (QFLTREJE=ccdclip)
+.le
+QFLTON1   First dome/sky flat used. One keyword for each image.
+.le
+     ...
+.le
+QFLTOF1   First "lamps off" dome flat used, if specified.
+.le
+      ...
+
+.le
+After processing the header of the output bad pixel mask is updated with
+information about the processing. The following keywords are added
+or updated.
+
+.le    
+Keyword   Explanation
+.le
+--------  ------------
+.le
+GEM-TLM   Time of the last modification done with the GEMINI package
+.le
+QFLAT     Time of processing with QFLAT
+.le
+QFLTTFLO  Lower flat cutoff for bad pixels
+.le
+QFLTTFUP  Upper flat cutoff for bad pixels
+.le
+QFLTTDLO  Lower dark cutoff for bad pixels
+.le
+QFLTTDUP  Upper flat cutoff for bad pixels
+.le
+QFLTON1   First dome/sky flat used. One keyword for each image.
+.le
+      ...
+.le
+QFLTOF1   First "lamps off" dome flat used, if specified.
+.le
+      ...
+.le
+QFLTDK1   First dark used, if specified.
+.le
+      ...
+
+.ih
+EXAMPLES
+
+1.  Make a bad pixel mask and a flat from sky flats and darks using 
+default parameters:
+
+.nf
+        cl> qflat sky* darks=dark.* bpmimage=bpmquirc flatimage=flatK \
+        >>> fl_rmstars+
+.fi
+
+2.  Make a flat image (only) from three lists, including lamp flats:
+
+.nf
+        cl> flat @flat_lampson.lis lampsoff=@flat_lampsoff.lis \
+        >>> darks=@dark.lis flatimage=flatK.fits
+.fi
+.ih
+BUGS
+.ih
+SEE ALSO
+imcombine, qsky
+.endhelp

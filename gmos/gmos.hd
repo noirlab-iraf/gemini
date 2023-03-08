@@ -1,0 +1,77 @@
+# Copyright(c) 2002-2017 Association of Universities for Research in Astronomy, Inc.
+#
+# Help directory for the gmos package
+
+$doc = "gmos$doc/"
+
+# Generic tasks
+gdisplay          hlp = doc$gdisplay.hlp, src=gmos$gdisplay.cl
+gprepare          hlp = doc$gprepare.hlp, src=gmos$gprepare.cl
+gbias             hlp = doc$gbias.hlp, src=gmos$gbias.cl
+gbpm              hlp = doc$gbpm.hlp, src=gmos$gbpm.cl
+gmosaic           hlp = doc$gmosaic.hlp, src=gmos$gmosaic.cl
+ggdbhelper        hlp = doc$ggdbhelper.hlp, src=gmos$ggdbhelper.cl
+gmultiamp         hlp = doc$gmultiamp.hlp, src=gmos$gmultiamp.cl
+goversub          hlp = doc$goversub.hlp, src=gmos$goversub.cl
+gqecorr           hlp = doc$gqecorr.hlp, src=gmos$gqecorr.cl
+gretroi           hlp = doc$gretroi.hlp, src=gmos$gretroi.cl
+gsat              hlp = doc$gsat.hlp, src=gmos$gsat.cl
+gtile             hlp = doc$gtile.hlp, src=gmos$gtile.cl
+
+# Imaging tasks
+giflat            hlp = doc$giflat.hlp, src=gmos$giflat.cl
+gifringe          hlp = doc$gifringe.hlp, src=gmos$gifringe.cl
+girmfringe        hlp = doc$girmfringe.hlp, src=gmos$girmfringe.cl
+gireduce          hlp = doc$gireduce.hlp, src=gmos$gireduce.cl
+
+# Spectroscopy tasks
+gsappwave         hlp = doc$gsappwave.hlp, src=gmos$gsappwave.cl
+gscalibrate       hlp = doc$gscalibrate.hlp, src=gmos$gscalibrate.cl
+gscrrej           hlp = doc$gscrrej.hlp, src=gmos$gscrrej.cl
+gscrmask          hlp = doc$gscrmask.hlp, src=gmos$gscrmask.cl
+gscut             hlp = doc$gscut.hlp, src=gmos$gscut.cl
+gsdrawslits       hlp = doc$gsdrawslits.hlp, src=gmos$gsdrawslits.cl
+gsextract         hlp = doc$gsextract.hlp, src=gmos$gsextract.cl
+gsflat            hlp = doc$gsflat.hlp, src=gmos$gsflat.cl
+gsreduce          hlp = doc$gsreduce.hlp, src=gmos$gsreduce.cl
+gsscatsub         hlp = doc$gsscatsub.hlp, src=gmos$gsscatsub.cl
+gsskysub          hlp = doc$gsskysub.hlp, src=gmos$gsskysub.cl
+gsstandard        hlp = doc$gsstandard.hlp, src=gmos$gsstandard.cl
+gstransform       hlp = doc$gstransform.hlp, src=gmos$gstransform.cl
+gswavelength      hlp = doc$gswavelength.hlp, src=gmos$gswavelength.cl
+
+# N&S tasks
+gnsskysub         hlp = doc$gnsskysub.hlp, src=gmos$gnsskysub.cl
+gnscombine        hlp = doc$gnscombine.hlp, src=gmos$gnscombine.cl
+gnsdark           hlp = doc$gnsdark.hlp, src=gmos$gnsdark.cl
+
+# IFU tasks
+gfapsum           hlp = doc$gfapsum.hlp, src=gmos$gfapsum.cl
+gfscatsub          hlp = doc$gfscatsub.hlp, src=gmos$gfscatsub.cl
+gfcube            hlp = doc$gfcube.hlp, src=gmos$x_gmos.e
+gfdisplay         hlp = doc$gfdisplay.hlp, src=gmos$gfdisplay.cl
+gfextract         hlp = doc$gfextract.hlp, src=gmos$gfextract.cl
+gffindblocks      hlp = doc$gffindblocks.hlp, src=gmos$gffindblocks.cl
+gfquick           hlp = doc$gfquick.hlp, src=gmos$gfquick.cl
+gfreduce          hlp = doc$gfreduce.hlp, src=gmos$gfreduce.cl
+gfresponse        hlp = doc$gfresponse.hlp, src=gmos$gfresponse.cl
+gfskysub          hlp = doc$gfskysub.hlp, src=gmos$gfskysub.cl
+gftransform       hlp = doc$gftransform.hlp, src=gmos$gftransform.cl
+gfunexwl          hlp = doc$gfunexwl.hlp, src=gmos$x_gmos.e
+
+# Cookbooks
+gmosinfo          hlp = doc$gmosinfo.hlp
+gmosinfoimag      hlp = doc$gmosinfoimag.hlp
+gmosinfospec      hlp = doc$gmosinfospec.hlp
+gmosinfoifu       hlp = doc$gmosinfoifu.hlp
+
+# Examples
+gmosexamples      hlp = doc$gmosexamples.hlp, src=gmos$gmosexamples.cl
+
+$mostools = "./mostools/"
+
+mostools    men = mostools$mostools.men,
+            hlp = mostools$mostools.men,
+            sys = mostools$mostools.hlp,
+            pkg = mostools$mostools.hd,
+            src = mostools$mostools.cl

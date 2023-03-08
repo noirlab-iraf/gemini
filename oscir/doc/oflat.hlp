@@ -1,0 +1,95 @@
+.help oflat June2006 gemini.oscir
+.ih
+NAME
+oflat -- Derive flat field for OSCIR
+.ih
+USAGE	
+oflat skyflat polyflat flatimage
+.ih
+PARAMETERS
+.ls skyflat
+Input sky flatfield.
+.le
+.ls polyflat
+Input polystyrene flatfield, or other image with a different 
+thermal emission component than \fIskyflat\fR.
+.le
+.ls flatimage
+Output flat image file name. 
+.le
+.ls flattitle = ""
+Title for flat image. If \fIflattitle\fR = "", the default title
+"Flatfield from OFLAT" will be used.
+.le
+.ls logfile = ""
+Name of logfile.  If empty, then the package logfile (\fIoscir.logfile\fR) is 
+used. If neither is defined, then \fIlogfile\fR = "oscir.log" is used.
+.le 
+.ls verbose = no
+Print actions to the screen.
+.le
+.ls status = 0
+This flag is non-zero after execution of OFLAT if a fatal error was
+encountered.
+.le
+.ih 
+DESCRIPTION 
+
+The raw FITS files from OSCIR are 6-dimensional, see OSCIRINFO for
+a full description of the data format.
+
+An OSCIR flat field image is produced from an input sky flat and 
+a polystyrene flat field.
+OFLAT assumes that both input images are taken without chopping and
+nodding, ie. the sizes of the dimensions 3,5 and 6 of the input images
+should be one, otherwise OFLAT will exit with an error message.
+
+OFLAT combines the frames in the sky flat and the frames in the 
+polystyrene image. Then the difference between these two combined
+images is derived and normalized with the mean signal level of
+the difference;
+
+.nf
+                        (<polystyrene frames> - <skyflat frames>)
+Normalized flat field = -----------------------------------------
+                                 mean signal level
+.fi
+
+The resulting flat field image can be applied to science data
+using OREDUCE. 
+
+In principle, the method used by OFLAT gives a flat field for OSCIR data. 
+However, deriving a highly accurate flat field is likely to be more
+complicated due to instrument flexure and irregularities in the OSCIR
+window and in the polystyrene. 
+This is still being studied by the University of Florida OSCIR group
+and Gemini staff. 
+Please check the Gemini web pages for updates on the best method for flat 
+fielding of OSCIR data.
+
+After processing the header of the output flat is updated with
+information about the processing. The following keywords are added
+or updated.
+    
+.nf
+Keyword   Explanation
+--------  ------------
+GEM-TLM   Time of the last modification done with the GEMINI package
+OFLAT     Time of processing with OFLAT
+OFLTNORM  Flat field normalization constant
+.fi
+
+.ih
+EXAMPLES
+
+1.  Make a flat from a sky flat and a polystyrene image:
+.sp
+.nf
+    cl> oflat 00dec02_015 00dec02_016 S12flat
+.fi
+.ih
+BUGS AND LIMITATIONS
+.ih
+SEE ALSO
+oreduce, oscirinfo
+.endhelp

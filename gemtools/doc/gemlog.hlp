@@ -1,0 +1,432 @@
+.help gemlog October2004 gemini.gemtools
+.ih
+NAME
+gemlog -- Gemini log facility
+.ih
+DESCRIPTION
+The purpose of the Gemini log facility, or GEMLOG, is to provide the tools needed to
+generate better structured logs, adding a level of uniformity to the log files
+throughout the Gemini package.  For the user of GEMLOG-enabled tasks, this means
+an easier access to the information, in particular, through the use of
+GLOGEXTRACT.  For the CL script or SPP task developers, it means being able to
+easily generate properly formatted logs, leaving more time to think about the
+code to be written.
+
+This document contains information for the user of GEMLOG-enabled Gemini tasks,
+for the CL script developer, and for the SPP programmer.  All three groups of
+users should read the "Overview" section.  Then, users of GEMLOG-enable
+tasks can simply read the section "Using GEMLOG-enabled tasks".  CL script
+developers are encouraged to read both the "Using GEMLOG-enabled tasks" section
+and the "Writing GEMLOG-enabled CL script tasks" section.  If your intent is to
+develop a GEMLOG-enabled SPP tasks, the interface is described in the section
+"Developing GEMLOG-enabled SPP tasks";  it is, however, recommended to read the 
+whole document.
+.sp
+
+\fIOverview\fR
+.sp
+From the CL interface, GEMLOG is seen as a set of five tasks and one parameter
+set (pset):
+.sp
+.nf
+Tasks:
+   (hidden) gloginit     Initialize a Gemini log file.
+   (hidden) glogprint    Write an entry to Gemini log file.
+   (hidden) glogclose    Close a Gemini log file.
+
+            glogextract  Extract GEMLOG entries based on various selection 
+	                 criteria.
+	    glogfix      Quick fix of a Gemini log file after a crash.
+
+            glogpars     GEMLOG parameter set.
+.fi
+.sp
+The log entries of a GEMLOG-enabled task always begin with a
+"Begining-Of-Entries" (BOE) tag.  This tag is automatically added by GLOGINIT. 
+Similarily, a task's log entries will always end with a "End-Of-Entries" (EOE)
+tag, which is added by GLOGCLOSE.  Therefore, all GEMLOG-enabled task must have
+exactly one GLOGINIT and one GLOGCLOSE calls.  The log entries found between a 
+BOE entry and its corresponding EOE entry define a "block".  A block of entries can 
+contain other blocks from child processes.  The BOE and EOE tags are used by
+GLOGEXTRACT as references to time and task, and as block delimiters.
+
+In the advent of a crash or an interruption of a data reduction sequence, the 
+Gemini log file can be missing information important to GLOGEXTRACT, 
+specifically the EOE tags.  The task GLOGFIX checks for missing EOE tags and 
+appends the missing EOE tags to the log file.  GLOGEXTRACT will likely have 
+problems with some of the log blocks entered prior to the fix, but a least the 
+new blocks will be interpreted correctly.  See the GLOGFIX help page for more
+information.
+
+A GEMLOG entry has the following structure.  The first four characters of each 
+Gemini log entry is reserved for the log entry level descriptor : ENG, SCI, 
+STAT, TSK, VIS, representing respectively the "engineering", "science", "status", "task", and
+"visual" levels.  The log entry levels are described in more detail in the 
+GLOGPARS help page.  Then, following a blank space, the name of the task, 
+to which the log entry belongs, is added in uppercase letters, followed by another 
+blank space.  The rest of the line contains the message.
+.sp
+
+\fIUsing GEMLOG-enabled tasks\fR
+.sp
+To the user of GEMLOG-enabled Gemini tasks, the Gemini logfile is generated
+transparently.  No special steps are required.
+
+The user can specify the name of the logfile either in the task's parameter 
+list, in the GLOGPARS pset, or in the instrument package parameter list.  If no 
+logfile name is specified anywhere, GEMLOG will used a default name based on 
+the instrument package, and issue a warning.
+
+The user also have the option to select which log entry levels to write to the 
+logfile.  The log entry levels are defined in the GLOGPARS help page. The
+flags are set in the GLOGPARS pset.  While the user has the power to select
+which entry levels to write or not, it is generally recommended to let the 
+GEMLOG-enabled tasks write everything to the logfile and to do the pruning of the
+information with GLOGEXTRACT when comes the time to review the logfile.
+
+The common user will never have to use the hidden tasks GLOGINIT, GLOGPRINT, or GLOGCLOSE. 
+S/He is encouraged to use GLOGEXTRACT to review the
+GEMLOG files.  GLOGEXTRACT allows the user to "extract" log entries based on
+various selection criteria, like the name of the task, the log entry level, the
+time, etc.  See the GLOGEXTRACT help page for all the details.
+.sp
+
+\fIWriting GEMLOG-enabled CL script tasks\fR
+.sp
+All GEMLOG-enabled CL script tasks must invoke GLOGINIT before sending anything
+else to the logfile.  Similarily, the last log access must be made with GLOGCLOSE.
+This ensures that the log block is properly delimited (with the BOE and EOE tags
+described above in the Overview).  Once the logfile has been initialized for the task
+with GLOGINIT, any number of calls to GLOGPRINT can be made, until GLOGCLOSE is
+invoked.
+
+GLOGINIT, GLOGPRINT, GLOGCLOSE are described in greater details in their
+respective help pages.  Below, is an example on how to use the three tasks
+together.  
+.sp
+.nf
+    procedure mytask (inimage)
+    
+    char    inimage	{prompt="Input image"}
+    char    logfile	{"",prompt="Logfile"}
+    bool    verbose	{yes,prompt="Verbose"}
+    
+    begin
+            char l_inimage, l_logfile
+	    bool l_verbose
+	
+	    char paramstr
+	    int  status
+	
+	    status = 0
+	
+	    l_inimage = inimage
+	    l_logfile = logfile
+	    l_verbose = verbose
+	
+	    # Create the list of parameter/value pairs.
+	    # One pair per line.
+	    # All lines combined into one string.
+	    # Line delimiter is '\n'.
+	    
+	    paramstr  = "inimage = "//inimage.p_value//"\n"
+	    paramstr += "logfile  = "//logfile.p_value//"\n"
+	    paramstr += "verbose  = "//verbose.p_value
+	
+	    # Assign a logfile name, if not specified by the user.
+	    # Open logfile and start log.  Write parameter/value 
+	    # pairs ("paramstr") to log.
+	    
+	    gloginit (l_logfile, "mytask", "fakepkg", paramstr, 
+		fl_append+, verbose=l_verbose)
+	    l_logfile = gloginit.logfile.p_value
+	
+	    # Let us assume that the input file is never found.
+	    # Then, write error message to logfile
+	    glogprint (l_logfile, "example", "status", type="error", 
+		errno=101, str="Input file "//l_inimage//" not found.",
+		verbose=l_verbose)
+	    status = 1
+	
+	    # Now, terminate the log entries for this task.
+            if (status == 0)
+		glogclose (l_logfile, "example", fl_success=yes,
+	            verbose=l_verbose)
+	    else
+		glogclose (l_logfile, "example", fl_success=no,
+	            verbose=l_verbose)	
+    end
+.fi
+
+GLOGPRINT requires that the developer assigns a log entry level to the log entry
+("status" in the above example). The log entry levels are described in more 
+detail in the GLOGPARS help page. That help page also contains 
+suggestions and examples.  In the end, however, it is up to the task developer 
+to decide which log level should be assigned to the log entry.
+
+For the "error" and "warning" type in GLOGPRINT, an error number, \fIerrno\fR,
+can be given.  If the error number corresponds to a GEMLOG error number, the
+corresponding GEMLOG message will be one of the lines in the error or warning
+log entries.  In the example above, \fIerrno\fR is 101.  Therefore, the
+following line will be written to log:
+.sp
+.nf
+    STAT MYTASK ERROR: 101 Unable to access file
+.fi
+.sp
+The error and warning modes in GLOGPRINT, and the other types of accepted 
+entries, are described in more details in the GLOGPRINT help page.  Below is the
+current list of GEMLOG error number and associated error message.
+
+.nf
+GEMLOG set of error messages:
+    -----------------------------------------------------------------
+    Error number       Message                 Macro from glog.h
+    (glogprint.errno)                          (for SPP code only)
+    -----------------------------------------------------------------
+    99                 Internal error          G_INTERNAL_ERROR
+
+    # Files I/0
+    100                Error opening file      G_OPEN_FILE_ERR
+    101                Unable to access file   G_FILE_NOT_ACCESSIBLE
+    102                File already exists     G_FILE_EXISTS
+
+    # User Inputs
+    120                Using default value     G_USING_DEFAULT
+    121                Input error             G_INPUT_ERROR
+    122                Unrecognized option     G_OP_UNRECOGNIZED
+    123                Wrong image format      G_WRONG_IMG_FORMAT
+
+    # Image Keywords/Header
+    131                Keyword not found       G_KEY_NOT_FOUND
+    132                Error in header content G_HDR_ERR
+    -----------------------------------------------------------------
+.fi
+.sp
+
+\fIDeveloping GEMLOG-enabled SPP tasks\fR
+.sp
+Below is information of interest to the SPP programmer wishing to develop
+GEMLOG-enabled compiled tasks, or further develop GEMLOG.
+.sp
+The GEMLOG SPP application interface comprises five main functions, four of 
+which mirror the functionality of the GEMLOG CL tasks GLOGINIT, GLOGPRINT, 
+GLOGCLOSE, and GLOGFIX.  All logging operations should be done via the 
+application interface to ensure the proper formatting of the log entries.  A 
+set of data type dependent utility functions is also available to streamline 
+the formatting of the parameter/value information string. The interface is 
+summarized below.  Each interface routine is described in further details in 
+a .help section at the top of each program.
+.sp
+.nf
+GEMLOG SPP Application Interface:
+
+        gl = gloginit (logfile, curtask, curpack, paramstr, pp, op)
+        gl = glogopen (logfile, curtask, curpack, pp, op)
+    status = glogprint (gl, loglevel, type, str, op)
+    status = glogclose (gl, fl_success)
+    status = glogfix (gl)
+
+             glogpstring (paramstr, param, valuestr)
+             glogpT (paramstr, param, value)
+.fi
+.sp
+.nf
+Short Description of the Interface:
+
+	gloginit	Set up/Initialize a Gemini log file
+	glogopen	Open an already initialized Gemini log file
+	glogprint	Print to a Gemini log file
+	glogclose	Close a Gemini log file
+	glogfix		Quick fix of a Gemini log file
+
+	# Tools to format the parameter string
+	# Regrouped in glogparam.x
+	glogpstring	Append a line to the parameter string fed to 
+	                gloginit.  The parameter's value is a string.
+	glogpT		Same as glogpstring() but for a non string 
+	                value.  'T' represent the first letter of 
+			the value's data type.
+.fi
+.sp
+The application interface makes use of data structures to pass most of the
+information back and forth.  The GL structure is the backbone of the GEMLOG
+routines.  It contains all the basic information regarding the log file.  The OP
+structure contains optional information specific to each type of log entries,
+like the type of entries, the error number, etc.  Just a few OP structure 
+elements, relevant to the type of the entry, is used each time a message is
+written to the log file.  The OP structure offers the equivalent of the 
+parameter lists used in the CL interface.  While the GL structure is used by all
+the GEMLOG functions, the OP structure is used only by the application
+interface.  Both structures are described here.
+.sp
+.nf
+GL Structure:
+	LEN_GL		Size of the GL structure
+	GL_FD		File descriptor for the logfile
+	GL_REQSTAT	Are status level entries requested?
+	GL_REQSCI	Are science level entries requested?
+	GL_REQENG	Are engineering level entries requested?
+	GL_REQVIS	Are visual improvement level entries requested?
+	GL_REQTSK	Are task level entries requested?
+	GL_VERBOSE	Verbose?
+	GL_LOG_P	Logfile pointer
+	GL_CPKG_P	Current package name pointer
+	GL_CTASK_P	Current task name pointer
+	GL_LOGFILE	Name of the logfile
+	GL_CURPACK	Current package name
+	GL_CURTASK	Current task name
+.fi
+.sp
+.nf
+OP Structure:
+	LEN_OP		Size of the OP structure
+	OP_FL_APPEND	Append to logfile?
+	OP_FORCE_APPEND	Must the file already exists?
+	OP_DEFLOG	Using default logfile name
+	OP_VERBOSE	Verbose?
+	OP_STATUS	Exit status (0=good)
+	OP_VISTYPE	Type of visual enhancement
+	OP_ERRNO	Gemini error code
+	OP_FORK		Fork to or back from child process?
+	OP_CHILD_P	Pointer for child process name
+	OP_CHILD	Name of child process
+.fi
+.sp
+The t_demoapi routines in the zzdebug.x file, located in gemtools$pkg/gemlog/,
+shows how the application interface is typically used, including error handling.
+A parameter file for the demo task, demoapi.par, is also included for 
+completeness.  Note that all GEMLOG-enabled compiled tasks must have the 
+GLOGPARS pset as one of their input parameters.  
+.sp
+To develop GEMLOG-enabled compiled tasks, the interface described above is all
+that the SPP programmer should need.  For the SPP programmer wishing to further
+develop GEMLOG, below are described the functions
+the GEMLOG CL tasks and SPP application interface are built upon.  More details
+are provided in a .help section at the top of each program file.
+.sp
+.nf
+GEMLOG Functions:
+
+	gl = gl_open	( logfile, acmode, status )
+	     gl_close	( gl )
+	
+    status = glw_err	( gl, errno, errmsg, level )
+    status = glw_file	( gl, fname, level )
+    status = glw_fork	( gl, child, direction, level )
+    status = glw_param	( gl, kvsbuf )
+    status = glw_stat	( gl, statno, level )
+    status = glw_str	( gl, str, level )
+    status = glw_tag	( gl, tagmode )
+    status = glw_title	( gl, level, mode )
+    status = glw_vis	( gl, type )
+    status = glw_warn	( gl, errno, errmsg, level )
+    
+    status = glr_blk	( gl, sl, blkwanted, nlines, blk )
+
+      okay = blkchk	( wanted, curblk )
+      okay = lvlchk	( gl, line )
+      okay = taskchk	( sl, line )
+      okay = timechk	( sl, line )
+
+    status = prs_blk	( blkstr, nblk, blks )
+    status = prs_time	( timestr, ltime )
+
+             glalloc	( gl )
+             glfree	( gl )
+             opalloc	( op )
+             opfree	( op )
+             slalloc	( sl )
+             slfree	( sl )
+
+             gemerrmsg	( errno, errmsg )
+      nstr = g_splitstr	( strbuf, token, strptr )
+.fi
+.sp
+.nf
+Short Description of the Functions:
+
+	# Creator/Destructor for the GL structure
+	gl_open		Create a Gemini log file structure and open 
+	                  the logfile
+	gl_close	Close the logfile and free the memory associated 
+	                  with the GL structure.
+	
+	# Writing routines
+	# Regrouped in glwrite.x
+	glw_err		Write an error message to the Gemini log file.
+	glw_file	Write the content of a file to the Gemini log file.
+	glw_fork	Write process info to the Gemini log file when 
+	                  forking to/from another task.
+	glw_param	Write to a Gemini log file the parameter-value 
+	                  pairs for  the current task.
+	glw_stat	Write the exit status of a task to the Gemini 
+	                  log file.
+	glw_str		Write a string to logfile if the log entry level
+			  corresponds to the requested levels
+	glw_tag		Write a GEMLOG Begin- or End-Of-Log tag.
+	glw_title	Write Gemini log opening/closing information
+	glw_vis		Write visual/readability improvement entries to 
+	                  a Gemini log file.
+	glw_warn	Write a warning message to the Gemini log file.
+	
+	# Reading routine
+	glr_blk		Read a Gemini log file to find and retrieve valid
+			  log block and entries based on various selection 
+			  criteria.
+	
+	# Selection routines
+	# Regrouped in glchk.x
+	blkchk		Compare the requested log block position to the 
+	                  current block position.
+	lvlchk		Compare the entry's log level to the requested 
+	                  levels.
+	taskchk		Compare the entry's task name tag to the requested 
+	                  task.
+	timechk		Compare the log start tag (BOE) to the time range
+			  requested.
+	
+	# Parsing routines
+	# Regrouped in glprs.x
+	prs_blk		Parse and sort the list of log blocks to retrieve.
+	                  The list is given by the user via 
+			  \fIglogextract.blocks\fR.
+	prs_time	Parse the lower/upper limit to the valid time 
+	                  range. The time strings are given by the user 
+			  via \fIglogextract.ltime\fR and 
+			  \fIglogextract.utime\fR.	
+
+	# Memory management for structures
+	# Regrouped in glmem.x
+	glalloc		Allocate memory for a GL structure
+	glfree		Free memory attached to a GL structure
+	opalloc		Allocate memory for an OP structure
+	opfree		Free memory attached to an OP structure
+	slalloc		Allocate memory for an SL structure
+	slfree		Free memory attached to an SL structure
+
+	# Others
+	gemerrmsg	Retrieve a Gemini error message.
+	g_splitstr	Given a token, split a string.
+.fi
+.sp
+The GL and OP structures have already been described.  Here is a description of
+the SL, or "selection", structure used by GLOGEXTRACT.
+.sp
+.nf
+SL Structure:
+	LEN_SL		Size of the SL structure
+	SL_TSK_P	Task name pointer
+	SL_LTIME	Lower limit on time range
+	SL_UTIME	Upper limit on time range
+	SL_CHILD	Retrieve the logs for child processes?
+	SL_NCHILD	Maximum number of subprocesses
+	SL_NBLK		Number of blocks to retrieve
+	SL_BLKS		Array of block positions to retrieve
+	SL_BPOS		Current block position
+	SL_TSKNAME	Name of the task to retrieve
+.fi
+.ih
+SEE ALSO
+glogclose, glogextract, gloginit, glogpars, glogprint, glogfix
+.endhelp

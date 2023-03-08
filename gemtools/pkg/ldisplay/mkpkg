@@ -1,0 +1,11 @@
+# Make the LDISPLAY task
+
+$checkout libpkg.a ../../
+$update libpkg.a
+$checkin libpkg.a ../../
+$exit
+
+libpkg.a:
+        t_ldisplay.x    <ctype.h> <error.h> <fset.h> <gset.h> <imhdr.h>\
+                        <mwset.h> <pkg/gtools.h> <smw.h> <units.h>
+        ;

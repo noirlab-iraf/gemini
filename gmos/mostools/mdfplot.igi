@@ -1,0 +1,30 @@
+# Draw GMOS mask frame
+location 0.2 0.9 0.2 0.9
+limits -120 120 -120 120
+lweight 2
+relo -114 -111 ; draw -111 -114 ; draw 111 -114 ; draw 114 -111
+draw 114 111 ; draw 111 114 ; draw -111 114 ; draw -114 111 
+draw -114 -111
+
+relo -103 -80.3 ; draw -80.3 -103 ; draw 80.3 -103 ; draw 103 -80.3
+draw 103 80.3 ; draw 80.3 103 ; draw -80.3 103 ; draw -103 80.3
+draw -103 -80.3
+
+lweight 0.5
+ltype 2
+relo -85.3 -98 ; draw 85.3 -98
+relo -98 -85.3 ; draw -98 85.3
+relo -85.3 98 ; draw 85.3 98
+relo 98 -85.3 ; draw 98 85.3
+
+relo 48 -98; draw 48 98
+relo 50 -98; draw 50 98
+relo -48 -98; draw -48 98
+relo -50 -98; draw -50 98
+
+lweight 2
+ltype 1
+ptype 25 0
+expand 1
+relo 100 -100 ; dot
+relo 100 100 ; dot

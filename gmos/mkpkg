@@ -1,0 +1,27 @@
+# Make the compiled tasks in the GMOS sub-package
+
+$call   relink
+$exit
+
+update:
+        $call relink
+        $call install
+        ;
+
+relink:
+        $set LIBS = "-lgemini -ltbtables -lpdainterp -lirafdb -lxtools -lsmw -lgslalib -lgsurfit"
+        $set DBLIBS = "-lcurfit -liminterp"
+        $update libpkg.a
+        $omake x_gmos.x
+        $link x_gmos.o libpkg.a $(LIBS) $(DBLIBS) -o xx_gmos.e
+        ;
+
+install:
+        $move xx_gmos.e gembin$x_gmos.e
+
+libpkg.a:
+        t_gfcube.x    <gemini.h> <error.h> <imhdr.h> <tbset.h> <smw.h>
+        t_gfunexwl.x  <imhdr.h> <pkg/gtools.h> <gemini.h> <ctype.h> \
+                      <math/gsurfit.h>
+        ;
+

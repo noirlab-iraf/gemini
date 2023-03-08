@@ -1,0 +1,181 @@
+.help mview March2006 gemini.midir
+.ih
+NAME
+mview -- Interactively view each frame in a Michelle file; allows user to mark 
+nodsets as "bad".
+.ih
+USAGE
+mview inimages
+.ih
+PARAMETERS
+.ls inimages
+The input image(s) to be examined interactively for bad savesets.
+This parameter can be an image name, a list of image names, 
+a wild-card image name, or the "@" syntax can be used to direct the 
+task to read a list of file names.
+.le
+.ls outimages = ""
+The output image name(s).  Since the task will change the headers 
+if any bad frames are marked, the task requires that the output image 
+names are distinct from the input image names.  If this field is left 
+blank the \fIoutprefix\fR string is used to create new file names from the 
+input file names.  Otherwise the number of output file names must match 
+the number of input file names or an error condition occurs.  The field 
+must contain either a list of output file names or use the "@" syntax to 
+direct the task to read a list of file names.  The task tests for whether 
+the output images exist and exits with an error condition if any of them 
+do exist. 
+.le
+.ls outprefix = "v"
+A prefix string which is prefixed to each input image name to make
+the corresponding output image name if the output file name(s) are 
+not specified via the \fIoutimages\fR parameter.
+.le
+.ls rawpath = ""
+The path to the directory containing the Michelle images files.  If the 
+value is "" (empty string) the current directory is used.
+.le
+.ls type = "dif"
+The type of frame to display: the default is to show the difference frames 
+(type = "dif"), but one can also examine the on-source frames (type="sig") 
+or the off-source reference frames (type="ref").
+.le
+.ls delay = 0.
+A real value for the delay in seconds between the displaying of frames 
+from the images.  If the update of frames is too fast, one can set this 
+value to cause a pause between the frames as shown on the image display.
+.le
+.ls fl_inter = no
+A boolean value for whether the user wants to be able to manually 
+screen the images.  If this is set to "no", the routine will display 
+all the frames from the image in sequence without pausing for input.
+.le
+.ls fl_disp_fill = no
+A boolean value for whether the image should be displayed with the "fill" 
+option (see DISPLAY).  With DS9 this option does not work.
+.le
+.ls fl_test_mode = no
+A boolean value for whether the routine should be run in test/debug mode 
+(mainly for development use).
+.le
+.ls z1 = 0., z2 = 0., zscale = yes, zrange = yes, ztrans = "linear"
+These are parameters passed to the DISPLAY routine when displaying 
+the frames.  See the help file for DISPLAY.
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes the task use the logfile
+defined by \fImidir.logfile\fR.
+.le
+.ls verbose = yes
+Print actions to the screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error.  This 
+parameter is always set by the task, and should not be modified by the user.
+.le
+.ih
+DESCRIPTION
+With this routine the user can display mid IR data obtained in any of the 
+four observing modes with Michelle.  The user can interactively examine 
+each nod position of a raw Michelle image, and mark any bad frames.  
+.sp
+For each image specified, the task displays a frame for each saveset 
+in each extension of the file, in order.  The user has options for simply 
+displaying the images, for using IMEXAM to look at each image as 
+it is displayed, and for marking any of the savesets as being "bad".  
+Any frames marked as "bad" are noted in the extension FITS header using 
+the NBADSET keyword. MVIEW can be used to display Michelle images 
+obtained in CHOP, CHOP-NOD, NOD or STARE modes.  For data taken in the CHOP
+or CHOP-NOD mode, the option exists to display either the difference frame
+(dif) or the source frames (src, ref).  
+.ih 
+Screening Commands
+When in image screening mode, after each image is displayed (and optionally 
+after IMEXAM has been run) the task goes into image input mode and 
+waits for a recognized key command to be entered.  Note that the image cursor 
+changes in this mode in exactly the same way as occurs in IMEXAM so 
+one might think that one has not exited IMEXAM.  A message is displayed 
+in the terminal window when the task goes from IMEXAM mode to the 
+screening mode.
+.sp
+All key commands can be entered in lower case or upper case.  The available 
+key commands are:
+.ls h
+This causes a list of the key commands to be printed on the terminal.
+.le
+.ls b
+This marks the current image as bad.  It is ignored if the image is already 
+marked as bad.
+.le
+.ls u
+This unmarks a bad image, so it is taken as a good image.
+.le
+.ls i
+Entering this key command causes the task to enter IMEXAM.
+.le
+.ls n
+This causes the task to go to the next extension.  Each extension correspond to a single 
+nod position.
+.le
+.ls q
+Entering "q" causes the task to stop the interactive screening.  It will 
+then proceed with the display of all savesets remaining in the file.
+.le
+.ls s
+The "s" key command runs IMSTAT on the current image.
+.le
+.ls x
+This causes the task to exit immediately, so it does not display 
+any remaining savesets in the file.
+.le
+.ls Any other key:
+Any other keystroke causes MVIEW to proceed and display the next extension.
+.le 
+.ih
+EXAMPLES
+1. The basic usage is
+.sp
+.nf
+    cl> mview N2003B0909S0012 
+.fi
+.sp
+which will produce an output file named "vN2003B0909S0012.fits". (Assuming 
+that there are no errors.)
+.sp
+2. Using MVIEW for images in another directory is done as with 
+.sp
+.nf
+    cl> mview N2003B0909S0012 rawpath="/home/user/michelle"
+.fi
+.sp
+which would read "/home/user/michelle/N2003B0909S0012.fits" and produce an 
+output file named "vN2003B0909S0012.fits" if all goes well.
+.sp
+3. Defining the output file name works the following way:
+.sp
+.nf
+    cl> mview N2003B0909S0012 frame12 verbose=no
+.fi
+.sp
+which should produce "frame12.fits" in the current directory.  In this 
+case most of the log messages are not written to the terminal because 
+\fIverbose\fR is set to "no"
+.sp
+4. If one wants to define the prefix explicitly and apply it to all 
+the images in a list it is done by
+.sp
+.nf
+    cl> mview @file.list outprefix="new" logfile="tv.log" \
+    >>> use_imexam=yes
+.fi
+.sp
+which produces an output file named "newN2003B0909S0012.fits" for an 
+input file name "N2003B0909S0012" listed in file "files.list".  In this 
+example the logfile name is set to "tv.log".  The task will go into 
+IMEXAM for each image that is displayed.
+.ih
+BUGS AND LIMITATIONS
+.ih
+SEE ALSO
+tview, miview, tbackground, mprepare, mireduce, midir
+.endhelp

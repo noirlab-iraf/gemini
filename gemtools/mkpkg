@@ -1,0 +1,25 @@
+# Make the gemtools package
+
+$call 	relink
+$exit
+
+update:
+	$call	relink
+	$call	install
+	;
+
+relink:
+	$set	LIBS = "-lxtools -lmef -lgemini -lsmw -lgsurfit -liminterp"
+	$update	libpkg.a
+	$omake	x_gemtools.x
+	$link	x_gemtools.o libpkg.a $(LIBS) -o xx_gemtools.e
+	;
+
+install:
+	$move	xx_gemtools.e gembin$x_gemtools.e
+	;
+
+libpkg.a:
+	@lib
+	@pkg
+        ;

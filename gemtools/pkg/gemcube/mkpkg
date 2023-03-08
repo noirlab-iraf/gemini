@@ -1,0 +1,16 @@
+# Make the GEMCUBE task
+
+$checkout libpkg.a ../../
+$update libpkg.a
+$checkin libpkg.a ../../
+$exit
+
+libpkg.a:
+	@gflib
+
+	tc1d.x		transcube.h
+	tc2d.x		<math.h> transcube.h
+	tcweights.x	<math.h> <math/iminterp.h> <mwset.h> transcube.h
+	transcube.x	<imhdr.h> <mach.h> <mwset.h> <plset.h> transcube.h
+	t_transcube.x	<fset.h>
+	;

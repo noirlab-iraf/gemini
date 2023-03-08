@@ -1,0 +1,39 @@
+.help gnirsexamples December2011 gemini.gnirs
+.ih
+NAME
+gnirsexamples -- Display example GNIRS processing scripts
+.ih
+USAGE
+gnirsexamples example
+.ih
+PARAMETERS
+.ls example (longslit|XD|IFU)
+Example script to print to the screen.
+.le
+.ih
+DESCRIPTION
+
+This task displays example scripts (from the gnirs$doc directory) for
+different instrument configurations.
+
+To use the examples, copy them and replace the file numbers with the file 
+numbers of your data.   It is recommended to run each task separately, on the
+IRAF or PyRAF command line, at least until you are satisfied with the
+reduction. 
+
+.nf
+    Example       File
+    ---------------------------------------
+    longslit      gnirs_longslit_example.cl
+    XD            gnirs_xd_example.cl
+    IFU           gnirs_ifu_example.cl
+    ---------------------------------------
+.fi
+
+.ih
+BUGS AND LIMITATIONS
+The data used are not distributed with this package and may not yet be public.
+.ih
+SEE ALSO
+gnirsinfols, gnirsinfoxd, gnirsinfoifu, gnirsinfo
+.endhelp

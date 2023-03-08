@@ -1,0 +1,225 @@
+.help mistdflux December2011 gemini.midir
+.ih
+NAME
+mistdflux -- Find the in-band flux density of a mid-IR standard 
+star for either Michelle or T-ReCS
+.ih
+USAGE
+mistdflux stdname filters
+.ih
+PARAMETERS
+.ls stdname
+The name, or partial name, of a Cohen or TIMMI2 mid-infrared standard star. 
+The task will either find the first match to this string in the list of 
+standards or, if \fIfl_matchall\fR is "yes" it will find all matches to this 
+string in the list of standards.  The names use underscores in some cases 
+such as "alpha_Cen_A" for alpha Cen A.  Most of the names are the HD numbers 
+such as "HD169916".  The match is not case-sensitive.
+.le
+.ls filters
+A list of names or partial names for the filters to match.  If this is set to 
+"all" (case-insensitive) then all filter flux densities will be printed 
+out.
+.le
+.ls fl_matchall = no
+A boolean value which determines whether all matches to the standard name will 
+be printed or just the first one.
+.le
+.ls atmos = "none"  [none|normalized|extinction]
+Set whether the task prints the in-band flux density based on the outside the 
+atmosphere spectrum ("none"), with a model for atmospheric absorption but 
+corrected to zero airmass ("normalized"), or with a model for atmospheric 
+extinction and at 1.0 airmasses ("extinction").
+.le
+.ls instrument = "trecs"    [trecs|michelle]
+Indicates which instrument is being used.
+.le
+.ls logfile = ""
+Name of the logfile.  The default value makes the task use the logfile defined
+by \fImidir.logfile\fR.
+.le
+.ls verbose = no
+Print actions to the screen.  If \fIverbose\fR is 'no', only the results will
+be printed to screen.  All info will still be written to log though.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error, or if
+an important warning was issued.  This parameter is always set by the task,
+and should not be modified by the user.
+.le
+.ih
+DESCRIPTION
+This task is used to obtain the filter flux density in Jansky for any of the 
+mid-infrared standards as estimated to be observed in the T-ReCS or Michelle 
+filters. These F_nu estimates are calculated by integrating the spectrum of 
+the standard over the filter profile, but WITHOUT the additional effects of 
+the mirrors, the aperture window, and any wavelength-dependent detector 
+response effects included.  In addition, the default is to not calculate 
+the effect of any atmospheric absorption on the values.  One can 
+change this with the \fIatmos\fR parameter, but there are only two cases 
+of atmospheric absorption that one can specify and these are somewhat limited 
+as is discussed below.
+.sp
+The large majority of the standards are identified by their HD number, but 
+the brighter ones are identified by names such as "mu UMa", "alpha CMa", and 
+so on converted to lower case and with underscores instead of spaces since the 
+names are read in as in C free format and thus would otherwise end at 
+the first space.  For the very faint stars defined as SITRF standards by 
+Martin Cohen some lack an HD number.  See the original series of papers by 
+Martin Cohen for lists of these objects.
+.sp
+The general process is to calculate
+.sp
+.nf
+total in-band flux = int(star_photon_flux_density * filter_response) /
+                     int(filter_response) 
+.fi
+.sp
+(where "int" denotes integration over wavelength across the filter)
+using the stellar flux density defined by Martin Cohen converted from F_lambda 
+to photon flux (i.e. by dividing by h * nu or equivalently multiplying by 
+lambda and then dividing by c * h).  As defined above only the relative 
+filter response matters, in that if the whole filter profile were 
+multiplied by a constant factor then the resulting value will be exactly 
+the same.  The in-band filter flux is then converted to F_nu in Jy for 
+printing out.  This is done by assuming that the spectrum has a constant 
+F_nu over the effective width of the filter defined by the 50% of peak values 
+at long and short wavelengths.
+.sp
+Since the Cohen spectral values are defined outside the atmosphere, this 
+gives the values without any atmosphere as they should be observed at 
+airmass 0.0.
+.sp
+If one wants to have some idea of the effect of the atmosphere, one can 
+change the \fIatmos\fR parameter from "none" to "normalized" or "extinction". 
+If one chooses "normalized" then the filter profile in the above schematic 
+equation is replaced by an atmospheric transmission function times the filter 
+response in both the numerator and denominator integrations.  The atmospheric 
+transmission model is for airmass 1.0, calculated separately for Cerro Pachon 
+and for Mauna Kea because the altitudes are different.  In both cases the 
+water column was assumed to be 2 PMM at zenith.  This is somewhat dry for 
+Cerro Pachon, while it is about average for Mauna Kea according to the long 
+term monitoring of the water column at the Caltech Submillimeter Observatory.
+.sp
+Since the value is normalized by the filter and atmospheric responses, the 
+value that is returned in this case is roughly what one will get from 
+an extrapolation of the star brightness to zero airmass, and it changes only 
+a bit from the \fIatmos\fR = "none" case.  This gives some idea of the
+uncertainties in the zero airmass value due to saturated lines in the 
+filter passband, but is a very crude estimate.
+.sp
+As an alternative, one can specify \fIatmos\fR = "extinction" in which case 
+the atmospheric effects are applied only in the integration over the stellar 
+spectrum, not to the denominator integral.  This shows the effects of the 
+atmospheric absorption at airmass 1.0 compared to the outside the atmosphere 
+conditions.
+.sp
+One can ask for a specific filter names, or partial names, or use "all" to get 
+all filter values.  If a list of filter names or partial filter names is 
+specified the task goes through the list of filters and returns all matches 
+found.  Thus filter="N" matches the " N (broad 10um)" filter, the 
+"[NeII] 12.81um" filter, and the "[NeII]cont13.10um" filter for T-ReCS.  If 
+one specified "Si" one would get all six of the medium band "silicate" filters 
+and the "[SIV] 10.52um" as the match is not case-sensitive.
+.sp
+For the name of the object the task will either find the first match to the 
+name or partial name, if \fIfl_matchall\fR is "no", or find all matches to 
+name or partial name , if \fIfl_matchall\fR is "yes".  Be warned that using
+"HD" with \fIfl_matchall\fR set to yes returns more than 500 entries.
+.sp
+The \fIinstrument\fR parameter can be set to either "michelle" or "trecs".  
+Separate calculations have been done for the filters for each instrument 
+because they differ somewhat even when the filter is the same.
+.ih
+EXAMPLES
+1. Find all the flux densities for alpha CMa outside the atmosphere for T-ReCS:
+.sp
+.nf
+    mi> mistdflux alpha_cma ALL instrument=trecs
+    
+    MISTDFLUX   alpha_CMa    flux density ( N (broad 10um)  ) = 133.5 Jy
+    MISTDFLUX   alpha_CMa    flux density ( Q (Broad 20.8um)) = 30.60 Jy
+    MISTDFLUX   alpha_CMa    flux density (Qshort 17.65um   ) = 42.88 Jy
+    MISTDFLUX   alpha_CMa    flux density (Qa 18.30um       ) = 40.10 Jy
+    MISTDFLUX   alpha_CMa    flux density (Qb 24.56um       ) = 22.34 Jy
+    MISTDFLUX   alpha_CMa    flux density (Si-1 7.73um      ) = 219.5 Jy
+    MISTDFLUX   alpha_CMa    flux density (Si-2 8.74um      ) = 174.1 Jy
+    MISTDFLUX   alpha_CMa    flux density (Si-3 9.69um      ) = 142.5 Jy
+    MISTDFLUX   alpha_CMa    flux density (Si-4 10.38um     ) = 123.9 Jy
+    MISTDFLUX   alpha_CMa    flux density (Si-5 11.66um     ) = 98.72 Jy
+    MISTDFLUX   alpha_CMa    flux density (Si-6 12.5um      ) = 87.91 Jy
+    MISTDFLUX   alpha_CMa    flux density ([ArIII] 8.99um   ) = 164.2 Jy
+    MISTDFLUX   alpha_CMa    flux density ([NeII] 12.81um   ) = 82.06 Jy
+    MISTDFLUX   alpha_CMa    flux density ([NeII]cont13.10um) = 78.83 Jy
+    MISTDFLUX   alpha_CMa    flux density ([SIV] 10.52um    ) = 121.0 Jy
+    MISTDFLUX   alpha_CMa    flux density (PAH 8.6um        ) = 178.5 Jy
+    MISTDFLUX   alpha_CMa    flux density (PAH 11.3um       ) = 104.3 Jy
+    MISTDFLUX   alpha_CMa    flux density ( K (2.2um)       ) = 2313. Jy
+    MISTDFLUX   alpha_CMa    flux density ( L (3.4um)       ) = 830.3 Jy
+    MISTDFLUX   alpha_CMa    flux density ( M (4.6um)       ) = 579.3 Jy
+.fi
+.sp
+2. Find the N-band values for HD 169916 in space and including atmospheric 
+effects, again for T-ReCS.
+.sp
+.nf
+    mi> mistdflux HD169916 " N " instrument=trecs
+    
+    MISTDFLUX   hd169916     flux density ( N (broad 10um)  ) = 29.18 Jy
+    
+    mi> mistdflux HD169916 " N " atmos=extinction instrument=trecs
+    
+    MISTDFLUX   hd169916     flux density ( N (broad 10um)  ) = 24.48 Jy
+    
+    mi> mistdflux HD169916 " N " atmos=normal instrument=trecs
+    
+    MISTDFLUX   hd169916     flux density ( N (broad 10um)  ) = 28.40 Jy
+.fi
+.sp
+3. Find the N-prime filter flux density for Michelle for all entries matching 
+"alpha".
+.sp
+.nf
+    mi> mistdflux alpha "Nprime" fl_matchall+ inst=michelle
+    
+    MISTDFLUX   alpha_Cen_A  flux density ( Nprime          ) = 129.2 Jy
+    MISTDFLUX   alpha_CMa    flux density ( Nprime          ) = 105.6 Jy
+    MISTDFLUX   alpha_Boo    flux density ( Nprime          ) = 572.3 Jy
+    MISTDFLUX   alpha_Cet    flux density ( Nprime          ) = 178.8 Jy
+    MISTDFLUX   alpha_Lyr    flux density ( Nprime          ) = 30.57 Jy
+    MISTDFLUX   alpha_TrA    flux density ( Nprime          ) = 111.5 Jy
+    MISTDFLUX   alpha_Boo    flux density ( Nprime          ) = 572.3 Jy
+    MISTDFLUX   alpha_Cet    flux density ( Nprime          ) = 178.8 Jy
+    MISTDFLUX   alpha_Hya    flux density ( Nprime          ) = 106.5 Jy
+    MISTDFLUX   alpha_Tau    flux density ( Nprime          ) = 514.9 Jy
+    MISTDFLUX   alpha_TrA    flux density ( Nprime          ) = 111.5 Jy
+    MISTDFLUX   alpha_Boo    flux density ( Nprime          ) = 572.3 Jy
+    MISTDFLUX   alpha_Hya    flux density ( Nprime          ) = 106.5 Jy
+    MISTDFLUX   alpha_Tau    flux density ( Nprime          ) = 514.9 Jy
+.fi
+.sp
+Note the duplicate values for several of the objects, as they are listed 
+in more than one set of standards.
+.ih
+BUGS AND LIMITATIONS
+The number of decimal places in the values is a bit excessive given that the 
+typical global uncertainties in the Cohen spectral files are 2%.
+.sp
+It would be better to have a variety of airmasses and water vapour contents 
+for Cerro Pachon or Mauna Kea in the models, but time limitations in 
+generating so many sets of values does not allow this.
+.sp
+The atmospheric transmission models calculated by the ATRAN program may 
+not accurately model the real atmospheric transmission accurately in all 
+cases, although the errors when dealing with these filters are expected to 
+be small.
+.sp
+The atmospheric transmission model is not applied to the K, L, and M filters 
+for T-ReCS. It applies only to the N-window and Q-window filters for both 
+instruments.  The near-infrared filters are not normally used with T-ReCS.
+.sp
+A few of the bright standards are in several lists (TIMMI2 and Cohen 
+primary standards) and thus are in the file more than once.
+.ih
+SEE ALSO
+.endhelp

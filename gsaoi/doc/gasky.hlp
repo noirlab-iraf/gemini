@@ -1,0 +1,284 @@
+.help gasky March2013 gemini.gsaoi
+.ih
+NAME
+gasky -- Derive sky image(s) from input GSAOI data, includes
+           masking of objects.
+.ih
+USAGE
+gasky inimages
+.ih
+PARAMETERS
+.ls inimages
+List of prepared GSAOI sky images to combine to form master sky
+frame(s). The input sky images can be science frames or designated sky
+frames. Input should be dithered - no registration or alignment of input frames
+is done using the WCS. \fIinimages\fR Can be a list of image names or numbers
+(comma separated or @ lists), or a range of images numbers - wild cards are
+supported, though "*.fits" is not. The image names may include the directory
+path. The images must be in multi-extension FITS (MEF) format and not be
+mosaiced. The file extension ".fits" may or may not be included. It is
+recommend that the user supply input images explicitly in the form of list.
+.le
+.ls outimages = ""
+Output name(s) for master sky frame(s). If left blank the default suffix,
+"_sky" will be used. Input can be a list of names if more
+than one configuration is input (comma separated or @ lists"). If supplying
+more than one configuration the list of names must match the ordered list of
+unique configurations.
+.le
+.ls outsufx = "sky"
+Output suffix to be used if \fIoutimages\fR="". \fIoutsufx\fR is used in
+conjunction with the first name of the list of files (after sorting) to be
+combined together for that unique configuration.
+.le
+
+GEMCOMBINE PARAMETERS:
+.ls combine = "default" (default|median|average)
+Type of combining operation performed on the final set of pixels (after
+offsetting, masking, thresholding, and rejection). The choices are
+"average" or "median". The median uses the average of the two central
+values when the number of pixels is even. When \fIcombine\fR="default", then
+both \fIcombine\fR and \fIreject\fR parameters passed to GEMCOMBINE are set
+internally by GASKY. The default setting of \fIcombine\fR and \fIreject\fR when
+combining 3 or more images are "average" and "avsigclip", receptively.
+However, should the number of images to be combined be less than 3 and
+\fIcombine\fR=default \fIcombine\fR="average", \fIreject\fR="minmax",
+"\fInlow\fR"=0 and \fInhigh\fR=1.
+.le
+.ls reject = "minmax" (none|minmax|avsigclip)
+Type of rejection operation performed on the pixels remaining after offsetting,
+masking and thresholding. The algorithms are described in the help for
+IMCOMBINE.
+.le
+.ls nlow = 0, nhigh = 1
+The number of low and high pixels to be rejected by the "minmax" algorithm.
+.le
+.ls statsec = "[5%]"
+Section of images to use in computing image statistics
+and when scaling, weighting, and normalizing with GEMCOMBINE. If no section is
+given then the entire region of the input is sampled. \fIstatsec\fR is relative
+to an individual array but is applied to all arrays - assuming all arrays are
+of the same size. Allowed syntax, i.e., standard and non-standard
+IRAF syntax, can be found in the help for GEMSECCHK.
+.le
+.ls masktype = "goodvalue" (none|goodvalue)
+Type of pixel masking to use. Note that not all IMCOMBINE options are
+currently available. See the IMCOMBINE help page for more details.
+.le
+.ls maskvalue = 0.
+Mask value to use with the \fImasktype\fR parameter. See the IMCOMBINE help
+page for a complete description.
+.le
+.ls badpix = "gsaoi$data/gsaoibpm_high_full.fits"
+Static MEF bad pixel mask.
+.le
+.ls key_exptime = "EXPTIME"
+Image header keyword to be used with the exposure scaling and weighting
+options.
+.le
+.ls key_ron = "RDNOISE", key_gain = "GAIN"
+Header keywords that give CCD readout noise in electrons and gain in
+electrons/DN.
+.le
+.ls fl_vardq = no
+Create variance and data quality frames for the output image? If
+\fIfl_vardq=yes\fR, variance and data quality planes are required to be present
+in all prepared input frames.
+.le
+.ls fl_dqprop = no
+Propagate data quality values to the combined frame data quality extensions? If
+\fImasktype\fR="none" all input data quality values will be propagated. If
+\fImasktype\fR="goodvalue" only the data quality values for those output pixels
+that have no data in will be propagated.
+.le
+
+OBJECT DETECTION PARAMETERS:
+.ls fl_keepmasks = no
+Keep the MEF masks (one per image to be combined) that contains the locations
+of sources that were excluded from the combining step? Object detection is
+performed separated on each input image. The EXTNAME of the extensions in the
+output mask name are "DQ", and are number to match that of the input
+frame. Object are designated a value of 128. If \fIfl_mask\fR=yes flagged bad,
+non-linear and saturated pixels in the input image's data quality extensions
+will be included in the output object masks, these pixels retain the same data
+quality value.
+.le
+.ls masksuffix = "msk"
+Output mask suffix. The output name of the object mask will be that of the
+input image with the \fImasksuffix\fR inserted along with an "_" before the
+file extension.
+.le
+.ls threshold = 3.
+Threshold in sigma above which a object is deemed and object. Used as the
+value for the \fIhsigma\fR parameter to NPROTO.OBJMASKS.
+.le
+.ls ngrow = 3
+Number of iterations to grow objects into the wings. Used as the
+value for the \fIngrow\fR parameter to NPROTO.OBJMASKS.
+.le
+.ls agrow = 3.
+Area limit for growing objects into the wings. Used as the
+value for the \fIagrow\fR parameter to NPROTO.OBJMASKS.
+.le
+.ls minpix = 6
+The  minimum  number  of  neighboring  pixels  which  define  an acceptable
+object. Used as the value for the \fIminpix\fR parameter to NPROTO.OBJMASKS.
+.le
+.ls fl_mask = yes
+Mask non-good pixels during source detection and calculation of statistics?
+Good pixels are assumed to have a value of 0 in the data quality planes. In the
+case when calculating statistics, if there are no data quality planes present
+and \fIbadpix\fR is not "", this will be used to mask bad pixels during the
+calculation.
+.le
+.ls qreduce = yes
+Quickly flat divide and sky subtract (using a rough and ready sky frame from
+GAFASTSKY) the input images? If already flat divided the input images will not
+be flat divided again. If not and \fIflatimg\fR is provided, this will be used
+to flat divide the input frames. If not flat divided and \fIflatimg\fR="", then
+a rough and ready flat frame will be created from the rough and ready GAFASTSKY
+image.
+.le
+.ls qred_msktype = "goodvalue" (none|goodvalue)
+Type of pixel masking to be used by GAFASTSKY (if \fIqreduce\fR=yes). It is
+recommend that \fIqreduce\fR=yes but \fIfl_mask\fR=no that \fIqred_msktype\fR
+be set to "none". Note that not all IMCOMBINE options are currently
+available. See the IMCOMBINE help page for more details. 
+.le
+.ls flatimg = ""
+Input flat frame to flat divide input images. Only used when
+\fIqreduce\fR=yes and the input images have not already be flat divided. The
+flat image must be of a compatible type as the METACONF keywords will be
+compared. The input sky images are only flat divided for object detection and
+the rough sky frames with appropriate masking are supply to GEMCOMBINE to
+create the master sky frame.
+.le
+.ls minflat_val = 1E-6
+Minimum allowed absolute pixel value in flat image; only for
+\fIqreduce\fR=yes. This can be set to INDEF. \fIminflat_val\fR is in place to
+stop segmentation / floating point errors when dividing by the flat
+frame or when detecting objects on the resultant flat divided image. Should the
+user see such errors, adjust this value to see if this fixes the
+problem. Pixels within the flat image with an absolute value below
+\fIminflat_val\fR value are replaced by \fIminflat_val\fR corrected by the sign
+of the input pixel.
+.le
+
+GENERAL PARAMETERS:
+.ls sci_ext = "SCI"
+Name of the MEF extension containing the science data.
+.le
+.ls var_ext = "VAR"
+Name of the MEF extensions containing the calculated variance planes.
+.le
+.ls dq_ext = "DQ"
+Name of the MEF extensions containing the data quality information.
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes use of the logfile
+defined by gsaoi.logfile.
+.le
+.ls verbose = yes
+Print actions to screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted
+with an error. This parameter is set by the task and should not be
+modified by the user.
+.le
+.ih
+DESCRIPTION
+
+This task, GASKY, takes prepared GSAOI data (sky or object; 4-extensions) and
+creates a combined master sky frame. The individual mask frames created can
+kept if requested.
+
+Master sky frames are likely to be created from science images where there has
+been a small dither offset applied during the observation. Or by a designated
+set of sky frames where there has been a large offset to sky.
+
+The input files are sorted by unique METACONF keyword values before commencing
+the object detection and combining steps. The output file names can be set by
+the user or left to be default - a suffix "sky" is used in conjunction with the
+first name in the list of images to be combined for that configuration. Should
+there be more than one configuration supplied the output names specified must
+be the same number of unique configurations and be ordered in reverse according
+to unique METACONF values.
+
+Object masks are used during the combining step to mask out contamination of
+sources such that as clean as possible sky background frame is
+created. Previously created object masks, is they exist with the same name, are
+used preferentially instead of creating new masks. However, if a mask doesn't
+exist for an image once is created (it can be kept by setting
+\fIfl_keepmasks\fR=yes).
+
+If a creating a new mask for an input image and \fIqreduce\fR=yes, then a
+quick, median combined sky frame will be created by GAFASTSKY. This is
+subtracted from the input image before source detection. Should the input image
+not be flat divided, the input image is flat divided prior to source detection
+too. Either by creating a quick flat frame from the output image from GAFASTSKY
+or using the file specified by \fIflatimg\fR. The METACONF keywords of the
+input image and \fIflatimg\fR are compared to check compatibility.
+
+If the flat image is to be created from the output from GAFASTSKY, the mean and
+standard deviation is calculated for each array using the area specified by
+\fIstatsec\fR; masking non-good pixels if \fRfl_mask\fR=yes. Then a 4 sigma
+cutoff either side of the mean is applied to the GAFASTSKY output, setting any
+pixels beyond these values to 1 in the flat image otherwise using the GAFASTSKY
+image value instead.
+
+Then source detection is performed on each input image. Should
+\fRfl_mask\fR=yes and data quality planes exist in the input image, these data
+quality planes are supplied as masks to NPROTO.OBJMASKS and are included in the
+output mask frames, these pixels retain their original meaning in the output
+masks. Pixels deemed to be part of an object are set to a value of 128 in the
+object masks. The output object masks are MEF with EXTNAMES of "DQ"
+and version numbers matching the input science frame's.
+
+Once all images have object masks, they are sent to GEMCOMBINE to be combined
+using the defined \fIcombine\fR and \fIreject\fR parameters.
+
+Finally, in addition to the time stamps for this task, the METACONF keyword
+value is updated. The string "OBJ" in the input METACONF value is replaced with
+the value "SKY".
+.ih
+EXAMPLES
+
+.nf
+   cl> gasky @sky.list fl_vardq+ fl_dqprop+ fl_keepmasks+ \
+           flatimg="flat.fits"
+.fi
+
+In this test sky.list contains the names of science images that were observed
+as part a dither sequence and all have the same METACONF keyword values. Only
+one master sky frame will be created. By default the input images will be
+quickly reduced using a fast sky frame from GAFASTSKY and the flat frame
+"flat.fits" before source detection. The masks created during source detection
+are to be kept when the tasks terminates. The output frame will contain
+variance and data quality extensions. As \fIfl_dqprop\fR=yes (and by default
+\fImasktype\fR="goodvalue" and \fIfl_mask\fR=yes) any input data quality values
+included the object masks and the object values will be propagated for output
+pixels that contain no data.
+.ih
+BUGS AND LIMITATIONS
+
+On occasion segmentation or floating point errors are produced when flat
+dividing the input images or detecting sources in the flat divided image. The
+\fIminflat_val\fR is supplied to help stop this problem by limiting the lowest
+allowed absolute value in the flat image. Pixels within the flat image with an
+absolute pixel value below \fIminflat_val\fR value are replaced by
+\fIminflat_val\fR corrected by the sign of the input pixel.
+
+There is no registering of input images before stacking, meaning images are
+stacked without any translation etc. Therefore if there are ODGWs guiding but
+in a frozen state, most likely if a large offset to sky is performed, then it
+is likely that there will be an area of the master sky frame that contains no
+information. The data quality frames (if \fIfl_vardq\fR=yes,
+\fIfl_dqprop\fR=yes and \fIfl_mask\fR=yes) will show areas that contain no data
+in the output sky frame.
+.ih
+SEE ALSO
+
+GASTAT, GADIMSCHK, GAIMCHK, GEMCOMBINE, GAFASTSKY and NPROTO.OBJMASKS.
+
+.endhelp

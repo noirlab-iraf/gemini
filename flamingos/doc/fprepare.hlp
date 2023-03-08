@@ -1,0 +1,266 @@
+.help fprepare August2011 gemini.flamingos
+.ih
+NAME
+.nf
+fprepare -- Convert Flamingos data to MEF and generate variance and data
+            quality extensions; make data compatible with NIRI package 
+            requirements. 
+
+.fi
+.ih
+USAGE
+fprepare inimages
+.ih
+PARAMETERS
+.ls inimages
+Raw Flamingos images in simple FITS format or already FPREPAREd images
+for which you wish to now attach VAR/DQ planes. 
+Can be a list of images or a list file with image names (using @); 
+Wildcards are also supported. 
+The data in the original header are propagated to the PHU of the MEF
+output file.  A path can be included in the
+file names. The individual file names (including path) can also be 
+given on on separate lines of a list file, given as 
+\fIinimages\fR = @listfile, where listfile is the file name. 
+.le 
+.ls rawpath = ""
+Path for the directory where the raw images are located.  One may 
+set this parameter if the raw data are not located in the current 
+working directory, or specify a path in the input image file names.
+.le
+.ls outimages = ""
+Output multi-extension FITS images. Can be a list of images. Wildcards
+are also supported. 
+\fIoutimages\fR has preference over \fIoutprefix\fR.
+.le
+.ls outprefix = "f"
+Prefix for output images. Names of output images are the
+names of the input images with a prefix attached. 
+\fIoutprefix\fR is used only if \fIoutimages\fR = "".
+.le 
+.ls bpm = ""
+Bad pixel mask to use to generate the data quality frame.
+.le
+.ls sci_ext = "SCI"
+Name or number of science extension in the output image.
+.le
+.ls var_ext = "VAR"
+Name or number of variance extension in the output image.
+.le
+.ls dq_ext = "DQ"
+Name or number of data quality extension in the output image.
+.le
+.ls fl_vardq = no
+Create the variance and data quality images.
+If set to "no", variance and data quality planes will not be computed, and
+the output image will only contain the PHU and the science data in extension 
+[1].  
+.le
+.ls key_ron = "RDNOISE"
+Output header keyword for the read noise (in e-).  The effective readnoise
+is calculated and updated in the output header based on the base value for
+the array and taking into account the number of non-destructive reads, 
+coadds, and number of digital averages if not equal to 1 in all cases. 
+.le
+.ls key_gain = "GAIN"
+Output header keyword for the gain (in e-/ADU).  
+.le
+.ls key_sat = "SATURATI"
+Output header keyword for the saturation level (in ADU). The value is 
+determined from the database entry of the array characteristics. 
+.le
+.ls key_nonlinear = "NONLINEA"
+Output header keyword for the non-linear regime (in ADU). Linear limit is 
+read from the database entry for the array. 
+.le
+.ls specsec1 = ""
+Value for the SPECSEC1 header keyword that is used for finding the spectra 
+on the detector. If in spectroscopy mode the correct values will be read from
+the \fIdatabase\fR file based on header keywords. If specified in the 
+parameters, will override the values in the database. 
+.le
+.ls specsec2 = ""
+Value for the SPECSEC2 header keyword that is used for finding the spectra 
+on the detector. If in spectroscopy mode the correct values will be read from
+the \fIdatabase\fR file based on header keywords. If specified in the 
+parameters, will override the values in the database. 
+.le
+.ls database = "flamingos$fprepare.dat"
+Database file containing the array characteristics. 
+The \fIdatabase\fR file
+contains the gain, read noise (for 1 read pair and 1 digital
+average), the well depths and array bias voltages that correspond to
+those well depths, and the level at which the response becomes nonlinear.
+FPREPARE will exit with error if any of these are
+missing from the \fIdatabase\fR file.
+.le
+.ls verbose = yes
+Print actions to the screen; the default 'yes' recommended. 
+.le
+.ls observer = ""
+The observer at the telescope during the observation. This header 
+keyword should already be present in the raw data, so this is 
+really only meant for use by the Gemini staff and eventually 
+classical observers.
+.le
+.ls ssa = ""
+The system support associate (SSA) at the telescope during the 
+observation.  This header keyword should already be present in
+the raw data, so this is really only meant for use by the Gemini
+staff.
+.le
+.ls logfile = ""
+Name of logfile. 
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with
+an error.  This parameter is always set by fprepare, and should
+not be modified by the user.
+.le
+.ih
+DESCRIPTION
+.le
+FPREPARE is used to convert raw data from Flamingos at Gemini-South
+to MEF and generate variance and data quality frames.  The output data
+format is compatible or consistent with NIRI data from Gemini-North
+and allows the NIRI package of reduction routines to be used for 
+further processing. 
+
+.le
+In addition to the conversion to MEF format, FPREPARE will rescale data
+taken with multiple digital averages, multiple non-destructive reads, and
+multiple coadds to the proper exposure time.  The effective readnoise is
+also recalculated if the multiple is greater than one. Thus, 
+FPREPARE modifies the data as necessary to make sure that the output
+data numbers correspond to the total number of electrons detected
+divided by the gain.  This means that data taken using multiple 
+non-destructive reads must be divided by the number of reads (header
+keyword NREADS in native Flamingos format, rewritten to LNRS).  The following
+adjustments are made: 
+
+.le
+.nf
+output = input / (n_reads)
+noise  = [42e- * sqrt(n_coadds)] / [sqrt(n_reads)*sqrt(n_digital_avs)]
+exptime = individual_exp_time * n_coadds
+gain    = 4.8 e-/ADU
+saturation = x * n_coadds 
+             where x=225,000 e- 
+non-linear > 0.7*saturation (~1% departure) 
+.fi
+
+.le
+FPREPARE reads the actual 
+values to be used from the file specified by \fIdatabase\fR.  These
+must appear in the file as:
+
+.le
+.nf
+   # Array characteristics 
+   readnoiseimg       42   # electrons (1 read pair,1 digital av. - 1V Bias)
+   readnoisespec      37   # electrons (1 read pair,1 digital av. - 0.75V Bias)
+   gainimg           4.8   # electrons/ADU (1V Bias)
+   gainspec          5.8   # electrons/ADU (0.75V Bias) 
+   fullwell       225000.  # electrons full-well
+   shallowbias      0.75   # detector bias (V)
+   deepbias          1.0   # detector bias (V)
+   linearlimit       0.7   # non-linear regime (fraction of saturation ~1% 
+                             departure)
+.fi
+
+
+.le
+If the FPREPARE keyword exists in the header (indicating that the file
+has previously been processed using FPREPARE), these modifications will
+not be made again. FPREPARE can be run a 2nd time on FPREPAREd data in 
+order to subsequently add variance and data-quality planes. 
+
+.le
+The variance is calculated as follows:
+
+.nf
+     var = (read noise/gain)^2 + data/gain  (for data numbers > 0)
+.fi
+
+The data quality frame is generated by setting the DQ value to 1 for 
+bad pixels, 2 for non-linear pixels, and 4 for pixels that are saturated.
+
+FPREPARE adds or modifies the following header keywords in Imaging mode: 
+
+.nf
+  BPMFILE   The bad pixel file used
+  RDNOISE   Default keyword for read noise in electrons
+  GAIN      Default keyword for gain (electrons/ADU)
+  SATURATI  Default keyword for saturation level in ADU
+  NONLINEA  Default keyword for non-linear regime in ADU
+  COADDEXP  The exposure time of an individual exposure (if COADD > 1)
+  EXPTIME   The total exposure time, COADDEXP * COADD (if COADD > 1 )
+  BIAS      Bias voltage of the array; determines the well depth
+  PIXSCALE  Pixel scale in arcsec/pixel 
+  FPREPARE  Date stamp
+  NPREPARE  Date stamp (too fool NIRI tasks later on) 
+.fi
+
+In spectroscopic mode, FPREPARE adds or modifies the following header keywords:
+
+.nf
+  SPECMODE  Either slit or mos 
+  SPECSEC1  Image section for spectroscopic observations 
+  SPECSEC2  Image section for spectroscopic observations
+  DISPAXIS  For spectroscopic observations, always 1
+  FPMASK    Setup: filter+grism+slit (i.e. JH+HK+6pix) 
+  FLAMMASK  Dummy keyword to use with nscut
+  CAMERA    Dummy keyword to emulate NIRI headers
+  CTYPE1_S  Original (spatial) WCS info is moved to new keywords to avoid 
+  CTYPE2_S      conflict with wavelength solution in later reductions.
+  CRVAL1_S
+  CRVAL2_S
+  CRPIX1_S
+  CRPIX2_S
+  CDELT1_S
+  CDELT2_S
+  CROTA1_S
+.fi
+
+.le
+The output MEF will have the following structure (example with VAR/DQ planes): 
+
+.nf
+ EXT#  EXTTYPE             EXTNAME       EXTVE DIMENS     BITPI INH OBJECT 
+ 0     flamingosimage.fits                                16        star
+ 1      IMAGE              SCI                 2048x2048  -32   F   star
+ 2      IMAGE              VAR                 2048x2048  -32   F   star
+ 3      IMAGE              DQ                  2048x2048  16    F           
+.fi
+
+.le
+.ih
+EXAMPLES
+1. Create variance and data quality frames for a raw Flamingos image.
+.sp
+.nf
+    cl> fprepare /data/inimage1 outim=outimage1 fl_vardq+ 
+.fi
+.sp
+2. Do the same for a list of images.
+.sp
+.nf
+    cl> fprepare inimage1,inimage2,inimage3 \
+    >>> outim=outimage1,outimage2,outimage3 fl_vardq+ 
+.fi
+.sp
+3. Prepare all images in a raw data directory "night1", found on
+a particular data disk.  The composite path in this example will be
+/data/flamingos/night1/.  Output images will be constructed by attaching
+the prefix "f" to the input image names in the current directory,
+resulting in file names fraw*.fits.
+.sp
+.nf
+    cl> fprepare raw*fits outpre=f rawdir="/data/flamingos/night1/" 
+.fi
+.ih
+BUGS AND LIMITATIONS
+.ih
+SEE ALSO
+fitsutil, niri, flamingosinfo
+.endhelp

@@ -1,0 +1,220 @@
+.help nsappwave March2012 gemini.gnirs
+.ih
+NAME
+.nf
+nsappwave -- Add approximate wavelength calibration to headers.
+.fi
+.ih
+USAGE
+nsappwave inimages
+.ih
+PARAMETERS
+.ls inimages
+Input spectra. The task is designed for Multi-Extension FITS images.
+\fIinimages\fR may be given as a comma separated list, a @filelist,
+or using wildcards.
+.le
+.ls outspectra = ""
+Output spectra (MEF). The number of output images must match the number
+of input images.
+.le
+.ls outprefix = "w"
+Prefix for output images. Names of output images are the names
+of the input images with a prefix attached.  \fIoutprefix\fR is used
+if \fIoutspectra\fR="".
+.le
+.ls nsappwavedb = "gnirs$data/nsappwave.fits"
+Fits table used by \fInswedit\fR to find a suitable wavelength calibration
+given the camera, grating, filter, prism, mask, arrayid, order and central
+wavelength of the input spectra.
+.sp
+"gnirs$data/nsappwave.fits" is the default database for GNIRS and 
+NIRI data.
+.le
+.ls crval = INDEF
+Central wavelength. This value overrides any value found in \fInsappwavedb\fR.
+.le
+.ls cdelt = INDEF
+Wavelength per pixel. This value overrides any value found in 
+\fInsappwavedb\fR.
+.le
+.ls cradius = INDEF
+Default search radius for wavelength calibration. This value overrides any
+value found in \fInsappwavedb\fR.  This is stored in the header and read by
+NSWAVELENGTH. There's no real need to specify it here - if it's not read from
+the table you can give it to NSWAVELENGTH directly.
+.le
+.ls fl_phu = no
+Place the wavelength estimate in the PHU when dealing with a file with a
+single set of extensions (e.g., longslit data)?
+.le
+.ls logfile = ""
+Name of logfile.
+.le
+.ls verbose = yes
+Print actions to the screen.
+.le
+.ls debug = no
+Print details of the search in \fInsappwavedb\fR to the screen?
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error.
+This parameter is always set by the task, and should not be modified
+by the user.
+.le
+
+
+.ce
+Parameters from NSHEADERS
+.sp
+The following values are read from gnirs.nsheaders.  If a header keyword
+has the value "(unused)" then it is not used (and the user is not warned
+that it is undefined).
+.le
+.ls key_instrument
+Header keyword for instrument name.
+.le
+ .ls key_camera
+Header keyword for camera.
+.le
+.ls key_grating
+Header keyword for grating.
+.le
+.ls key_filter
+Header keyword for filter.
+.le
+.ls key_prism
+Header keyword for prism.
+.le
+.ls key_fpmask
+Header keyword for focal plane mask (slit).
+.le
+.ls key_order
+Header keyword for storing spectral order.
+.le
+.ls key_arrayid
+Header keyword for array ID.
+.le
+.ls key_dispaxis
+Header keyword for dispersion axis.
+.le
+.ls key_wave
+Header keyword for central grating wavelength.
+.le
+.ls key_delta
+Header keyword for linear dispersion.
+.le
+.ls key_wavevar
+Header keyword used for table lookup in nswedit.
+.le
+.ls key_waveorder
+Header keyword for grating wavelength order.
+.le
+.ls key_cradius
+Header keyword for wavelength cal search radius.
+.le
+.ls key_mode
+Header keyword for reduction mode (value will be LS, IFU, or XD)
+.le
+.ls sci_ext
+Name of science extension.
+.le
+.ls var_ext
+Name of variance extension.
+.le
+.ls dq_ext
+Name of data quality extension.
+.le
+.ih
+DESCRIPTION
+NSAPPWAVE copies the input images and adds keywords to the image
+header reflecting the approximate wavelength calibration.
+.sp
+For each science extension in the supplied images, an initial estimate
+of the central wavelength is taken from, in order of precedence:
+.ls crval
+The parameter value, in Angstroms.
+.le
+.ls NSWEDIT
+NSWEDIT checks the table \fInsappwavedb\fR against values from
+the header.  See the NSWEDIT help page for more information.
+.le
+.ls key_wave
+If the header contains a value for \fIkey_wave\fR, this is taken to be
+the central wavelength in microns.
+.le
+.sp
+The task also requires an estimate for the wavelength dispersion. This can come
+from either \fIcdelt\fR, NSWEDIT or \fIkey_delta\fR. As with central
+wavelength, the \fIcdelt\fR keyword takes priority.
+.sp
+\fInsappwavedb\fR=gnirs$data/nsappwave.fits is the default database
+for GNIRS data (it also contains the default NIRI data).
+.sp
+The image header keywords added or edited are the following:
+.sp
+.nf  
+DISPAXIS       1                     2
+--------------------------------------------------------
+CTYPE1         LINEAR                LINEAR
+CRPIX1         center_pixel          1.
+CRVAL1         center_wave           1.
+CD1_1          delta_wave            1.
+CTYPE2         LINEAR                LINEAR
+CRPIX2         1.                    center_pixel
+CRVAL2         1.                    center_wave
+CD2_2          1.                    delta_wave
+WAT1_000       system=world          system=world
+WAT1_001       wtype=linear          wtype=linear
+WAT1_002       'units=angstroms      ''
+                label=Wavelength'
+WAT2_000       system=world          system=world
+WAT2_001       wtype=linear          wtype=linear
+WAT2_002       ''                    'units=angstroms 
+                                      label=Wavelength'
+DC-FLAG        0                     0
+key_cradius    cradius               cradius
+.fi
+.sp
+\fIkey_cradius\fR is only added if a well defined value is found.  It is read
+by NSWAVELENGTH if no value for the \fIcradius\fR parameter is found
+in that task.
+.sp
+If the dispersion axis is along lines, then DISPAXIS=1 and the values 
+in the middle column are assigned to the keywords. If DISPAXIS=2, the 
+values in the right column are used.
+.sp
+The task modifies the information in all MEF data extensions (i.e.,
+science data, variance and data quality) unless \fIfl_phu\fR is set and
+the data contain only a single science extension, in which case the
+PHU is modified (this is for backwards compatibility with earlier code
+that used the WCS from the PHU).
+.ih
+EXAMPLES
+1. Update the header of an image specifying the output image, and using the
+default database gnirs$data/nsappwave.fits
+.sp
+.nf
+   cl> nsappwave n0126 outspectra=w0126
+.fi
+.sp
+2. Update all the images n01* in the current directory, using the default 
+\fIoutprefix\fR=w
+.sp
+.nf
+   cl> nsappwave n01* 
+.fi
+.ih
+BUGS AND LIMITATIONS
+Due to limitations in IRAF, NSAPPWAVE does not yet support different wavelength
+units.
+
+An output spectrum may be plotted in microns by using
+.nf
+   cl> splot spectrum[SCI] units=microns
+.fi
+
+.ih
+SEE ALSO
+nswedit, nswavelength
+.endhelp

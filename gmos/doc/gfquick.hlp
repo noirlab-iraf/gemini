@@ -1,0 +1,174 @@
+.help gfquick March2012 gemini.gmos
+.ih
+NAME
+gfquick -- Quick reconstruction of GMOS IFU images of acquisition
+.ih
+USAGE
+gfquick image 
+.ih
+PARAMETERS
+.ls image
+Image to reconstructed.
+.le
+.ls rawdir = "adata$"
+Directory containing raw data. The default is used during
+GMOS observations at Gemini-North.
+.le
+.ls xpos1 = "default"
+Approximate x-position for slit 1 on chip 1. This can be derived by
+first displaying the image of chip 1. The "default" value corresponds to 1183
+for GMOS-N and 1181 for GMOS-S. Both values are relative to the DATASEC of 
+CCD 1. A call to GTILE is made to return the data in their respective CCDs with
+the BIASSEC(s) removed. Hence, the xpos1 values being relative to the DATASEC
+of CCD1.
+.le
+.ls nslit = "default"
+Number of IFU slits being used. It is read from the MASKNAME keyword in the 
+header. If there is no header keyword then it assumes 2,
+.le
+.ls fl_off = yes
+Calculate instrument offsets from the reconstructed image? (Useful for
+acquisition purposes).
+.le
+.ls ioff = 1
+If calculating instrument offsets from the reconstructed image, 
+which of the two output images should be used?
+\fIioff\fR=1 uses the main field, \fIioff\fR=2 uses the background field.
+.le
+.ls fl_spos = yes
+Re-determine the y-shifts of the output fibre positions? 
+This may be needed after instrument hardware changes. If "no" then values must 
+be added.
+.le
+.ls yoffu = "default"
+If not redetermining the y-shift then use this value for the shift.  The 
+"default" value is 12.
+.le
+.ls issport = "side" (up|side)
+Telescope ISS port. Defines on which telescope port GMOS is mounted.
+This information is needed when deriving instrument offsets 
+(\fIfl_off\fR=yes) for centering the target.
+
+.le
+DESCRIPTION
+
+GFQUICK does a quick-and-dirty reconstruction of GMOS IFU data into
+an image.  The task is primarily used for acquisition purposes.
+It is released as part of the Gemini IRAF package in order to make
+it possible for the users to reconstruct the acquisition images
+taken through the IFU. 
+Reconstruction of GMOS IFU data for science use should be done
+by processing the observations with GFREDUCE, followed reconstruction
+using GFDISPLAY and/or GFCUBE. The full reduction is described in
+GMOSINFOIFU.
+
+The input image must be a full-frame read out in 3-amp mode, and can
+either be an undispersed image taken through the IFU,
+or a dispersed image taken with the IFU and a grating. In the latter
+case, a strong continuum is needed in order to be able to see the
+object in the reconstructed image.
+
+In both cases GFQUICK works on raw data, which it looks for in the
+directory \fIrawdir\fR. It extracts the appropriate image sections
+corresponding to blocks of IFU slits and rearranges them in the format
+of an image.  The task does a crude bias subtraction by subtracting
+off a fixed constant depending on whether the image was taken in fast
+or slow readout mode.
+
+Since the images of the IFU fibres can appear at slightly different
+positions on the GMOS image, the X-position of the image of the IFU slit
+can be specified by the user, as the parameter
+\fIxpos1\fR. The value to enter here can be determined before running
+gfquick by displaying an undispersed image taken through the
+IFU. \fIxpos1\fR should be the X-position at which the slit appears on
+chip 1 (extension 1). The X-position of the slit will generally 
+stay constant unless the GMOS gratings (or mirror) have been re-indexed.
+The default values correspond to 1210 for GMOS-N and 1181 for GMOS-S.
+
+The position of the fibres can also vary in the Y-direction. For
+example different gratings will have a different shift relative to the
+mirror. GFQUICK has an option to re-determine the shift to use 
+(\fIfl_spos\fR=yes) - this
+is best done using an undispersed image through the IFU (for the
+mirror case) or a dispersed flatfield frame (for a grating).  In
+general these shifts should then stay constant unless the GMOS
+gratings/mirror are removed and replaced for any reason. Therefore the
+Y-shift for a particular grating (or mirror) will normally stay
+constant from night to night during an observing run. The default values 
+correspond to 12.
+
+If the shift for a particular grating/mirror is already known,
+it can be set using the parameter \fIyoffu\fR and the flag to 
+redetermine the shift, \fIfl_spos\fR=no can be used.
+
+If the shift is not known then it can be determined using gfquick with
+\fIfl_spos\fR=yes. In that case the parameter \fIyoffu\fR is ignored
+and the user is asked to click on the image of a particular fiber to
+determine the shift. This shift is written to the screen for future
+use. In this case, if it is impossible to determine the shift visually one
+can always revert to the default value (see on screen instructions).
+
+GFQUICK produces two output images, one for the primary IFU field and
+one for the background field. The size of the output images depends on
+whether one or two IFU slits are being used. The parameter \fInslit\fR
+is read from the MASKNAME keyword on the header. If the image has no MASKNAME 
+parameter, then it should be set corresponding to the hardware setup of the IFU
+when the data were taken. The output images are named after the input image
+names with the strings "_ifu1" (main field) and "ifu2" (background
+field) appended.
+
+The pixel scale of the reconstructed images is 0.035 arcsec/pixel.
+The orientation of the images is the same as for the imaging field.
+The sizes of the images are as follows:
+
+.nf
+IFU1 in 2-slit mode: 6.93arcsec x 5.0arcsec
+IFU1 in 1-slit mode: 3.47arcsec x 5.0arcsec
+IFU2 in 2-slit mode: 3.47arcsec x 5.0arcsec
+IFU2 in 1-slit mode: 1.73arcsec x 5.0arcsec
+.fi
+
+GFQUICK has the option to use the output reconstructed images to
+calculate instrument offsets. This can be useful when setting up a
+target on the centre of the IFU field. If \fIfl_off\fR=yes then the
+task will display the output image requested (set using the parameter
+\fIioff\fR) and will ask the user to click on the part of the image to
+be centred, then press q. The task then calculates the instrument
+offsets required to centre the object in the field.  
+The information about the telescope ISS port, \fIissport\fR, is needed
+for these offsets to be correct.
+
+.ih
+EXAMPLES
+
+1. To reconstruct a raw GMOS IFU image and calculate instrument offsets
+
+.nf
+    cl> gfquick N20020907S0060
+.fi
+
+2. To reconstruct a raw GMOS IFU image taken in one-slit mode (if not defined 
+in MASKNAME) and calculate instrument offsets
+
+.nf
+    cl> gfquick N20020907S0060 nslit=1
+.fi
+
+3. To reconstruct a raw GMOS IFU image 
+
+.nf
+    cl> gfquick N20020907S0060 fl_off-
+.fi
+
+.ih
+TIME REQUIREMENTS
+.ih
+BUGS AND LIMITATIONS
+The current version of GFQUICK works only on full-frame images.
+It is intended as a tool for acquisition purposes and not for
+quantitative science use. In particular, flux is not conserved from
+the raw image to the reconstructed version.
+.ih
+SEE ALSO
+gmosinfoifu, gfreduce, gfdisplay, gfcube
+.endhelp

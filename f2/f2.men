@@ -1,0 +1,19 @@
+Generic:
+    f2prepare - Prepare raw FLAMINGOS-2 data for reduction
+                (update headers, create VAR and DQ extensions)
+
+Imaging:
+    See the niri package
+
+Longslit and MOS:
+        f2cut - Cut spectroscopic FLAMINGOS-2 data
+    f2display - Display cut spectroscopic FLAMINGOS-2 data
+    See also the gnirs package
+
+       f2info - Generic information on FLAMINGOS-2 data and reduction
+f2infoimaging - Description of the tasks used to reduce FLAMINGOS-2 imaging
+                data
+     f2infols - Description of the tasks used to reduce FLAMINGOS-2 longslit
+                data
+    f2infomos - Description of the tasks used to reduce FLAMINGOS-2 MOS data
+   f2examples - Print FLAMINGOS-2 data reduction examples to the screen

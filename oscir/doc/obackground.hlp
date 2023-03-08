@@ -1,0 +1,55 @@
+.help obackground November2011 gemini.oscir
+.ih
+NAME
+obackground -- View and plot statistics from reference frames in OSCIR image
+.ih
+USAGE
+obackground image
+.ih
+PARAMETERS
+.ls image
+Input image.  Operates on one image at a time.
+.le
+.ls sigma = 3.0
+Sigma tolerance for detecting bad frames.
+.le
+.ls logfile = ""
+Logfile.  If not defined, \fIoscir.logfile\fR is used.  If that is not
+defined, default \fIlogfile\fR = "oscir.log" is used.
+.le
+.ls bsetfile = ""
+Text file for bad frame list.  If not defined, defaults to image-name.bsets
+.le
+.ls verbose = yes
+Prints status information to screen.
+.le
+.ls fl_writeps = yes
+Write the statistic plot to a Postscript file?
+.le
+.ih
+DESCRIPTION
+
+Computes median statistics of all reference frames in OSCIR
+input \fIimage\fR.  Prints statistics and plots median values as
+% of full well.  Also identifies frames outside of 
+user-specified (default=3) \fIsigma\fR of average median.
+Outputs statistics to \fIlogfile\fR, plot to input-name.gif file, 
+and list of "Bad" frames to text file
+
+.ih
+EXAMPLES
+1.  Display background statistics and plot, detect frames outside 3 sigma 
+and list results to "00dec03_018.bsets".
+.nf
+    cl> obackground 00dec03_018
+.fi
+2.  Display background statistics and detect frames outside 2 sigma.
+.nf
+    cl> obackground 00dec03_018 sigma=2 
+.fi
+.ih
+BUGS AND LIMITATIONS
+.ih
+SEE ALSO
+oscirinfo, oview, oreduce
+.endhelp

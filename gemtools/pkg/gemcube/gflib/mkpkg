@@ -1,0 +1,13 @@
+# GEOMETRY FUNCTION LIBRARY
+
+$checkout libpkg.a ../../../
+$update libpkg.a
+$checkin libpkg.a ../../../
+$exit
+
+libpkg.a:
+	gfload.x	
+	gfwcs.x		<ctotok.h> <error.h> <imhdr.h> <mach.h> \
+			<math/gsurfit.h> <math.h> <mwset.h>
+	gf.x		gf.com gf.h
+	;

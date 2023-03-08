@@ -1,0 +1,8 @@
+     app2objt - make Object Table from apphot/daophot output
+  stsdas2objt - make Object Table from STSDAS binary table, or a FITS table
+      mdfplot - Plot Mask Definition File
+   gmskcreate - Create required mask-making files from non-GMOS images
+
+Hidden tasks:
+       gmskxy - Generate x,y MOS mask coordinates from a list of RA and Dec
+      gmskimg - Produce a fake GMOS image from non-GMOS pre-imaging data

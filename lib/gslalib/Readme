@@ -1,0 +1,29 @@
+Subset of routines from the SLALIB library
+------------------------------------------
+
+These 5 ForTran files, providing the SLALIB routine "refro", have been
+included in the Gemini IRAF package by kind permission of their author,
+Patrick Wallace of Tpoint Software. They are used by the GMOS task gfcube
+to compensate for atmospheric dispersion when generating IFU datacubes.
+Until v1.12beta of the Gemini IRAF package, the same routines were provided
+by linking to IRAF's main copy of the SLALIB library, found under math$.
+However, a reported change in the licensing of SLALIB (to the GNU General
+Public License) within IRAF 2.16 would now prevent IRAF's copy from being
+combined with another critical routine on which gfcube depends. In order to
+continue building the Gemini package under IRAF 2.16+, we have therefore
+reached an agreement to provide the included subset of SLALIB under a
+different license, which allows for non-commercial use only. Please see the
+conditions under which these files are distributed (the "Tpoint Software
+License Agreement") in the header comments of each source file,
+eg. refro.f.
+
+Since these routines are more recent than IRAF's copies and contain a few
+adjustments to numeric constants or coefficients, the resulting atmospheric
+refraction adjustments may differ slightly from those derived using previous
+versions of the Gemini IRAF package.
+
+These source files have been slightly modified from the original material
+copyrighted by TPS by renaming the routines for IRAF SPP compatibility,
+exactly as in IRAF's SLALIB.
+
+February 2013

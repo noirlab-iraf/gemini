@@ -1,0 +1,37 @@
+# LDISPLAY.PAR
+
+input,f,a,"ldispdemo$spiral.ms",,,"Input fibre file"
+band,i,h,1,0,,"Band number
+
+"
+output,f,h,"ldisplay",,,"Lens array image"
+siz,i,h,512,128,2048,"Size of lens array image"
+title,s,h,"Lens array output",,,"Title of the lens array image
+
+ ARRAY GEOMETRY"
+
+ldispdir,f,h,"ldispdemo$",,,"Directory for config files"
+lconf,f,h,"spiral.cfg",,,"File containing lens array geometry"
+deadfibs,f,h,"",,,"File with locations of dead fibres"
+lscale,r,h,0.7,0.005,,"Centre to centre (arcsec) lenslet distance"
+xflip,b,h,no,,,"Flip lens array image about the x-axis?"
+yflip,b,h,no,,,"Flip lens array image about the y-axis?"
+axisflip,b,h,no,,,"Flip the lens array image about the x=y axis?
+
+ DISPLAY SETTINGS"
+
+disqu,b,h,yes,,,"Automatically display the lens array image?"
+display,s,h,"display frame=1 image=",,,"Command to run 'display'"
+imagecur,*imcur,h,"",,,"Image cursor input"
+device,s,h,"stdgraph",,,"Graphics device"
+graphcur,*gcur,h,"",,,"Graphics cursor input
+
+ QUICK LOOK OPTIONS"
+
+quick,b,h,no,,,"Quick reduction of input fibre file?"
+flatfield,s,h,"",,,"Raw flat-field fibre file (not necessary)"
+qfibres,i,h,100,1,,"Number of fibres in flat field"
+wfibres,i,h,3,1,50,"Width in pixels of single fibre"
+firfib,i,h,33,1,,"Row number of first fibre image"
+lasfib,i,h,251,1,,"Row number of last fibre image"
+dispaxis,i,h,1,1,,"Dispersion axis of image"

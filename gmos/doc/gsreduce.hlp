@@ -1,0 +1,537 @@
+.help gsreduce October2015 gemini.gmos
+.ih
+NAME
+gsreduce -- Reduce spectra from GMOS (overscan, trim, bias, dark, mosaic, flat,
+approximate wavelength calibration, cut MOS data)
+
+.ih
+USAGE
+gsreduce inimages
+.ih
+PARAMETERS
+.ls inimages
+Input GMOS spectroscopic images.  Lists and wild cards are supported.
+Images can be either raw or already processed with GPREPARE.  
+All images must be in multi-extension FITS (MEF) format.  
+This task is only meant for use with longslit or MOS spectroscopic data, 
+not IFU or imaging data.
+Directory names should not be included as part of the image names.
+.le
+.ls outimages = ""
+List of reduced MEF images, if not using \fIoutpref\fR to define the output 
+names.  The output images can be specified as a list file or a comma separated 
+list of images.  \fIoutimages\fR has precedence over \fIoutpref\fR. 
+.le
+.ls outpref = "gs"
+Prefix for output images.  Names of output images will be the name of the 
+input images with the prefix \fIoutpref\fR attached.  \fIoutpref\fR is used 
+only if \fIoutimages\fR = "". 
+.le
+.ls fl_over = yes
+Apply overscan correction by fitting and subtracting the overscan 
+level. If "yes", the parameter \fIkey_biassec\fR is used to 
+query the overscan section parameters from the header. 
+.le
+.ls fl_trim = yes 
+Trim the image.  If \fIfl_trim\fR=yes, the image is trimmed to keep only the 
+image sections defined by the parameter \fIkey_datasec\fR.
+.le
+.ls fl_bias = yes
+Subtract the bias image.  If \fIfl_bias\fR=yes, the bias image must be 
+specified by the \fIbias\fR parameter.
+.le
+.ls fl_gscrrej = no
+Clean the images for cosmic ray hits using GSCRREJ (original method for GMOS
+spectra)? GSCRREJ is run interactively if \fIfl_inter\fR=yes. Other parameters
+for GSCRREJ need to be set using the parameter file for GSCRREJ before running
+GSREDUCE. With the possible exception of bright targets, better results are
+likely to be achieved using \fIfl_crspec\fR instead.
+.le
+.ls fl_crspec = no
+Clean the images for cosmic ray hits using GEMCRSPEC (newer method, wrapping LA
+Cosmic)? This requires the user to have installed LACOS_SPEC separately; see
+GEMCRSPEC help.
+.le
+.ls fl_dark = no 
+Subtract the scaled dark image.  If \fIfl_dark\fR=yes, the dark image must 
+be specified by the \fIdark\fR parameter.
+.le
+.ls fl_qecorr = no
+Quantum efficiency (QE) correct your input data? If "yes" and the input data is
+spectroscopic, a wavelength reference image (\fIqe_refim\fR) or QE correction
+image (\fIqe_corrimages\fR) must be supplied. For imaging data no reference or 
+correction images are required. Images must have been or about to be BIAS or
+DARK subtracted for them to be QE corrected. For more detailed information 
+please read the gmos example for your given observation mode (type 
+'gmosexamples' at the IRAF or PyRAF prompt).
+.le
+.ls fl_flat = yes 
+Apply flatfield correction.  If \fIfl_flat\fR=yes, the spectral flatfield 
+image must be specified by the \fIflatim\fR parameter. 
+.le
+.ls fl_gmosaic = yes
+If \fIfl_flat\fR=yes, the input images will be mosaiced using GMOSAIC.
+If \fIfl_flat\fR=no and \fIfl_mosaic\fR=yes, the images will also be mosaiced.
+If \fIfl_flat\fR=no and \fIfl_mosaic\fR=no, the images will not be mosaiced.
+.le
+.ls fl_fixpix = yes
+Interpolate across the detector gaps (defined by \fIbpmfile\fR) when merging 
+the separate science extensions into one extension with GMOSAIC.
+.le
+.ls fl_gsappwave = yes
+Run gsappwave on the reduced output images to provide an initial wavelength 
+calibration based on the grating and central wavelength.
+.le
+.ls fl_scatsub = no
+Model and subtract scattered light background, using GSSCATSUB? At present,
+this option is only suitable for long-slit science data; correction of flat
+field and MOS exposures is unsupported. This option is still considered
+experimental.
+.le
+.ls fl_cut = yes
+For MOS data, cut the science extension into multiple separate extensions with 
+one slitlet per extension.  Requires \fIfl_gmosaic\fR=yes.
+.le
+.ls fl_title = yes
+For MOS data, put the object ID in the title of each separate extension.  
+Requires \fIfl_cut\fR=yes.
+.le
+.ls fl_oversize = yes
+Scale the slit lengths by 1.05x when cutting (GSCUT)? The default is likely
+to be changed to "no" in a future release.
+.le
+.ls fl_vardq = no
+Create and propagate the data quality and variance extensions. 
+.le
+.ls fl_fulldq = no
+Passed to GMOSAIC, if data are not mosaiced already. Setting
+\fIfl_fulldq\fR=yes will decompose the \fIdq_ext\fR extensions into their
+constituent bits before transforming them. The pixels in the individually 
+transformed bit planes are then checked against the multiple of \fIdqthresh\fR
+times the bit value. Pixel values in the individual bit planes greater than
+this value are then set to the current bit value, less than this value the
+pixel values are set to 0, i.e., good. Once this is done for all bit values in
+the original \fIdq_ext\fR extension, the newly transformed and thresholded bit
+planes are combined by a bitwiseOR to form the output \fIdq_ext\fR
+extension. This is only done for CCDs 1 and 3. In addition, pixels that are
+created during the transformation, i.e, output pixels that lie outside of the
+dimensions of the input plane are flagged with a bit value of 16. It is
+recommended to set \fIfl_fulldq\fR=yes as this will retain \fIdq_ext\fR
+information correctly.
+.le
+.ls dqthresh = 0.1 (min=0.01, max=0.5)
+Fractional threshold to apply and flag pixels as contaminated with the current
+bit value when decomposing \fIdq_ext\fR extensions (\fIfl_fulldq\fR=yes).
+.le
+.ls bias = ""
+Bias calibration image to be subtracted if \fIfl_bias\fR=yes.  
+This image must be in MEF format with the same number of extensions as the 
+\fIinimages\fR. It must also match \fIinimages\fR  in the binning, readout 
+mode and detector section read out. The bias calibration image \fIbias\fR 
+should be created using the GBIAS task. 
+.le
+.ls dark = ""
+Dark image to be scaled and subtracted if \fIfl_dark\fR=yes.
+This image must be in MEF format with the same number of extensions as
+ the \fIinimages\fR.  
+It must also match \fIinimages\fR  in the binning, readout mode and detector 
+section read out.  If \fIfl_vardq\fR=yes, \fIdark\fR should 
+also contain variance and data quality extensions.  The dark correction image 
+\fIdark\fR should be created using the GNSDARK task.  The \fIkey_exptime\fR 
+parameter must be set correctly for proper exposure scaling of the \fIdark\fR. 
+The dark current for GMOS is very low (< 1 e-/hour) and the subtraction
+of a dark image in generally not needed.
+.le
+.ls flatim = ""
+The normalized flatfield spectral calibration image to be used if
+\fIfl_flat\fR=yes. The spectral flatfield image \fIflatim\fR
+must be generated with the GSFLAT task. The format of \fIflatim\fR is a MEF
+image with either one or three science extensions and possible variance and 
+data quality planes (if \fIfl_vardq\fR=yes). This format may differ from the 
+format of the \fIinimages\fR, \fIbias\fR and \fIdark\fR images, if 
+\fIflatim\fR has been processed with GMOSAIC.If \fIfl_vardq\fR=yes, 
+\fIflatim\fR should also contain variance and data quality extensions. 
+.le
+.ls geointer = "linear" (linear|nearest|poly3|poly5|spline3|sinc)
+Specifies the interpolation scheme used by the IMMATCH.GEOTRAN which is
+called by GMOSAIC. See the GEOTRAN help for more information. Use "nearest"
+to avoid any data smoothing. 
+.le
+.ls gradimage = ""
+Gradient image to use for identifying slit edges. This should normally 
+be a GCAL flat field taken with the same configuration as the images that 
+are being reduced. It is recommended to use the output \fIcombflat\fR 
+from GSFLAT.
+.le
+.ls refimage = ""
+Reference image whose MDF contains information about the location of the 
+slits.  If both \fIgradimage\fR and \fIrefimage\fR are defined, 
+\fIrefimage\fR takes precedence. It is recommended to use the output 
+\fIcombflat\fR from GSFLAT.
+.le
+.ls qe_refim = ""
+Wavelength reference image used as a template to create the QE correction image,
+for spectroscopic data only. This file must have an associated wavelength
+database solution (from gswavelength); as such, it will also have been
+mosaicked by GMOSAIC and, if applicable, GSCUT or GFEXTRACTed. For more
+detailed information please read the gmos example for your given observation
+mode. This parameter accepts a list of files. However, if a list is supplied
+there must be one reference image for each input image. In either case the
+reference image must have been observed with the same observing set up as the
+corresponding input image(s).
+.le
+.ls fl_keep_qeim = yes
+Keep the image that is created to QE correct the input data? Spectroscopy only.
+.le
+.ls qe_corrpref = "qecorr"
+Prefix added to \fIqe_refim\fR to name the output QE correction image.
+.le
+.ls qe_corrimages = ""
+Either output name for the QE correction image when creating the QE correction
+image for the first time, or a previously created QE correction image to be 
+used to QE correct the input data instead of creating one from 
+scratch. This parameter accepts a list. If using this parameter to supply
+the output name for a new created QE correction image, the list must contain 
+the same number of entries as \fIqe_refim\fR. Or if supplying the names of 
+previously created QE correction images, the number of supplied names must be 
+the same as the number of input images or just one that will be applied to all.
+Previously created QE correction images must have the same observing set up 
+as the input images.
+.le
+.ls qe_data = "gmosQEfactors.dat"
+Database file that contains the QE fit coefficients and factors to be used when
+creating the QE correction image (spectroscopy) or QE correcting the data
+directly (imaging only).
+.le
+.ls qe_datadir = "gmos$data/"
+Directory containing the file given in \fIqe_data\fR.
+.le
+.ls key_exptime = "EXPTIME" 
+Image header keyword containing the exposure time to be used for scaling the 
+dark image.
+.le
+.ls key_biassec = "BIASSEC"
+Header keyword giving the overscan strip section for each image extension in 
+the raw image.
+.le
+.ls key_datasec = "DATASEC" 
+Header keyword giving the section of the image with useful data (excludes the 
+overscan sections). 
+.le
+.ls cr_xorder = 9
+Order of fit, along the dispersion axis, used to subtract object continuum
+before performing cosmic ray detection (GEMCRSPEC). If a value of 0 is
+given, no object fit is performed.
+.le
+.ls cr_sigclip = 4.5
+Detection threshold for cosmic rays, in standard deviations (GEMCRSPEC).
+.le
+.ls cr_sigfrac = 0.5
+Fractional detection limit for neighbouring pixels (GEMCRSPEC).
+.le
+.ls cr_objlim = 1.0
+Contrast limit between cosmic rays and the underlying object flux
+(LACOS_SPEC). Only cosmic ray candidates that are at least \fIobjlim\fR
+times as bright as the underlying flux (estimated from the surrounding
+pixels) are flagged and rejected.
+.le
+.ls cr_niter = 4
+Maximum number of detection and cleaning iterations for each input image
+extension (GEMCRSPEC).
+.le
+.ls fl_inter = no
+Run GSCRREJ interactively.
+.le
+.ls rawpath = ""
+Path for the directory containing the raw GMOS images.
+.le
+.ls sci_ext = "SCI" 
+Name of the MEF extension containing the science data. 
+.le
+.ls var_ext = "VAR"
+Name of the MEF extension containing the variance frame. 
+.le
+.ls dq_ext = "DQ"
+Name of the MEF extension containing the data quality array. 
+.le
+.ls key_mdf = "MASKNAME"
+Header keyword to identify the Mask Definition File (MDF). \fIkey_mdf\fR has 
+precedence over \fImdffile\fR.
+.le
+.ls mdffile = "" 
+MDF file to use if the keyword \fIkey_mdf\fR is not found in the image header.
+.le
+.ls mdfdir = "gmos$data/" 
+Directory containing the MDF files.  The default value points to the directory 
+which contains MDFs for longslit spectroscopy.
+.le
+.ls bpm = ""
+Bad pixel mask used to create the data quality extension if requested 
+(\fIfl_vardq\fR=yes).  \fIbpm\fR should be created using the GBPM task. 
+.le
+.ls gaindb = "default"
+Database file containing the GMOS gain data. The default value for \fIgaindb\fR
+is gmos$data/gmosamps.dat.
+.le
+.ls gratingdb = "gmos$data/GMOSgratings.dat"
+Database file containing the GMOS gratings data. 
+.le
+.ls filterdb = "gmos$data/GMOSfilters.dat"
+Database file containing the GMOS filters data. 
+.le
+.ls xoffset = INDEF
+The offset in the X (wavelength) direction between the theoretically 
+predicted position of the spectra and the actual position.  The units are 
+nanometers.  This overrides the offset value in \fIgratingdb\fR if it
+is not equal to INDEF.
+.le
+.ls yoffset = INDEF
+The offset in the Y (cross-dispersion) direction between the theoretically 
+predicted position of the spectra and the actual position.  The units are 
+unbinned pixels.  This overrides the offset value in \fIgratingdb\fR if it
+is not equal to INDEF.
+.le
+.ls yadd = 0
+The number of pixels to add to each end of the spatial dimension of every 
+MOS slitlet when GSCUT-ting.
+.le
+.ls wave_limit = INDEF
+The upper wavelength limit of cut spectra in nanometers. This parameter is only
+important if \fIfl_detec\fR=yes when creating the normalized flat frame with
+gsflat. If \fIwave_limit\fR is set to INDEF, the red end of the spectrum is cut
+using a value of either the upper wavelength limit of the grating, the upper
+wavelength limit of the filter band-pass, the 2% quantum efficiency cut-off of
+the detector in the red (which is typically 1025 nm and 1050 nm for the EEV and
+e2vDD CCDs, respectively) or the edge of the detector, whichever has the
+shortest wavelength. The user can use \fIwave_limit\fR to override this default
+behaviour. However, if the edge of the detector occurs before the value
+supplied for \fIwave_limit\fR, the spectrum will end at the edge of the
+detector. The same value must be used for both the gsflat and gsreduce
+\fIwave_limit\fR parameters. The one exception is when the science data are not
+cut, e.g., for longslit data. In this instance, if the user requires
+information in the science data beyond the default wavelength range determined
+automatically by gscut, the gsflat \fIwave_limit\fR parameter should be
+increased. See the gscut help file for more information.
+.le
+.ls bpmfile = "gmos$data/chipgaps.dat"
+Database file containing information on the location of the gaps between the 
+detectors.
+.le
+.ls key_ron = "RDNOISE"
+Header keyword for the detector read noise (in electrons).  This value has 
+precedence over \fIron\fR.
+.le
+.ls key_gain = "GAIN"
+Header keyword for the detector gain (in electrons/ADU).  This value has 
+precedence over \fIgain\fR.
+.le
+.ls ron = 3.5
+Detector read noise (in electrons) to use if not found from the header 
+keyword \fIkey_ron\fR.  
+.le
+.ls gain = 2.2 
+Detector gain (in electrons/ADU) to use if not found from the header 
+keyword \fIkey_gain\fR. 
+.le
+.ls sat = "default"
+Saturation level of raw images in ADU.
+Used to flag saturated pixels in the data quality extension (if 
+\fIfl_vardq\fR=yes).
+The default value of \fIsat\fR for the EEV CCDs is 65000 ADU. For the GMOS-N
+e2vDD CCDs each individual amplifier has its own saturation value. For more
+information about the saturation levels used as the default please read the
+help file for the task GSAT, as this calculates the default saturation levels
+for the new e2vDD CCDs.
+.le
+.ls key_nodcount = "NODCOUNT"
+Header keyword with number of nod cycles (only important in Nod and Shuffle).
+.le
+.ls key_nodpix = "NODPIX"
+Header keyword with shuffle distance (only important in Nod and Shuffle).
+.le
+.ls ovs_flinter = no
+Fit overscan section interactively. 
+.le
+.ls ovs_med = no
+Use median instead of average of the bias columns. 
+.le
+.ls ovs_func = "chebyshev" (spline3|legendre|chebyshev|spline1)
+The function fit to the average/median bias line.
+.le
+.ls ovs_order = "default"
+The order of the polynomials or the number of spline pieces in the bias 
+overscan fitting function. Where "default" is used, \fIgireduce\fR selects
+a default value appropriate for the relevant GMOS detectors.
+.le
+.ls ovs_lowr = 3., ovs_highr = 3.
+Rejection limits below and above the bias overscan fitting function in units 
+of the residual sigma.
+.le
+.ls ovs_niter = 2
+The maximum number of rejection iterations.
+.le
+.ls nbiascontam = "default"
+Number of columns removed from the overscan region before subtracting.
+The default value of \fInbiascontam\fR for the EEV CCDs is 4. Whereas, a
+default value of 5 is used for the GMOS-N e2vDD CCDs. \fInbiascontam\fR is
+used when \fIfl_over\fR=yes. The overscan regions of GMOS CCDs have some
+photon bleeding from the science frame. \fInbiascontam\fR is the number of
+columns next to the data section that are not used when calculating the
+overscan to subtract.
+.le
+.ls biasrows = "default"
+Rows to use in bias region. If \fIbiasrows\fR = "default", the entire
+length of overscan region is used. Value must be of the form "x1:x2" where 
+x1 is the starting pixel row and x2 is the final pixel row. e.g. "3:64".  
+.le
+.ls sc_nfind = 1
+Number of source spectra to find with APFIND (GSSCATSUB). The scattered light
+background is then measured from unilluminated regions outwith these source
+apertures.
+.le
+.ls sc_column = INDEF
+Column in which to look for peaks corresponding to source spectra (GSSCATSUB).
+.le
+.ls sc_torder = 3
+Order of aperture trace fit (GSSCATSUB), defining non-background region(s).
+.le
+.ls sc_order1 = "11"
+Fitting order perpendicular to the dispersion (GSSCATSUB).
+.le
+.ls sc_sample1 = "*"
+Sample points for fitting perpendicular to the dispersion (GSSCATSUB).
+.le
+.ls sc_order2 = "7"
+Fitting order in the dispersion direction (GSSCATSUB).
+.le
+.ls sc_niterate2 = 3
+Number of sigma-clipping iterations to use for fitting points along the
+dispersion direction. 
+.le
+.ls logfile = ""
+Name of the logfile.  If empty, the package logfile gmos.logfile is used.
+.le
+.ls verbose = yes
+Print actions to the screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error. 
+This parameter is always set by the task and should not be modified by the 
+user. 
+.le
+.ih
+DESCRIPTION
+
+.le
+GSREDUCE is used for basic reductions of GMOS longslit and MOS
+spectroscopic images.  
+At a maximum, 200 images can be reduced at once. If the number of input 
+images is larger than 200, the task will exit with an error message. 
+
+The input images must be multi-extension FITS (MEF)
+files, and can be either raw images or previously processed with
+GPREPARE.  If raw images are input then GPREPARE will be automatically
+called.  
+
+If bias subtracting and \fIfl_vardq\fR=yes, GIREDUCE will create variance and 
+data quality extensions. Please refer to the help pages for GIREDUCE for 
+more information.
+
+The reduction steps are defined by the flags \fIfl_over\fR,
+\fIfl_trim\fR, \fIfl_bias\fR, \fIfl_gscrrej\fR, \fIfl_dark\fR, \fIfl_flat\fR,
+\fIfl_gmosaic\fR, \fIfl_fixpix\fR, \fIfl_gsappwave\fR, \fIfl_cut\fR,
+and \fIfl_title\fR.  
+
+The calibration images for bias subtraction and dark subtraction are 
+identical to those used for direct imaging observations, and should be 
+created using the GBIAS and GDARK. GDARK is not yet available.
+
+Cleaning for cosmic ray hits is done if \fIfl_gscrrej\fR=yes.
+GSREDUCE calls GSCRREJ for this step.
+
+The normalized spectral flatfield calibration
+image may have a different format from either the input data or the
+other calibration images (\fIbias\fR or \fIdark\fR) and must be
+generated using the task GSFLAT.  To use a spectral flatfield produced
+in any other way one must add the GSFLAT keyword to the header of the
+flatfield before GSREDUCE will proceed.  
+GSREDUCE is capable of using GSFLAT produced flatfield images with
+either one or three science extensions (\fIgsflat.fl_detec\fR=no or yes, 
+respectively).
+
+GSREDUCE is essentially a wrapper around GIREDUCE for the overscan
+subtraction and trimming, bias subtraction, and dark subtraction.  
+If the input flatfield has three science extensions, then GIREDUCE is
+also called to multiply the three CCDs by the gains, and to apply the
+flatfield.  The image may then be cleaned for cosmic ray hits using GSCRREJ. If
+the input flatfield has only one science extension (i.e. it has been 
+gmosaiced), then
+images from the 3 CCDs are here multiplied with the gains (using the
+hidden task GGAIN), processed with GMOSAIC to produce an image
+with one science extension, and then divided by the flatfield.  One 
+also has the option of interpolating across the gaps in the detector array 
+(with \fIfl_fixpix\fR=yes) when GMOSAIC is run.  
+MOS observations are then cut into separate spectra for
+each slitlet using GSCUT. The slits are identified using GSCUT.  The
+grating and filter databases, \fIgratingdb\fR and
+\fIfilterdb\fR, and the offsets \fIxoffset\fR, \fIyoffset\fR and
+\fIyadd\fR must
+be the same as used by GSFLAT when the flats were created.  The object
+ID for each slitlet can optionally be written into the title for the
+corresponding science extension.  The next step allows for a rough
+wavelength calibration to be applied based on the GMOS grating and
+central wavelength using GSAPPWAVE (\fIfl_gsappwave\fR=yes).
+
+With the default parameters for GSREDUCE, the output is a MEF, 
+with the mask definition file (MDF) included as a FITS binary table.
+MOS data will have one science extension for each object in the MDF.
+The counts in output images will be in units of electrons per pixel, since
+the data were multiplied with the gains.  
+.ih
+EXAMPLES
+1. Reduce a list of longslit images, constructing the output image names by 
+attaching a prefix "gs" to the input image names.  The raw input images are
+stored in another directory.  Bias correct the input images but do not 
+perform dark correction.  Trim the image but do not subtract the overscan 
+region.  Do not create/propagate variance and data quality extensions.  Flat 
+field the images but do not interpolate across the detector gaps in the 
+science data. Apply a rough wavelength calibration based on the GMOS grating 
+and central wavelength parameters stored in the header.  Save the logfile into 
+the file "reduce.log" which has been defined as the system logfile 
+(gmos.logfile).
+
+.nj
+
+   cl> gmos.logfile="reduce.log"
+.br 
+   cl> gsreduce @olist outpref="gs" rawpath=/d1/rawdata/2001nov21/ \
+.br 
+   >>> mdfdir=gmos$data/ fl_bias+ fl_dark- fl_trim+ fl_over- \
+.br 
+   >>> fl_vardq- fl_gmos+ bias=N20011109S135_bias.fits \
+.br 
+   >>> flatim=rgN20011121S223_flat.fits fl_fixpix- \
+.br 
+   >>> fl_gsappwave+ verbose+ logfile=""
+.ju
+
+
+2. See GMOSEXAMPLES for other examples of the use of GSREDUCE.
+
+.ih
+TIME REQUIREMENTS
+.ih
+BUGS AND LIMITATIONS
+There is no checking to ensure that the offset parameters used for 
+GSREDUCE were the same parameters used by GSFLAT to produce the flatfield.
+
+Improvements to the (previously semi-functional) variance and
+data quality propagation in the GMOS package have undergone limited
+testing; the accuracy of the results should still be verified at
+each step by the scientist, particularly for spectroscopic data
+reduction tasks.
+.ih
+SEE ALSO
+gmosinfo, gmosinfospec, gmosexamples, gsflat, gireduce, gbias, gbpm, gprepare, 
+gmosaic, gsappwave, gscut
+.endhelp

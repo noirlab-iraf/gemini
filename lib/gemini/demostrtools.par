@@ -1,0 +1,2 @@
+demo,s,a,"all","|all|numrecog|",,"Which demo?"
+status,i,h,0,,,"Exit status (0=good)"

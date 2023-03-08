@@ -1,0 +1,216 @@
+.help gnirsinfo December2012 gemini.gnirs
+.ih
+NAME
+gnirsinfo -- Generic information on GNIRS data and reduction
+.ih
+USAGE
+gnirsinfo
+.ih
+DESCRIPTION
+
+The GNIRS package contains tasks for processing GNIRS long-slit,
+cross-dispersed (XD) and integral-field (IFU) spectroscopy data. The
+tasks are also used to process NIRI and Mid-IR spectroscopy data. The
+specifics of the individual tasks can be found in their help
+files. This document describes the common features of the generic
+tasks and gives a description of the GNIRS data format.  More details
+on data processing for each configuration are available in GNIRSINFOLS
+(long slit), GNIRSINFOXD (cross-dispersed) and GNIRSINFOIFU (integral
+field unit); and GNIRSEXAMPLES provides sample "recipes" (processing
+scripts).  The file gnirs$doc/gnirs-flow.pdf is a summary that you 
+can print out for handy reference.
+
+The tasks produce logfiles of the performed processing steps.
+The name of the logfile may be set in each individual task, or at
+the package level by setting \fIgnirs.logfile\fR.
+
+The tasks add header keywords to the output images. These header
+keywords contain information about the performed processing steps
+and the values of the critical parameters that were used.
+
+All GNIRS images are written as multi-extension FITS (MEF) files.
+Raw data have two unnamed extensions.  Most of the header
+information is written to the primary header unit (PHU) which is
+extension [0].  The data read from the array is in extension [1].
+
+Processing with NSPREPARE (this task is used only for GNIRS data - see
+below - but other instruments have their own preparation tasks with
+similar actions) will rename the data extension and, optionally, add
+variance and data quality extensions.  By default (see NSHEADERS) the
+extension names are SCI for science data, VAR for variance, and DQ for
+data quality (0 = good).  Various header keywords (used later) are 
+added in NSPREPARE.
+
+NSPREPARE will also subtract an offset level (see the NSPREPARE help
+page for more information), apply a linearity correction if requested
+(recommended), and add an MDF file (extension MDF) describing which 
+areas of the image contain useful data.  It also has a parameter 
+(fl_forcewcs) that will generate the world coordinate system from
+the RA/Dec and offsets in the header.  This is necessary for most data
+before May 2005 since the WCS in raw GNIRS data was not correct (see
+output with fl_checkwcs+ to check).
+
+Most data reduction will call NSCUT to extract the regions of interest
+from the raw data.  If more than one region is extracted (e.g., for XD
+or IFU data) then it is necessary to specify the appropriate extension 
+number.  The second extension containing science data, for example, 
+is denoted by [SCI,2].
+
+The task GEMEXTN, when used with default parameters and no arguments,
+will display all the extensions in a file:
+
+.nf
+    > unlearn gemextn
+    > gemextn snS20040202S0015
+    snS20040202S0015[0]
+    snS20040202S0015[1][MDF]
+    snS20040202S0015[2][SCI,1]
+    snS20040202S0015[3][VAR,1]
+    snS20040202S0015[4][DQ,1]
+    snS20040202S0015[5][SCI,2]
+    ...
+    snS20040202S0015[19][DQ,6]
+.fi
+
+This includes both the index (inside the first []) and the extension
+name and version (second []).  It is only necessary to use one of
+these, since either uniquely identifies an extension.  Name and
+version are recommended because they specify the type of data
+contained.  There is no guarantee about the ordering of indices apart
+from extension [0], the PHU, which always contains only header
+information.
+
+Additional information and ways to handle MEF files can be found in
+http://www.gemini.edu/sciops/data/dataFormat.html
+.ih
+HEADER PARAMETERS AND INSTRUMENT SPECIFIC OPTIONS
+
+The task NSHEADERS lists the header parameters used by the various tasks
+in the GNIRS package (some header values which have values fixed by IRAF
+or FITS conventions are not included since they cannot be changed).
+
+Before reducing data from an instrument, the user should run
+.nf
+    > nsheaders <instrument>
+.fi
+where <instrument> can be gnirs, niri, michelle, or trecs, to ensure 
+that the appropriate header values are used.
+
+Note that not all header parameters named in NSHEADERS need appear in
+the raw data.  Some are used internally by the GNIRS package.  Others
+are used by NSPREPARE alone - the "prepare" tasks for other
+instruments (e.g. NPREPARE) might not use them.
+
+NSHEADERS can also be used to change task parameters for an instrument
+automatically - invoking the task with a particular instrument cause
+the ".dat" script in gnirs$data for that instrument to be executed.
+.ih
+SKY SELECTION
+
+The task NSSKY uses GEMOFFSETLIST to select frames for sky subtraction. The
+following section gives a general explanation of the process involved and some
+guidance on handling difficult data; it assumes that the user is calling the
+tasks via NSREDUCE. 
+
+If sky subtraction is required then appropriate sky data are selected for each
+observation from either the list of observations being processed or from
+\fIskyimages\fR, if specified. Selection from the observations list is
+appropriate for dithers along the slit (all images have source and sky); a
+separate \fIskyimages\fR list is used for "object-sky" dithers (only half of
+the images are on-source) and also gives the user more control when needed.
+
+For a particular observation, the selection of a sky frame from the available
+data is based on both observation time and pointing. The sky frames must be
+observed within \fIskyrange\fR seconds of the object (note that the NIRI tasks
+used minutes, not seconds, here). They must also be observed more than
+\fInodsize\fR/2 arcseconds away. If \fIskyrange\fR = INDEF, NSREDUCE attempts
+to determine the appropriate value so as to select one sky frame per object
+image.
+
+These selection conditions choose sky observations based on physically
+meaningful conditions. The sky background varies with time, so relatively
+recent observations should be used, but the pointing must be offset to avoid 
+subtracting the science data from itself.
+
+When planning to reduce some data it is useful to study the observation times:
+
+.nf
+  cl> delete phu
+  cl> gemextn n@slist proc="expand" index="0" > phu
+  cl> hselect @phu TIME-OBS,$I yes
+  11:18:36.7      nN20020630S0259[0]
+  11:18:55.7      nN20020630S0260[0]
+  11:19:15.2      nN20020630S0261[0]
+  11:19:33.7      nN20020630S0262[0]
+  11:19:52.2      nN20020630S0263[0]
+  11:20:11.2      nN20020630S0264[0]
+  11:20:28.2      nN20020630S0265[0]
+  11:20:47.2      nN20020630S0266[0]
+  11:21:04.7      nN20020630S0267[0]
+  11:21:21.2      nN20020630S0268[0]
+  11:21:38.2      nN20020630S0269[0]
+  11:22:11.2      nN20020630S0270[0]
+  11:25:05.7      nN20020630S0271[0]
+  11:25:24.7      nN20020630S0272[0]
+  11:25:43.7      nN20020630S0273[0]
+  11:26:02.7      nN20020630S0274[0]
+  11:26:19.7      nN20020630S0275[0]
+.fi
+
+Here, a little math (and knowing that the observations are ABAB) suggests that
+30 seconds would be a suitable time for selecting most neighbouring images.
+However, nN20020630S0270 lies between two "groups". There are various ways to
+handle an observation like this:
+.ls 
+Drop the observation. Perhaps no other observation is close enough to provide
+a good quality sky?
+.le
+.ls
+Increase \fIskyrange\fR until it includes neighbouring observations. Other
+observations will then have several sky frames (they will be combined using
+GEMCOMBINE to produce the final sky image).
+.le
+.ls
+Process the data in three separate groups (call NSREDUCE three times, once for
+data before nN20020630S0270, once for nN20020630S0270 itself, and once for data
+after nN20020630S0270), varying the parameters for each group.
+.le
+
+Note that you can always select sky frames by hand - provide a list to
+\fIskyimages\fR, restrict \fIinimages\fR to a single observation, and set
+\fIskyrange\fR to a very large value.  This will force nsreduce to combine all
+the \fIskyimages\fR data into a single sky. 
+
+.ih
+ABBREVIATIONS USED IN THE GNIRS HELPFILES
+
+.nf
+    Abbreviation   Explanations
+    ---------------------------------------------------------------
+    GNIRS          Gemini Near Infra-Red Spectrograph
+    IFU            Integral field unit
+    MDF            Mask definition file (a binary FITS table)
+    MEF            Multi-extension FITS
+    XD             Cross dispersed
+    PHU            Primary header unit (extension [0] of a MEF file)
+    ---------------------------------------------------------------
+.fi
+.ih
+BUGS AND LIMITATIONS
+
+Support for variance and data quality handling is somewhat limited.
+This is partly due to poor support for variance and quality
+propagation in IRAF tasks.  If error handling is required, please read
+the documentation for individual help tasks carefully and check
+results.
+
+The tasks in the GNIRS package are designed to operate on MEF FITS
+images that have been processed using NSPREPARE (for GNIRS data),
+NPREPARE (NIRI data), MPREPARE (Michelle data), or TPREPARE (T-ReCS data).
+.ih
+SEE ALSO
+
+gnirsinfols, gnirsinfoxd, gnirsinfoifu, gnirsexamples, nsflat, nsreduce, 
+nsappwave, nswavelength, nstransform, nsfitcoords, nsextract, nprepare,
+nsprepare, nssdist, gemlist, mprepare, tprepare.
+.endhelp

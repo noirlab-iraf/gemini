@@ -1,0 +1,252 @@
+.help gmosinfospec June2012 gemini.gmos
+.ih
+NAME
+gmosinfospec -- Description of reduction scripts for GMOS 
+                  spectroscopic (longslit and MOS) data
+.ih
+USAGE
+gmosinfospec
+.ih
+DESCRIPTION
+
+The GMOS package contains tasks for processing GMOS imaging, long-slit,
+multi-object and integral field spectroscopy data.  The specifics of the
+individual tasks can be found in their help files. This document describes 
+the common features of the spectroscopic tasks for longslit and MOS data.
+
+The tasks are designed to provide a fairly complete and flexible
+reduction for the purpose of assessing data quality at the time of 
+observation.  
+Real-time reductions may not be optimal for a particular
+science application. The GMOS package scripts can be optimized for a
+particular application using the hidden parameters to achieve the best
+possible results.
+
+The tasks produce logfiles of the performed processing steps.  The name 
+of the logfile may be set in each individual task, or at the package level
+by setting \fIgmos.logfile\fR.
+
+The tasks add header keywords to the output images.  These header keywords
+contain valuable information about the performed processing steps and the 
+values of the critical parameters that were used.
+
+All GMOS images are written as multi-extension FITS (MEF) files.  Raw data
+can have up to six unnamed extensions.  Most of the header information is
+written to the primary header unit [0] (PHU).  After being processed with
+GPREPARE, GMOS data extensions will be named as described in GMOSINFO.
+
+It is recommended to use \fIimtype\fR="fits".  This is set automatically 
+when loading the GEMINI package.
+.ih
+SHORT DESCRIPTIONS OF THE LONGSLIT AND MOS SPECTROSCOPY TASKS
+
+.ls GSFLAT -  Produce a normalized spectral flatfield from raw 
+
+GMOS flatfield images (longslit or MOS)
+
+GSFLAT is used to produce a normalized spectral flatfield image
+starting from raw GMOS images taken with the Gemini calibration unit
+(GCAL) quartz-halogen lamp.  There is an option to keep the co-added
+flatfield (if starting from more than one flatfield image) prior to
+normalization.  There is also an option (not currently supported) to
+multiply the output flat field with the slit function information 
+as derived with GSSLITFUNCTION (not yet available).
+If the input images are raw, GSFLAT calls GPREPARE to
+update the headers and attach the mask definition file (MDF).
+GSFLAT also calls GSREDUCE to trim input images, subtract the
+overscan level (if selected) and subtract the bias image. The input
+images are then multiplied by the gains. GSFLAT uses
+GMOSAIC to mosaic together the input science extensions into one
+spectral flatfield image, which is then normalized. 
+GSFLAT can also produce a double normalized flat to use with Nod-and-shuffle
+data before shuffled images are shifted and subtracted. 
+.le
+.ls GSREDUCE - Process GMOS longslit or MOS spectroscopic images
+
+GSREDUCE is used for basic reduction of raw GMOS longslit or MOS
+spectroscopic images.  The possible options include overscan correction
+and trimming, bias subtraction, dark subtraction, multiplication with
+the gains, mosaicing the science extensions together, flat fielding, 
+interpolating across the gaps between the detectors, applying
+a rough wavelength calibration based on the header information, and creating
+variance and data quality frames. 
+The output images from GSREDUCE used with the default setting of parameters
+will have count levels in units of electrons.
+For MOS spectra cutting the spectral image from each slitlet and placing it
+into a separate science extension. If the input images are raw,
+GSREDUCE will call GPREPARE to update the headers and attach the mask
+definition file (MDF) for MOS data. A call to GMOSAIC is necessary in
+order to flatfield the data and continue to the following steps.
+.le
+.ls GNSDARK - Derives average GMOS dark images from raw or gprepared images
+
+GNSDARK is used to calibrate and combine multiple dark images. The possible
+options include overscan correction and trimming, and bias subtraction. The 
+output dark will be in units of ADU for use as the input dark to gsreduce.  
+Darks are usually only needed for Nod-and-shuffle GMOS data. 
+.le
+.ls GNSCOMBINE - Nod-and-Shuffle shift, sky-subtract, register, and combine 
+
+GNSCOMBINE uses the correct weights to create a more optimal sky subtraction 
+than a simple call to GNSSKYSUB. It first shifts the images, creates a 
+median sky frame, sky subtracts with GNSSKYSUB, adds median sky frame 
+to each sky-subtracted frame, register and combine all frames, 
+subtract median sky from final combined, sky-subtracted file. 
+.le
+.ls GNSSKYSUB - Nod-and-Shuffle shift and sky-subtraction of GMOS spectra
+
+GNSSKYSUB is used for shifting and subtracting the shuffled images 
+acquired when using GMOS in Nod-and-Shuffle mode.
+
+.le
+.ls GSAPPWAVE - Determines a simple wavelength calibration for GMOS spectra
+
+GSAPPWAVE provides a quick wavelength solution for GMOS spectroscopic
+images. The wavelength solution is based on the filter, grating and central
+wavelength information found in the header. The task is for quick
+reduction purposes and to provide a starting point for the wavelength
+calibration derived by GSWAVELENGTH.
+.le
+.ls GSWAVELENGTH - Establish wavelength calibration for GMOS spectra
+
+GSWAVELENGTH (automatically) determines the wavelength solution for GMOS
+calibration lamp images starting with the initial value supplied by
+GSAPPWAVE.
+.le
+.ls GSTRANSFORM - Rectify and/or wavelength calibrate GMOS spectra
+
+GSTRANSFORM applies the wavelength solution found by GSWAVELENGTH to GMOS
+images that have been GSREDUCEd.  The images are rectified and interpolated.
+In a future release GSTRANSFORM will also apply an S-distortion correction 
+found by GSSDIST (not yet available), but this feature is not currently 
+supported.
+.le
+.ls GSSKYSUB - Subtract sky from GMOS longslit and MOS spectra
+
+GSSKYSUB performs sky subtraction on GMOS data by fitting and
+subtracting a function based on the selected sky sample of each column of every
+science extension.  The data are assumed to have been processed through
+GSREDUCE and wavelength calibrated and rectified with GSTRANSFORM.
+.le
+.ls GSEXTRACT - Extract GMOS MOS or longslit spectra to 1D
+
+GSEXTRACT extracts sky-subtracted, wavelength calibrated and rectified GMOS
+spectral images into one dimensional spectra, with a separate 
+spectrum created
+for each input science extension.  GSEXTRACT can be run either interactively
+or in batch mode, and it is possible to specify a reference spectrum whose
+trace is used to define the extraction aperture for faint objects.
+.le
+.ls GSSTANDARD - Establish spectrophotometric calibration for GMOS spectra
+
+GSSTANDARD calls the tasks STANDARD and SENSFUNC in NOAO.IMRED.SPECRED
+to determine the detector sensitivity function based on observations of 
+standard stars.  The input spectra are assumed to have been processed with
+GSREDUCE, rectified using GSTRANSFORM, sky subtracted (optional) using
+GSSKYSUB and extracted using GSEXTRACT.
+.le
+.ls GSCALIBRATE - Apply flux calibration and extinction correction
+
+GSCALIBRATE applies the flux calibration derived with GSSTANDARD, and may
+also be used to apply a correction for the extinction.
+GSCALIBRATE can be used on either two dimensional spectral images precessed
+with GSREDUCE, GSTRANSFORM and (optionally) GSSKYSUB, or 
+one dimensional spectra that have been processed through GSEXTRACT.
+.le
+.ls GSCRREJ - Clean spectroscopic data for cosmic ray hits
+
+GSCRREJ cleans spectroscopic data for cosmic ray hits by fitting each
+line of an image with a high order function. Then residuals (cosmic ray
+hits) that are narrower than the expected instrumental line width
+are replaces with the fitted value. The method is useful for 
+removing cosmic ray hits from single exposures. GSCRREJ calls the 
+hidden task GSCRMASK in order to make the mask of the cosmic ray hits.
+
+.le
+.ih
+TYPICAL REDUCTIONS
+For typical reductions the user will need appropriate flat fields
+and arc calibration images, and science images. Observations of
+spectrophotometric standard stars may also be required.
+
+1. Use GPREPARE to update the raw data headers and attach the
+mask definition file (MDF) as a binary table.  The other tasks will
+call GPREPARE as needed if this step is omitted.  
+
+2. Use GBIAS to create a bias image.  
+
+3. Use GSFLAT to derive normalized flat fields. The spectral flats
+taken using GCAL usually have very large variations in the illumination
+as a function of wavelength.
+
+4. Use GSREDUCE to trim the images, subtract the overscan level (if
+requested), subtract the bias image, subtract the scaled dark image (if
+requested), mosaic the data from the separate CCDs together, divide 
+by the flat field, interpolate across the detector gaps in the GMOSAICd
+image, calculate and apply an approximate wavelength solution, cut and
+write the data from slitlets into separate science extensions (MOS
+data), and add the object title to each output extension (MOS data).
+GIREDUCE will also create and attach data quality and variance planes 
+if requested (\fIfl_vardq\fR=yes). The dark current for GMOS
+is low enough that subtraction of the dark image is normally not
+needed and one should use \fIfl_dark\fR=no.
+GSREDUCE can call GSCRREJ, use \fIfl_crrej\fR=yes. The rejection
+of cosmic ray hits is done after the bias subtraction, but before
+the images are mosaiced and flat fielded. Thus, GSCRREJ is run on
+images that have not been interpolated.
+
+5. Use GSWAVELENGTH to establish an accurate wavelength calibration from
+calibration arc images.
+
+6. Use GSTRANSFORM to apply the wavelength solution to the 
+science images and rectify the two dimensional images prior to sky subtraction.
+GSTRANSFORM can also be applied to the calibration arc image to quantify the
+accuracy of the wavelength solution.
+
+7. Use GSSKYSUB to subtract the sky from the spectral images.
+
+8. Use GSEXTRACT to extract one-dimensional spectra from the two-dimensional 
+spectra.
+
+.ih
+WHAT TO DO NEXT
+
+GSSTANDARD can be used to establish a sensitivity function from GSREDUCEd
+standard star spectral data.  The output from GSSTANDARD can be used by 
+GSCALIBRATE on either the two dimensional or GSEXTRACTed science data.
+
+.ih
+REDUCTION EXAMPLES
+
+Example reduction scripts are available, see GMOSEXAMPLES.
+
+.ih
+BUGS AND LIMITATIONS
+The tasks in the GMOS package have been tested with up to three extension
+MEF files.
+
+The tasks in the GMOS package are designed to operate on MEF FITS
+images only that have been processed using GPREPARE.  GPREPARE will not
+run on data from instruments other than GMOS.  The GMOS tasks will
+not run on simple FITS files.
+
+For more information
+regarding the GMOS data structure and for generic GMOS package
+descriptions, see GMOSINFO. For more information about the
+imaging tasks, see GMOSINFOIMAG. For more information about
+the IFU tasks, see GMOSINFOIFU.
+
+Input image names should in general not contain directory paths as not
+all tasks have been tested in this mode.
+
+Improvements to the (previously semi-functional) variance and
+data quality propagation in the GMOS package have undergone limited
+testing; the accuracy of the results should still be verified at
+each step by the scientist, particularly for spectroscopic data
+reduction tasks.
+.ih
+SEE ALSO
+gmosinfo, gmosinfoimag, gmosinfoifu, gmosexamples, gsflat, gsreduce, 
+gsappwave, gswavelength, gstransform, gsskysub, gsstandard, gscalibrate, 
+gsextract, gprepare, gbias, gmosaic, gnsdark, gnsskysub, gnscombine
+.endhelp

@@ -1,0 +1,83 @@
+# Copyright(c) 2000-2017 Association of Universities for Research in Astronomy, Inc.
+#
+# Help definitions for the gemini package
+
+$quirc    = "./quirc/"
+$oscir    = "./oscir/"
+$nifs     = "./nifs/"
+$niri     = "./niri/"
+$gnirs    = "./gnirs/"
+$gmos     = "./gmos/"
+$midir    = "./midir/" 
+$flamingos = "./flamingos/"
+$f2       = "./f2/"
+$gsaoi    = "./gsaoi/"
+$gemtools = "./gemtools/"
+
+
+quirc       men = quirc$quirc.men,
+            hlp = quirc$quirc.men,
+            sys = quirc$quirc.hlp,
+            pkg = quirc$quirc.hd,
+            src = quirc$quirc.cl
+
+oscir       men = oscir$oscir.men,
+            hlp = oscir$oscir.men,
+            sys = oscir$oscir.hlp,
+            pkg = oscir$oscir.hd,
+            src = oscir$oscir.cl
+
+nifs        men = nifs$nifs.men,
+            hlp = nifs$nifs.men,
+            sys = nifs$nifs.hlp,
+            pkg = nifs$nifs.hd,
+            src = nifs$nifs.cl
+
+niri        men = niri$niri.men,
+            hlp = niri$niri.men,
+            sys = niri$niri.hlp,
+            pkg = niri$niri.hd,
+            src = niri$niri.cl
+
+gnirs       men = gnirs$gnirs.men,
+            hlp = gnirs$gnirs.men,
+            sys = gnirs$gnirs.hlp,
+            pkg = gnirs$gnirs.hd,
+            src = gnirs$gnirs.cl
+
+gmos        men = gmos$gmos.men,
+            hlp = gmos$gmos.men,
+            sys = gmos$gmos.hlp,
+            pkg = gmos$gmos.hd,
+            src = gmos$gmos.cl
+
+midir       men = midir$midir.men,
+            hlp = midir$midir.men,
+            sys = midir$midir.hlp,
+            pkg = midir$midir.hd,
+            src = midir$midir.cl 
+
+flamingos   men = flamingos$flamingos.men,
+            hlp = flamingos$flamingos.men,
+            sys = flamingos$flamingos.hlp,
+            pkg = flamingos$flamingos.hd,
+            src = flamingos$flamingos.cl
+
+f2          men = f2$f2.men,
+            hlp = f2$f2.men,
+            sys = f2$f2.hlp,
+            pkg = f2$f2.hd,
+            src = f2$f2.cl
+
+gsaoi       men = gsaoi$gsaoi.men,
+            hlp = gsaoi$gsaoi.men,
+            sys = gsaoi$gsaoi.hlp,
+            pkg = gsaoi$gsaoi.hd,
+            src = gsaoi$gsaoi.cl
+
+gemtools    men = gemtools$gemtools.men,
+            hlp = gemtools$gemtools.men,
+            sys = gemtools$gemtools.hlp,
+            pkg = gemtools$gemtools.hd,
+            src = gemtools$gemtools.cl
+

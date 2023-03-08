@@ -1,0 +1,231 @@
+GEMINI (January2015)     Gemini IRAF package v1.13      GEMINI (January2015)
+
+Release date: January 30, 2015
+
+This document describes the revisions relative to the Gemini IRAF package v1.12.
+
+All users are encouraged to use Ureka (http://ssb.stsci.edu/ureka/) to install
+IRAF and the Gemini IRAF package.  Installation instructions for Ureka users
+can be found at 
+  http://www.gemini.edu/sciops/data-and-results/processing-software/download.
+
+Users who do not wish to use Ureka, or who want to install Gemini IRAF 
+separately from Ureka, can download the Gemini IRAF package v1.13 for use 
+with IRAF 2.14 (gemini_v113_for_iraf_2.14.tar.gz) or for use with the 32-bit
+version of IRAF v2.16 distributed in Ureka (gemini_v113_for_iraf_2.16.tar.gz).
+Please refer to
+  http://www.gemini.edu/sciops/data-and-results/processing-software/requirements
+for other requirements on your IRAF installation including other required 
+external packages
+
+The Gemini IRAF package v1.13 will run under both IRAF and PyRAF environments.
+
+WARNING!! The Gemini IRAF package v1.13 does NOT work reliably with any of the
+version of IRAF v2.16 as distributed by NOAO.  Ureka contains a fixed version
+of IRAF v2.16.
+
+If updating an older installation of the Gemini IRAF package, it is 
+recommended that users initialize their uparm directories by typing 
+"rm uparm/*" in their iraf home directory (ie., where mkiraf was executed /
+where the login.cl file is located).  NOTE: if you wish to make a note of any
+stored parameters, please do so before running this command.
+
+The binaries distributed with the package were build on CentOS 5 and 
+Mac OS X 10.6.  See gemini_readme.txt for more information.
+
+PRIMARY REVISIONS
+=================
+1) GMOS:  a) Support of GMOS-S Hamamatsu CCDs.
+
+          b) New tasks and improvements in support of IFU reduction.
+
+          c) Improved variance and data quality plane propagation.
+
+          d) Other new task.
+
+2) GEMTOOLS:  a) New multi-instrument tasks for handling of bad pixels
+                 and cosmic rays
+
+              b) New task to combine spectra.
+
+DETAILS OF THE REVISIONS
+========================
+
+Numerous stability fixes, bug fixes, and minor improvements, especially to
+the gmos package are included in this release.  They will not be listed here.
+Rather, only the most notable changes or those more likely to be of interest
+to the users will be highlighted.
+
+1) GMOS
+-------------------
+Instrument: GMOS
+
+    a) Support of GMOS-S Hamamatsu CCDs
+
+        i) This release supercedes the two previous commissioning releases.
+
+       ii) This release offers quantum efficiency correction for the GMOS-S
+           Hamamatsu CCDs.  Please look at the imaging and MOS examples to 
+           learn how to use the quantum efficiency correction features.  
+           Unfortunately, the pressures to get this release public as soon as 
+           possible means that the other examples have not been updated for 
+           QE correction yet.
+
+           New task:
+
+           - gqecorr.cl: Create quantum efficiency data and correct GMOS data.
+
+           New examples with QE correction:
+
+           - doc/gmos_mos_example.cl:     gm> gmosexamples MOS
+           - doc/gmos_imaging_example.cl: gm> gmosexamples imaging
+
+    b) New tasks and improvements in support of IFU reduction.
+
+       New tasks:
+         - gffindblocks: Identify unilluminated image rows between IFU blocks
+                         (for later fit the scattered light model)
+         - gfscatsub: Model and subtract scattered light background in GMOS IFU
+                      data.
+
+       New behavior:
+         - gfcube: Variance propagation, and new option to convert units to
+                   flux per square arcsecond.
+         - gfextract: Improved variance and data quality plane propagation.
+                      New option to re-interposlate and grow chip gaps.
+         - gfreduce: Improved variance and data quality plane propagation, 
+                     new option to re-interpolate and grow chip gaps, new 
+                     option to manually set the output coordinate grid.
+         - gfskysub: Now requires that the input has been rectified with
+                     gftransform.  Also, offers an new option to process the
+                     two slits separately.
+         - gftransform: New option to manually set the output coordinate grid.
+                        New option to handle multiple DQ planes.
+
+    c) Improved variance and data quality plane propagation.
+
+       Improvement to the way the variance and the data quality planes are 
+       propagated have been made throughout the gmos package.  Regarding the
+       data quality plane in particular, some tasks were given the option
+       to turn on a propagation that takes into account the bit setting in
+       the input DQ planes instead of just propagating 0 or 1.  Beware that
+       proper bit propagation notably increases the processing time.
+
+    d) Other new task
+
+       - gsscatsub: Model and subtract scattered light background in 
+                    longslit data. 
+
+2) GEMTOOLS
+-------------------
+Instruments: All
+
+    a) New multi-instrument tasks for handling of bad pixels and cosmic rays.
+
+       - addbpm: Add a data quality (DQ) extensions from one MEF file
+                 (eg. a BPM) to another.
+
+       - gemcrspec: LA Cosmic wrapper for cleaning cosmic rays in spectra.
+
+       - gemfix: Replace pixel values by interpolation for those pixels flagged
+                 in the data quality plane.
+
+       - growdq: Expand non-zero data quality plane bits into neighboring
+                 pixels.
+
+    b) New task to combine spectra.
+
+       - gemscombine: Combine extracted spectra one aperture at a time for 
+                      matching extension versions in a list of multi-extension
+                      FITS file.
+
+SUMMARY OF ALL CHANGED PARAMETERS
+=================================
+
+If a task listed below is causing problems, it is very likely that the task is
+accessing an old parameter file that does not contain the updated parameters
+and/or values.  To resolve the problem, the old parameter files for the 
+Gemini IRAF package must be removed from the uparm directory.  To do this, 
+initialize the uparm directory by typing "rm uparm/*" in your iraf home 
+directory (ie., where you ran mkiraf / where your login.cl file is located).
+NOTE: if you wish to make a note of any stored parameters, please do so before
+running this command.  If it is not desirable to remove all the old parameter
+files for the Gemini IRAF tasks, it is possible to "unlearn" the individual
+task.
+
+Please see the appropriate help file for more information about the specific
+parameter changes listed below.
+
+    gmos.gbias:
+    gmos.gnsdark:
+      - New default value:	order: from 1 to "default"
+
+    gmos.gbpm:
+    gmos.giflat:
+      - New parameters:		fl_qecorr
+                      		qe_data
+                      		qe_datadir
+      - New default value:	order: from 1 to "default"
+
+    gmos.gifringe:
+      - New parameter:		fl_mask
+
+    gmos.gireduce:
+      - New parameters:		fl_qecorr
+                      		qe_data
+                       		qe_datadir
+                      		maxfiles
+      - New default value:	order: from 1 to "default"
+
+    gmos.girmfringe:
+      - New parameter:         	fl_propfvardq
+
+    gmos.gfcube:
+      - New parameters:		bitmask
+                       		fl_flux
+                       		fl_var
+
+    gmos.gfextract:
+      - New parameters:		grow
+                       		fl_fixgaps
+
+    gmos.gfreduce:
+      - New parameters:		dqthresh
+                      		grow
+                      		fl_fixgaps
+                      		sepslits
+                      		w1
+                        	w2
+                       		dw
+                       		nw
+      - New default value:	order: from 1 to "default"
+
+    gmos.gfskysub:
+      - New parameter:		sepslits
+
+    gmos.gftransform:
+      - New parameters:		w1
+                      		w2
+                      		dw
+                      		nw
+                       		dqthesh
+
+    gmos.gsat:
+      - New parameter: 		scale
+
+    gmos.gscut:
+      - New parameters:		fl_oversize
+                      		bpmfile
+
+    gmos.gsreduce:
+      - New parameter:		fl_oversize
+      - New default value:	ovs_order: from 1 to "default"
+
+    gmos.gsflat:
+    gmos.gsskysub:
+      - New parameter:		fl_oversize
+
+    gmos.gsstandard:
+      - New parameters:		var_ext
+                       		dq_ext
+

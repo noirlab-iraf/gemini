@@ -1,0 +1,84 @@
+.help glogclose October2004 gemini.gemtools
+.ih
+NAME
+glogclose -- Close a Gemini log file
+.ih
+USAGE
+glogclose logfile curtask fl_success
+.ih
+PARAMETERS
+.ls logfile
+The name of the Gemini logfile.  It should be the same as the logfile name used
+by GLOGINIT when the log file was opened and initialized.
+.le
+.ls curtask
+The name of the current task, i.e. the name of the task calling GLOGCLOSE. This
+name will be added to the log entries
+.le
+.ls fl_success
+Was the calling task, \fIcurtask\fR, successful?
+.le
+.ls glogpars = ""
+The name of the text file containing the Gemini logging preferences parameters. 
+The parameters relating to the entry levels to be written are found here.  If
+\fIglogpars\fR is undefined then the default parameter set in the uparm 
+directory is used.
+.le
+.ls verbose = yes
+Print log entries to the screen as well as to the logfile.
+.le
+.ls status = 0
+Exit status will be non-zero if GLOGCLOSE halted with an error.  This
+parameter is always set by the task, and should not be modified by the user.
+.le
+.ih
+DESCRIPTION
+GLOGCLOSE is used to write, to a Gemini log file, the exit status of a task, the
+time and date at which the task exited, and a end-of-entries (EOE) tag used by
+GLOGEXTRACT.
+
+The exit status, for the task specified in \fIcurtask\fR, is "SUCCESS" if
+\fIfl_success\fR is 'yes'.  Otherwise, the exit status is "FAILURE".
+
+The exit status entry, and the date and time entry, are both given a 'Status' 
+log level (see GEMLOGPARS for definitions).  Those two entries will therefore be 
+omitted if \fIgemlogpars.fl_status\fR is set to no.  The 'end-of-entries' tag, 
+however, is required by GLOGEXTRACT, and will always be written to the log file
+(but never written to the standard output).
+.ih
+EXAMPLES
+In the examples below, the program mode syntax is used as GLOGCLOSE will
+most often be used in a procedure script.  Indeed, by its very nature, 
+GLOGCLOSE has a limited pratical use in command mode (CL prompt).
+.sp
+1. Close a Gemini log file opened earlier with GLOGINIT.  Here, the exit 
+status of the calling task, MPREPARE, is successful.
+.sp
+.nf
+   glogclose( "midir.log", "mprepare", fl_success=yes)
+.fi
+.sp
+This will append the following lines to "midir.log":
+.sp
+.nf
+    STAT MPREPARE Exit status: SUCCESS
+    STAT MPREPARE Log closed at [Wed 16:02:03 28-Apr-2004]
+    EOE  MPREPARE 2004-04-28T16:02:03
+    VIS
+.fi
+.sp
+and the following lines to the screen:
+.sp
+.nf
+    MPREPARE Exit status: SUCCESS
+    MPREPARE Log closed at [Wed 16:02:03 28-Apr-2004]
+    <empty line>
+.fi
+.sp
+The 'EOE' line marks the end of a log block.  This is used by GLOGEXTRACT.
+.ih
+BUGS AND LIMITATIONS
+.ih
+SEE ALSO
+glogpars, glogprint, gloginit, glogextract, gemlog
+.endhelp

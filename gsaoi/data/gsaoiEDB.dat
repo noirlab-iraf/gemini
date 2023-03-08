@@ -1,0 +1,12 @@
+# Expressions used by gemexpr calls in gareduce and gasky;
+#     they are used to mask / replace absolute values below a given value
+#     found in the science extensions, in all of the extensions.
+
+# Science expression
+chkval(a,b)        ((abs(a) < b) ? ((a < 0) ? (-b) : b) : a)
+
+# Variance expression
+chkvval(a,b,c,d)        ((abs(a) < b) ? d : c)
+
+# Data quality expression
+chkdval(a,b,c,d)        ((abs(a) < b) ? (d | c) : c)

@@ -1,0 +1,7 @@
+# Copyright(c) 2004-2006 Association of Universities for Research in Astronomy, Inc.
+
+# GLOGFIX parameters
+
+logfile,s,a,,,,"Logfile name"
+verbose,b,h,yes,,,"Verbose"
+status,i,h,0,,,"Exit status (0=good)"

@@ -1,0 +1,56 @@
+.help nfpad March2006 gemini.nifs
+.ih
+NAME
+nfpad -- Pad NIFS frames in the y-dimension for overfilling of the detector.
+.ih
+USAGE
+nfpad inimage outimage
+.ih
+PARAMETERS
+.ls inimage  
+Raw or processed NIFS image to be padded in the y dimension. NFPAD is a simple 
+routine which expects only a single input file in either non-MEF or MEF format. 
+MEF files should have either 1 extension (SCI, VAR or DQ) or 3 (SCI, VAR and 
+DQ).
+.le
+.ls outimage
+The output image from NFPAD.  This routine requires an output file name; 
+automatic output prefixes are *not* supported at this time.
+.le
+.ls exttype = "SCI"
+The EXTTYPE keyword which defines the type of frame to be padded, either SCI, 
+VAR or DQ.
+.le
+.ls logfile = ""
+The name of the logfile to be written to.  If left empty, "nifs.log" will be
+used.
+.le
+.ls verbose = yes
+Print verbose output to screen.
+.le
+.ls status = 0
+Exit status will be non-zero if NFPAD halted with an error.  This 
+parameter is always set by the task and should not be modified by the user.
+.le
+.ih
+DESCRIPTION
+Because the lower and upper slices of the NIFS IFU data pattern extend slightly 
+beyond the field of the detector at the focal plane, the data images must be 
+"padded" in the y-direction to account for this.  This is done so that 
+extracting out the slices of the data, processing through the NIFS data 
+reduction, and reconstruction into a 3-D data cube goes more smoothly.  NFPAD 
+is not meant to be a stand-alone task used from a command line prompt, it is 
+called by several of the NIFS-specific tasks in the NIFS data reduction tree.
+.ih
+EXAMPLES
+1.  "Pad" a NIFS dataset, and name output image "imgout".
+.sp
+.nf
+    ni> nfpad N20060115S0130 imgout
+.fi
+.ih
+BUGS AND LIMITATIONS
+.ih
+SEE ALSO
+nfprepare, nfimage, nfacquire
+.endhelp

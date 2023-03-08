@@ -1,0 +1,6 @@
+# Copyright(c) 2001-2017 Association of Universities for Research in Astronomy, Inc.
+#
+# Package parameters for the mostools package
+ 
+logfile,s,h,"mostools.log",,,"Logfile for tasks in the mostools package"
+version,s,h,"20Jul2017",,,"Package version date"

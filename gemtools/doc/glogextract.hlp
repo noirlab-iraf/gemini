@@ -1,0 +1,197 @@
+.help glogextract October2004 gemini.gemtools
+.ih
+NAME
+glogextract -- Extract log entries from a Gemini log file
+.ih
+USAGE
+glogextract logfile
+.ih
+PARAMETERS
+.ls logfile
+The name of the Gemini logfile.
+.le
+.ls taskname = ""
+The name of the task for which you want to extract the log entries.
+.le
+.ls block = ""
+A list describing which occurence of the task, ie. which block of log entries, 
+to extract.  For example, "first,2,4-8,last" would retrieve the first, second,
+fourth to eighth, and the last block of entries for the task given in
+\fItaskname\fR, and within the time range given by \fIltime\fR and \fIutime\fR. 
+If \fItaskname\fR is not set, there is no task restriction and
+the counting starts from the first block after \fIltime\fR, or the top of the 
+file if \fIltime\fR is not specified.
+.sp
+Blocks can be specified individually with position numbers, eg. 4,5,6,7,8, or
+with the use of ranges, eg. 4-8.  The special strings "first" and "last" can
+also be used.
+.sp
+If \fIblock\fR is left empty, all the blocks respecting the other criteria will
+be retrieved.
+.le
+.ls ltime = ""
+The lower limit on the time range.  Only the blocks of log entries written after
+\fIltime\fR will be considered.  The format of the string is based on the FITS 
+format, but allows variations on it.  Refer to the DESCRIPTION section for 
+details.
+.le
+.ls utime = ""
+The upper limit on the time range.  Only the blocks of log entries than began to
+be written before \fIutime\fR will be considered.  The format of the string is 
+based on the FITS format, but allows variations on it.  Refer to the 
+DESCRIPTION section for details.
+.le
+.ls fl_child = yes
+Include logs from the child processes of \fItaskname\fR?
+.sp
+A child process is defined here as a task called by the task specified in 
+\fItaskname\fR.  If \fItaskname\fR is empty, a child process is any task called 
+from within another task.  For example, when GIREDUCE makes a call to GPREPARE, 
+GPREPARE becomes a 'child' of GIREDUCE.
+.le
+.ls nchild = INDEF
+The maximum number of subprocess levels (childs) log to allow.  Pruning out 
+logs from subprocesses of subprocesses (of subprocesses ...) can greatly help 
+the review of a log file.
+.le
+.ls fl_stat_level = no
+Retrieve 'status' level logs?  'Status' level log entries are tagged "STAT".  
+See the GLOGPARS help for definition and examples.
+.le
+.ls fl_tsk_level = no
+Retrieve 'task' level logs?  'Task' level log entries are tagged "TSK".  See 
+the GLOGPARS help for definition and examples.
+.le
+.ls fl_sci_level = no
+Retrieve 'science' level logs?  'Science' level log entries are tagged "SCI".  
+See the GLOGPARS help for definition and examples.
+.le
+.ls fl_eng_level = no
+Retrieve 'engineering' level logs?  'Engineering' level log entries are tagged
+"ENG".  See the GLOGPARS help for definition and examples.
+.le
+.ls fl_vis_level = no
+Retrieve 'visual' level logs?  'Visual' level log entries are tagged "VIS".  
+See the GLOGPARS help for definition and examples.
+.le
+.ls status = 0
+Exit status will be non-zero if the task halted with an error.  This parameter
+is always set by the task, and should not be modified by the user.
+.le
+.ih
+DESCRIPTION
+GLOGEXTRACT is used to 'extract' GEMLOG-formatted log entries based on various 
+search criteria.  The search parameters are the name of the task associated 
+with a log entry (\fItaskname\fR), the position of a log \fIblock\fR, the time 
+at which block was written (\fIltime\fR, \fIutime\fR), and the log level of 
+the entry (status, task, engineering, etc).  Also, since some tasks call other 
+tasks as subprocesses (or child processes), the user can limit the number of 
+subprocess levels to extract through the \fIfl_child\fR and \fInchild\fR
+parameters.
+.sp
+The concept of \fIblocks\fR is defined as follow: each time a GEMLOG-enabled 
+task is run, the log entries associated with it will defined a block.  For 
+example, when a task is called within another task (e.g. GSREDUCE calls 
+GIREDUCE), two nested blocks are created.  In the \fIlogfile\fR, special GEMLOG 
+entries delimit the blocks.  Those are the BOE and EOE tag entries 
+(Beginning/End Of Entries).
+.sp
+When a task exits ungracefully (e.g. it crashes), EOE entries will most likely
+not have been written to the logfile.  After such an event, it is advisable to
+run GLOGFIX, to fix the corrupted logfile.  (Note that the logfile will be
+"corrupted" from the GLOGEXTRACT point of view; the logfile is still
+human-readable.)
+.sp
+A time range can be added to the search criteria through the parameters
+\fIltime\fR and \fIutime\fR. The format of the time string is based on the 
+FITS format, but some variations are also accepted.  For example, it is allowed 
+to give only a date, or only a time.  Note that the time section must always 
+starts with a 'T', whether the date is given or not.  The time can
+be fully specified, or truncated to hours, or minutes.  Decimal notation
+can also be used to specify the time.
+.sp
+Examples: (square brackets mean 'optional')
+.sp
+.nf
+    CCYY-MM-DDTHH:MM:SS[.SSS...]   Full FITS format
+    CCYY-MM-DD                     Time assumed to be :
+                                      \fIltime\fR: 00:00:00, midnight;
+				      \fIutime\fR: 23:59:59
+    THH:MM:SS[.SSS...]             Date assumed to be today
+    [CCYY-MM-DD]THH[.HHH...]
+    [CCYY-MM-DD]THH:MM[.MMM...]
+.fi
+.sp
+Pruning out logs from subprocesses of subprocesses (of subprocesses ...) can 
+greatly help the review of a log file.  This is done by setting
+\fIfl_child\fR to 'yes', and \fInchild\fR to the desired maximum number of 
+subprocess levels to retrieve.
+.sp
+For example, GSREDUCE calls GIREDUCE, which calls GPREPARE; GIREDUCE is at the 
+first level, GPREPARE, being the child of a child of GSREDUCE, is at the second 
+level.  In this case, setting \fInchild\fR to 1 would extract logs for GSREDUCE
+and GIREDUCE (direct subprocess of GSREDUCE), but not for GPREPARE.
+.ih
+EXAMPLES
+1. Retrieve all the entries from "niri.log" except the 'engineering' level
+entries.
+.sp
+.nf
+    ge> glogextract niri.log fl_stat+ fl_tsk+ fl_sci+ fl_vis+
+.fi
+.sp
+2. Retrieve from "midir.log" all the entries issued by the task MIREDUCE.
+.sp
+.nf
+    ge> glogextract midir.log taskname="mireduce" fl_stat+ \
+    >>> fl_tsk+ fl_sci+ fl_eng+ fl_vis+
+.fi
+.sp
+3. Retrieve the 'status' and 'visual' level log entries for the task MIREDUCE. 
+Do not include the log entries from child processes.
+.sp
+.nf
+    ge> glogextract midir.log taskname="mireduce" fl_child- \
+    >>> fl_stat+ fl_vis+
+.fi
+.sp
+4. Retrieve from "gmos.log" the entries that were written between 15:01:33 and
+17:00:00 on May 12, 2004.  The user can set the log level preferences before
+using GLOGEXTRACT.
+.sp
+.nf
+    ge> glogextract.fl_stat+
+    ge> glogextract.fl_tsk+
+    ge> glogextract.fl_sci+
+    ge> glogextract.fl_eng+
+    ge> glogextract.fl_vis+
+    ge>
+    ge> glogextract gmos.log ltime="2004-05-12T15:01:33" \
+    >>> utime="2004-05-12T17.0"
+.fi
+.sp
+5. Retrieve from "midir.log" the entries from the last, the fourth, 
+and the second to fifth calls to MIREDUCE on May 12, 2004.  The block string 
+will be numerically ordered, and duplicates will be removed.  We
+assume the user has already set the log level preferences (e.g. Example 4)
+.sp
+.nf
+    ge> glogextract midir.log taskname="mireduce" block="last,4,2-5" \
+    >>> ltime="2004-05-12" utime="2004-05-12"
+.fi
+.sp
+6. Retrieve from "midir.log" the entries that were written today, between 
+9:03 AM and 1:30 PM.  Entries down to and including the first level of child 
+processes are requested.  We assume the user has already set the log level 
+preferences (e.g. Example 4)
+.sp
+.nf
+    ge> glogextract midir.log fl_child+ nchild=1 ltime="T9:03" \
+    >>> utime="13.5"
+.fi
+.ih
+BUGS AND LIMITATIONS
+.ih
+SEE ALSO
+glogpars, gemlog, glogfix
+.endhelp

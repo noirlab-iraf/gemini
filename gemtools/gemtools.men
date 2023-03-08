@@ -1,0 +1,44 @@
+      gemcube - Build data cubes
+      gemextn - List, filter and verify image extensions 
+  gemdqexpand - Expand a data quality image into its constituent bits
+       gemfix - Replace pixel values by interpolation where flagged in DQ
+       growdq - Expand non-zero DQ bits into neighbouring pixels
+     gemhedit - Add header keyword, value and comment
+      gemhead - List all headers of MEF files
+      gemlist - Generate file name lists in standard Gemini format
+        gemqa - Gemini data quality assessment
+  gemscombine - Combine sepctra aperture by aperture from multiple MEF files
+    gemseeing - Determine the image quality for imaging data
+    gemsecchk - Parse non-standard image section and check against input
+   gemlogname - Determine log file name for a given package
+      imcoadd - Co-add direct images with removal of cosmic ray hits
+     mgograph - MONGO like graphs
+gemoffsetlist - List processing for offsets (normally not used by the user)
+      cnvtsec - Convert date and time to number of seconds (hidden task)
+     printlog - Logfile task (hidden task)
+    gimverify - Verify input/output image names (hidden task)
+   gextverify - Verify extension input (hidden task)
+      gsetsec - Update datasec header keyword (hidden task)
+   gemvsample - Verify sky sample (hidden task)
+      gemdate - Get FITS format date string (hidden task)
+    getfakeUT - Generate UT string following Gemini data name convention (hidden task)
+  gemisnumber - Check if a string is a number, and of which type (hidden task)
+        gfwcs - Geometry function for gemcube task (hidden task) 
+      ckinput - Check input and output files, and return a list (hidden task)
+        ckcal - Check lamp & S-dist files, return updated list (hidden task)
+     ldisplay - Display hexagonal geometry IFU's
+
+MEF handling:
+     gemarith - Generic arithmetic on MEF images or spectra
+      gemexpr - Gemini image expression evaluator for MEF images or spectra
+   gemcombine - Combine MEF files
+   gemwcscopy - Copy WCS from PHU to PHU
+         wmef - Create MEF file from data, variance and DQ images
+
+Gemini Log:
+     gloginit - Initialize a Gemini log file (hidden task)
+    glogprint - Write a log entry to a Gemini log file (hidden task)
+    glogclose - Close a Gemini log file (hidden task)
+  glogextract - Extract log entries from a Gemini log file
+      glogfix - Quick fix of a Gemini log file after a crash
+     glogpars - Edit the GEMLOG user preferences

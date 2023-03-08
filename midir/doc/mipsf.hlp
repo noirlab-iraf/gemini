@@ -1,0 +1,219 @@
+.help mipsf July2009 gemini.midir
+.ih
+NAME
+mipsf -- Measure FWHM and Strehl value in Gemini mid-IR data
+.ih
+USAGE
+mipsf inimage
+.ih
+PARAMETERS
+.ls inimage
+The name of an image on which the PSF full width at half maximum (FWHM) 
+and the Strehl ratio are to be measured.
+.le
+.ls rawpath = ""
+The path to the image, if required.
+.le
+.ls fl_stacked = yes
+Has the input been processed with MIREDUCE to create a stacked image?
+If the value is set to "no", the input file is processed with MIREDUCE and
+the PSF measurements are done on the resulting image.
+.le
+.ls fl_display = yes
+Display the image.  If the value is "yes", the image is displayed otherwise the 
+task proceeds directly into IMEXAMINE.
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes the task use the logfile defined
+by \fImidir.logfile\fR.
+.le
+.ls verbose = yes
+Print actions to the screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error.  This 
+parameter is always set by the task, and should not be modified by the user.
+.le
+.ih
+DESCRIPTION
+This task automates the calculation of the PSF profile FWHM measurement from 
+mid-infrared images.  The routine is specific to T-ReCS and Michelle in that 
+it uses the measured pixel size of 0.0896 arc-seconds for T-ReCS or 0.1005 
+arc-seconds for Michelle (the instrument name is read from the header) to 
+convert from pixels to an angular FWHM value.  Approximate Strehl values are 
+calculated from the profile for some filters.
+.sp
+The task uses the radial profile fitting function in IMEXAMINE to do 
+the profile centering and fitting.  All the options the user has set 
+for RIMEXAM and IMEXAMINE are simply applied in this script. 
+For example the script does not distinguish between whether the profile 
+is fit using a gaussian function or using a moffat function.  All the 
+task uses for the FWHM calculation is the direct profile FWHM value,  
+which does not depend on the fitting function that is selected (see the 
+documentation for IMEXAMINE under the aperture photometry option).
+.sp
+When the task is run, it first looks at whether the \fIfl_stacked\fR 
+parameter is 'yes' or 'no'.  If the value is 'no' then the first thing that is 
+done is to run MIREDUCE on the input image.  Assuming that this 
+works, the task then takes the resulting image and uses DISPLAY to send 
+that image to the image display.  Note that in this case the \fIfl_display\fR 
+parameter is forced to "yes" since if the reduced T-ReCS or Michelle file 
+has not yet been created it cannot be currently displayed.  If the image is
+already stacked (\fIfl_stacked\fR=yes) the task will display the image 
+if the \fIfl_display\fR flag is set to 'yes'. The reason for allowing 
+\fIfl_display\fR to be 'no' is that one might wish to change the profile 
+fitting or some other IMEXAMINE parameters and re-do the profile fitting.
+.sp
+Once the image is displayed the IMEXAMINE task is called.  The user 
+can do whatever they wish in the IMEXAMINE session, but it is assumed 
+that they will use the "r" or "a" key with the cursor on the star or other 
+object to carry out a radial fit to the profile, eventually followed by exiting 
+from IMEXAMINE with the "q" key.
+.sp
+The output from the IMEXAMINE task is written to a temporary file, 
+which is then read to search for lines that are consistent with the 
+output of the "r" or "a" function.  For each such line the task 
+assumes that the last parameter on the line is the FWHM in pixels, 
+and from this calculates the FWHM in arc-seconds.  This value is then 
+written out.  Using the airmass of the observation as recorded in the 
+image header the FWHM is corrected to the zenith assuming that the 
+FWHM scales proportional to the airmass to the power of 0.6.  This scaling 
+is commonly used at optical wavelengths and ideally allows the relative 
+image quality to be determined for observations at different airmasses.  
+This scaling only seems to apply in the mid-infrared where the seeing value 
+is relatively poor and is dominated by atmospheric turbulence.  In most 
+conditions the mid-infrared FWHM is relatively insensitive to airmass.
+One can measure as many stars as one wishes.  The airmass value 
+is obtained from the primary header unit, which is why the file 
+name needs to be specified even if the image is already displayed.  
+Nothing is printed out until the user exits from IMEXAMINE.
+.sp
+Each time the "r" key is pressed in IMEXAMINE the profile fit is 
+plotted to the current graphics device, the only difference compared 
+to normal use of IMEXAMINE is that the fitting parameters are not 
+shown at the bottom of the plot.  As the direct FWHM is used in subsequent 
+calculations the values derived are not dependent on the quality of the 
+fitting that is carried out.
+.sp
+Aside from the quantities that have to do with the FWHM, the task writes 
+out some other values that may be of interest.  First it writes out the 
+fitting parameters line that would normally have been written to the 
+bottom of the radial profile plot.  It then explicitly gives the derived star 
+position in pixels.  After the FWHM values it writes the total counts for the 
+star from the profile fit.  This may not be accurate depending on the quality 
+of the fit.
+.ih
+STREHL Values
+The task also uses the fit from IMEXAMINE to estimate the Strehl value 
+if the filter is the Qa filter or one in the Si filter set.  This is done by 
+finding the normalized peak of the fitted profile (just the peak value divided 
+by the total count value) and then comparing this to the theoretical peak for 
+a Strehl of 1.0, based upon some IDL profile calculation routines.  For T-ReCS 
+the values were calculated assuming that the primary mirror size is 7.5 meters 
+(which is significantly smaller than the real size of 8.1 meters ).  It may 
+be that this diameter value is too small.  Francois Rigaut derived these 
+values by matching the diffraction ring patterns from T-ReCS images taken 
+on a night which had very good image quality.  The problem is that using 
+the values so derived sometimes produces a Strehl of more than 1.0 when 
+applied to Qa filter observations.  Thus the Strehl estimates for T-ReCS 
+images may well be systematically too large.  The value for the Qa filter 
+given below is a value that was adjusted to give a reasonable maximum Strehl 
+for a large set of Qa images of standard stars.
+.sp
+For Michelle the theoretical diffraction limited profiles were calculated 
+by Scott Fisher using the filter central wavelength.
+.sp
+The Strehl estimation is simply the ratio of the observed normalized peak 
+value to that from the IDL calculations.  If the fitting is poor then the 
+Strehl estimate will also be poor.
+.ih
+Theoretical normalized peak heights for T-ReCS observations
+The theoretical T-ReCS filter normalized peak values in the 
+diffraction-limited case are:
+.sp
+.nf
+    Si1-7.9um filter    0.1301
+    Si2-8.8um filter    0.1082
+    Si3-9.7um filter    0.08728
+    Si4-10.4um filter   0.07606
+    Si5-11.7um filter   0.06012
+    Si6-12.3um filter   0.05267
+    Qa-18.3um filter    0.02253  
+.fi
+.sp
+For T-ReCS filters other than the above 6 no Strehl value is calculated.
+The Strehl values are not particularly meaningful for the broad-band filters 
+due to the relatively wide range of wavelength coverage.  The narrow-band 
+filters are not often used, and when they are used it is usually for looking 
+at extended targets so these have not been included here.
+.ih
+Theoretical normalized peak heights for Michelle observations are:
+.sp
+.nf
+    Si-1 filter     0.197989
+    Si-2 filter     0.151745
+    Si-3 filter     0.125002
+    Si-4 filter     0.110929
+    Si-5 filter     0.0875688
+    Si-6 filter     0.0754795
+    Nprime filter   0.0938997
+    Qa filter       0.0354149
+.fi
+.ih
+EXAMPLES
+1. Calculate the PSF parameters for a stacked image already displayed.  The
+screen outputs are shown below for reference.
+.sp
+.nf
+    cl> mipsf rS20040731S0006.fits fl_disp-
+    MIPSF 
+    MIPSF -----------------------------------------------------------------
+    MIPSF Log opened at [Tue 18:00:08 24-Apr-2007]
+    MIPSF 
+    MIPSF --------------------
+    MIPSF Input Parameters:
+    MIPSF      inimage        = rN20050629S0074
+    MIPSF      rawpath        = 
+    MIPSF      fl_stacked     = yes
+    MIPSF      fl_display     = no
+    MIPSF      logfile        = 
+    MIPSF      verbose        = yes
+    MIPSF --------------------
+    MIPSF FORK -- Forking to IMEXAM ...
+
+        Entering IMEXAM: please use 'r' on the star or stars to 
+        get the radial profile, then q to quit.
+
+    MIPSF FORK -- Returning to MIPSF ...
+    MIPSF 9.91 13.97 25844. 0.5491 1515. 0.22 -63. 3.98 3.42 3.3
+    MIPSF 
+    MIPSF Position of star #1: 149.98 120.66
+    MIPSF   FWHM value: 3.30 pixels for filter I112B21.
+    MIPSF   This is nominally 0.332 arc seconds.
+    MIPSF   Airmass is: 1.440.
+    MIPSF   Corrected to zenith the FWHM would be 0.266 arc seconds.
+    MIPSF 
+    MIPSF   Total counts: 2.584E4
+    MIPSF   Normalized peak: 0.05862
+    MIPSF 
+    MIPSF   ** Approximate Strehl: 0.624 **
+    MIPSF 
+    MIPSF --------------------
+    MIPSF Exit status: SUCCESS
+    MIPSF Log closed at [Tue 18:00:10 24-Apr-2007]
+    MIPSF -----------------------------------------------------------------
+    MIPSF 
+.fi
+.sp
+2. If one was starting from the raw data file located in, say, "/data/raw", 
+the form would be (with default parameters):
+.sp
+.nf
+    cl> mipsf S20040731S0006.fits fl_stacked- rawpath=/data/raw
+.fi
+.ih
+BUGS AND LIMITATIONS
+.ih
+SEE ALSO
+imexam, rimexam
+.endhelp

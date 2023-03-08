@@ -1,0 +1,39 @@
+.help gsaoiexamples December2012 gemini.gsaoi
+.ih
+NAME
+gsaoiexamples - Print example reduction script to the screen
+.ih
+USAGE
+gsaoiexamples
+.ih
+PARAMETERS
+.ls example (imaging)
+Example script to print to the screen. There is only one type of example.
+.le
+.ih
+DESCRIPTION
+This task displays example scripts (from the gsaoi$doc directory).
+
+To use the examples, copy them and replace the file numbers with the file 
+numbers of your data. It is recommended to run each task separately, on the
+IRAF or PyRAF command line, at least until you are satisfied with the
+reduction. 
+
+.nf
+    Example      File
+    -------------------------------------
+    imaging      gsaoi_imaging_example.cl
+    -------------------------------------
+
+.fi
+
+To print the example reduction script:
+
+.nf
+   cl> gsaoiexamples
+.fi
+.ih
+SEE ALSO
+gsaoiinfo
+
+.endhelp

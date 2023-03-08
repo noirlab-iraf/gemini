@@ -1,0 +1,17 @@
+# Copyright(c) 2000-2011 Association of Universities for Research in Astronomy, Inc.
+#
+# Help directory for the niri package
+
+$doc = "niri$doc/"
+
+nprepare        hlp = doc$nprepare.hlp, src=niri$nprepare.cl
+nresidual       hlp = doc$nresidual.hlp, src=niri$nresidual.cl
+nifastsky       hlp = doc$nifastsky.hlp, src=niri$nifastsky.cl
+niflat          hlp = doc$niflat.hlp, src=niri$niflat.cl
+nisky           hlp = doc$nisky.hlp, src=niri$nisky.cl
+nireduce        hlp = doc$nireduce.hlp, src=niri$nireduce.cl
+nirotate        hlp = doc$nirotate.hlp, src=niri$nirotate.cl
+nisupersky      hlp = doc$nisupersky.hlp, src=niri$nisupersky.cl
+
+niriinfo        hlp = doc$niriinfo.hlp
+niriexamples    hlp = doc$niriexamples.hlp

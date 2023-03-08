@@ -1,0 +1,248 @@
+.help gaimchk December2012 gemini.gsaoi
+.ih
+NAME
+gaimchk -- Check and filter the input list of GSAOI images
+.ih
+USAGE
+gaimchk inimages outlist
+.ih
+PARAMETERS
+.ls inimages
+List of GSAOI images to check. Can be a list of image names or numbers (comma
+separated or @ lists) , or a range of images numbers - wild cards are
+supported. The image names may include the directory path. The images must be
+in multi-extension FITS (MEF) format. The file extension ".fits" may or may not
+be included.
+.le
+.ls outlist
+File name to write names of output lists to. Must not already exist.
+.le
+.ls rawpath = ""
+Path to the directory where the images are located. One may
+set this parameter if the raw data are not located in the current
+working directory, or specify a path in the input image file names.
+If \fIrawpath\fR is supplied it will be prefixed to any path given as part of
+the input image names.
+.le
+.ls rootname = ""
+Root name of image(s) if supplying image number(s); blank for today's UT. For
+example, rootname="S20120101S".
+.le
+.ls obstype_allowed = ""
+Allowed OBSTYPE keyword values
+.le
+.ls object_allowed = ""
+Allowed OBJECT keyword values
+.le
+.ls key_allowed = ""
+Check PHU for the existence of these keywords
+.le
+.ls key_forbidden = ""
+PHU must not contain these keywords
+.le
+.ls key_exists = ""
+PHU must contain these keywords
+.le
+.ls fl_prep_check = yes
+Check for an already GAPREPAREd version of the input file?
+.le
+.ls gaprep_pref = "g"
+GAPREPARE prefix
+.le
+.ls fl_redux_check = no
+Check for an already GAREDUCEd version of the input file?
+.le
+.ls garedux_pref = "r"
+GAREDUCE prefix
+.le
+.ls fl_fail = no
+Fail if fl_prep_check or fl_redux_check is true? That is, if they are true and
+a prepared or reduced version already exists in the current working directory
+the task will exist with an error.
+.le
+.ls fl_out_check = no
+Fail if file exists already?
+.le
+.ls fl_vardq_check = no
+Check for variance and data quality extensions? If input files are prepared and
+they do not contain variance and data quality planes then the task will halt
+with an error.
+.le
+.ls sci_ext = "SCI"
+Name of the MEF extension containing the science data.
+.le
+.ls var_ext = "VAR"
+Name of the MEF extensions containing the calculated variance planes.
+.le
+.ls dq_ext = "DQ"
+Name of the MEF extensions containing the data quality information.
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes use of the logfile
+defined by gsaoi.logfile.
+.le
+.ls verbose = yes
+Print actions to screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted
+with an error. This parameter is set by the task and should not be
+modified by the user.
+.le
+.ih
+DESCRIPTION
+
+GAIMCHK does the parsing of input lists to handle wild cards etc. It also
+sorts input files into lists according to values of the parameters provided. It
+is used throughout the GSAOI package to aid in the smart selection of images
+for each task. This is the tool that allows "*.fits" to be run.
+
+One of the first things this task does is to check the validity of
+\fIrawpath\fR.
+
+\fIinimages\fR can take the form:
+
+.in 4
+*.fits
+
+g*.fits
+
+gS20120101S00??.fits
+
+gS2012010?S00*.fits
+
+30,56-67 (with \fIrootname\fR set appropriately)
+
+comma separated list of file names
+
+@list of filenames
+
+rg@list
+
+Or a comma separated list of all of the above
+.in -4
+
+The file extension ".fits" may or may not be included in \fIinimages\fR.
+
+The simplest thing GAIMCHK does is to check the existence of a file.
+
+If either \fIobstype_allowed\fR or \fIobject_allowed\fR are set, only images
+with these PHU OBSTYPE and OBJECT keyword values will be selected to for
+further testing of the remaining input parameters.
+
+The parameters \fIkey_allowed\fR, \fIkey_forbidden\fR and \fIkey_exists\fR
+specify keywords that can be in, must be in and must be in the PHU of the input
+image, respectively. More than one keyword can be specified for each
+parameter. In the case of more than one keyword for \fIkey_allowed\fR, the list
+is hierarchical, if the first keyword in the list exists in the PHU then no
+further checking of the PHU for the \fIkey_allowed\fR values will be
+done. Should a keyword listed in \fIkey_forbidden\fR exist the input image be
+ignored. Similarly, should a keyword not exist in the PHU that is list by
+the \fIkey_exists\fR parameter, the image will be ignored.
+
+Temporary file names are written to \fIoutlist\fR that contain lists of
+file name that meet the criteria of \fIkey_allowed\fR. The file temporary files
+names take the form: "tmp<keyword>_<tmpstring>", where <keyword> is a keyword
+listed by \fIkey_allowed\fR and <tmpstring> is a temporary IRAF created
+string. Hence, the use of a hierarchical list for \fIkey_allowed\fR.
+
+In the case where the \fIkey_exists\fR and \fIkey_forbidden\fR are met (they
+can be empty strings) then should none of the keywords listed by
+\fIkey_allowed\fR exist on the PHU or if the \fIkey_allowed\fR is an empty
+string, a file by the name "tmpNotFound_<tmpstring>" is created and its name
+written to \fIoutlist\fR.
+
+If \fIfl_prep_check\fR=yes then prepared versions of the input file name with
+\fIgaprep_pref\fR prefixed are searched for in the current working directory.
+If they exist they are double checked to have be processed by GAPREPARE and if
+so, this file is now used. 
+
+If \fIfl_redux_check\fR=yes then reduced versions of the input file name with
+\fIgaredux_pref\fR prefixed are searched for in the current working
+directory. If they exist they are double checked to have be processed by
+GAREDUCE and if so this file is now used. The \fIfl_redux_check\fR parameter
+takes precedence over the \fIfl_prep_check\fR parameter.
+
+If checking for prepared or reduced file, if \fIfl_fail\fR=yes and a prepared
+or reduced version already exist then the task will halt with an error.
+
+After passing all of the above checks if the file being checked (it may now be
+a prepared or reduced version of the input file) is prepared and
+\fIfl_vardq_check\fR=yes, should the prepared file not contain any variance or
+data quality planes, the task will halt with an error. Should the file not be
+process this check is skipped.
+
+Finally, \if fIfl_out_check\fR=yes, all of the previous checks are ignored and
+the presence of the input file in the current working directory is
+checked. Should the file exist the task will fail with an error.
+.ih
+EXAMPLES
+
+.nf
+   cl> gaimck *.fits obstype="OBJECT" OBJECT="Twilight"
+.fi
+
+This will search for all of the twilight flats in the current directory using
+prepared versions if they exist.
+
+.nf
+   cl> gaimck g@inlist key_exists="GAFLAT"
+.fi
+
+This will search for all of master flats for the files listed in inlist,
+prefixed with "g".
+
+.nf
+   cl> gaimck @testlist key_allowed="GAFLAT,GAREDUCE,GAPREPAR" fl_gaprep_check+
+.fi
+
+This will check the file in test list for the keyword listed by
+\fIkey_allowed\fR. Up to 4 temporary list may be created, 3 with names
+containing the keywords listed and 1 with NotFound in it's name. Test list
+contains 5 files: 1 master flat (rgS20120101S001_flat.fits), which has all 3
+keywords as it was gain multiplied before combing, 1 GAREDUCEd file
+(rgS20120101S0002.fits; GAREDUCE and GAPREPAR keywords), 
+1 GAPREPAREd file (gS20120101S0004.fits; GAPREPAR keyword) and 2 raw files
+(S20120101S003.fits and S20120101S004.fits - the raw version of the prepared
+file). This will create 4 lists that are recorded in \fIoutlist\fR (the
+contents of these files are given below):
+
+.in 4
+tmpGAFLAT_<tmpstring>:
+
+.in 4
+rgS20120101S001_flat.fits
+
+.in -4
+tmpGAREDUCE_<tmpstring>:
+
+.in 4
+rgS20120101S0002.fits
+
+.in -4
+tmpGAPREPAR_<tmpstring>:
+
+.in 4
+gS20120101S0004.fits
+
+.in -4
+tmpNotFound_<tmpstring>:
+
+.in 4
+S20120101S003.fits
+.in -4
+.in -4
+
+Notice that the raw file S20120101S004.fits has been ignored as there is a
+previously GAPREPAREd version with the correct \fIgaprep_pref\fR value
+prefixed. Also, not that even though rgS20120101S001_flat.fits contains all 3
+keywords it only exists in one output list due to the hierarchical nature of
+\fIkey_allowed\fR".
+.ih
+BUG AND LIMITATIONS
+
+This help file may not be complete some items may be incorrect at this time.
+.ih
+SEE ALSO
+
+.endhelp

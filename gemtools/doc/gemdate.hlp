@@ -1,0 +1,54 @@
+.help gemdate June2005 gemini.gemtools
+.ih
+NAME
+gemdate -- Get FITS formatted date string
+.ih
+USAGE
+gemdate
+.ih
+PARAMETERS
+.ls zone = "UT"   (UT|local)
+Return either the UT or the local date.
+.le
+.ls verbose = no
+Print the date string to the screen.
+.le
+.ls outdate = ""
+Return FITS formatted date string.  This is set by the task.
+.le
+.ls status = 0
+Exit status will be non-zero if GEMDATE halted with an error.  This 
+parameter is always set by the task and should not be modified by the user.
+.le
+.ih
+DESCRIPTION
+GEMDATE is an easy way to obtain the current time as a FITS formatted date 
+string.  By default, the UT date is returned.  Whether \fIverbose\fR is turn 
+on or not, the date string is always stored in the \fIoutdate\fR parameter.
+.ih
+EXAMPLES
+1. Print the current UT date and time FITS string to the screen.
+.sp
+.nf
+    ge> gemdate verbose+
+.fi
+.sp
+2. Print the current local date and time FITS string to the screen.
+.sp
+.nf
+    ge> gemdate zone=local verbose+
+.fi
+.sp
+3. In a script, add the GEM-TLM time stamp.
+.sp
+.nf
+    cache ("gemdate")
+    gemdate ()
+    nhedit (l_output//"[0]", "GEM-TLM", gemdate.outdate, 
+        "UT Last modification with GEMINI")    
+.fi
+.ih
+BUGS AND LIMITATIONS
+.ih
+SEE ALSO
+.endhelp

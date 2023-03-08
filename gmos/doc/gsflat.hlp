@@ -1,0 +1,665 @@
+.help gsflat November2015 gemini.gmos
+.ih
+NAME
+gsflat -- Derive flat field for GMOS spectra based on GCAL lamp exposures
+(longslit or MOS)
+.ih
+USAGE
+gsflat inflats specflat
+.ih
+PARAMETERS
+.ls inflats
+Input GMOS spectroscopic flatfield images.  Lists and wildcards are
+supported.  All images must be in multi-extension FITS (MEF) format.
+Images can be either raw or already processed with GPREPARE or GSREDUCE.
+This task will only work for longslit or MOS spectroscopic data.
+It will not work for IFU or imaging data.
+Directory names should not be included as part of the image names.
+.le
+.ls specflat
+The output combined and normalized spectral flatfield.
+.le
+.ls fl_slitcorr = no
+Apply illumination (slit function) correction.  If "yes", the \fIslitfunc\fR
+parameter must be specified.  THIS OPTION IS NOT CURRENTLY SUPPORTED.
+.le
+.ls slitfunc = ""
+Slit illumination function produced by GSSLITFUNCTION.  Must be MEF format.
+Ignored unless \fIfl_slitcorr\fR=yes.  THIS OPTION IS NOT CURRENTLY SUPPORTED.
+.le
+.ls fl_keep = no
+Keep the imcombined flatfield.  If \fIfl_keep\fR=no, only the normalized
+output flatfield (\fIspecflat\fR) will be kept.
+.le
+.ls combflat = ""
+Output filename for the imcombined flatfield.  Ignored unless
+\fIfl_keep\fR=yes.
+.le
+.ih
+GSREDUCE PARAMETERS
+.sp 1
+Please see the GSREDUCE help pages for further details.
+.le
+.ls fl_over = yes
+Apply overscan correction by fitting and subtracting the overscan
+level. If "yes", the parameter \fIkey_biassec\fR is used to
+query the overscan section parameters from the header.
+.le
+.ls fl_trim = yes
+Trim the image.  If \fIfl_trim\fR=yes, the image is trimmed to keep only the
+image sections defined by the parameter \fIkey_datasec\fR.
+.le
+.ls fl_bias = yes
+Subtract the bias image.  If \fIfl_bias\fR=yes, the bias
+image must be specified by the \fIbias\fR parameter.
+.le
+.ls fl_dark = no
+Subtract the scaled dark image.  If \fIfl_dark\fR=yes, the dark image must be
+specified by the \fIdark\fR parameter.
+.le
+.le
+.ls fl_qecorr = no
+Quantum efficiency (QE) correct your input data? When enabling this for
+spectroscopic input data, a wavelength reference image (\fIqe_refim\fR) or QE
+correction image (\fIqe_corrimages\fR) must be supplied. Images must have
+been or about to be BIAS or DARK subtracted for them to be QE corrected. For
+more detailed information please read the gmos example (type 'gmosexamples'
+at the IRAF or PyRAF prompt).
+.le
+.ls fl_fixpix = yes
+Interpolate across the detector gaps when merging the science extensions into
+one with GMOSAIC.
+.le
+.ls fl_oversize = yes
+Scale the slit lengths by 1.05x when cutting (GSCUT)? The default is likely
+to be changed to "no" in a future release.
+.le
+.ls fl_vardq = no
+Create and propagate the data quality and variance extensions. A meaningful
+variance frame can only be created if bias subtracting.
+.le
+.ls fl_fulldq = no
+Passed to GMOSAIC, via GSREDUCE, if data are not mosaiced already. Setting
+\fIfl_fulldq\fR=yes will decompose the \fIdq_ext\fR extensions into their
+constituent bits before transforming them. The pixels in the individually
+transformed bit planes are then checked against the multiple of \fIdqthresh\fR
+times the bit value. Pixel values in the individual bit planes greater than
+this value are then set to the current bit value, less than this value the
+pixel values are set to 0, i.e., good. Once this is done for all bit values in
+the original \fIdq_ext\fR extension, the newly transformed and thresholded bit
+planes are combined by a bitwiseOR to form the output \fIdq_ext\fR
+extension. This is only done for CCDs 1 and 3. In addition, pixels that are
+created during the transformation, i.e, output pixels that lie outside of the
+dimensions of the input plane are flagged with a bit value of 16. It is
+recommended to set \fIfl_fulldq\fR=yes as this will retain \fIdq_ext\fR
+information correctly.
+.le
+.ls dqthresh = 0.1 (min=0.01, max=0.5)
+Fractional threshold to apply and flag pixels as contaminated with the current
+bit value when decomposing \fIdq_ext\fR extensions (\fIfl_fulldq\fR=yes).
+.le
+.ls bias = ""
+Bias image to be subtracted if \fIfl_bias\fR=yes.
+This image must be in MEF format with the same number of extensions as the
+input \fIinflats\fR images. The bias calibration image \fIbias\fR should be
+created using the GBIAS task.
+.le
+.ls dark = ""
+Dark image to be scaled and subtracted if \fIfl_dark\fR=yes.
+This image must be in MEF format with the same number of extensions as the
+input \fIinflats\fR images.  If \fIfl_vardq\fR=yes, \fIdark\fR
+should also contain variance and data quality extensions.  The dark correction
+image \fIdark\fR should be created using the GDARK task.  The
+\fIkey_exptime\fR parameter must be set correctly for proper exposure scaling
+of the \fIdark\fR.The dark current for GMOS is very low (< 1 e-/hour) and the
+subtraction of a dark image in generally not needed.
+.le
+.ls key_exptime = "EXPTIME"
+Image header keyword to be used for scaling the dark calibration image.
+Value passed to parameter \fIexpname\fR in IMCOMBINE for the exposure
+scaling and weighting options.
+.le
+.ls key_biassec = "BIASSEC"
+Header keyword giving the overscan strip section for each image extension in
+the raw image.
+.le
+.ls key_datasec = "DATASEC"
+Header keyword giving the section of the image with useful data (excludes the
+overscan sections).
+.le
+.ls rawpath = ""
+Path for the directory containing the raw GMOS images.
+.le
+.ls sci_ext = "SCI"
+Name of the MEF extension containing the science data.
+.le
+.ls var_ext = "VAR"
+Name of the MEF extension containing the variance frame.
+.le
+.ls dq_ext = "DQ"
+Name of the MEF extension containing the data quality array.
+.le
+.ls key_mdf = "MASKNAME"
+Header keyword to identify the Mask Definition File (MDF).  \fIkey_mdf\fR has
+precedence over \fImdffile\fR.
+.le
+.ls mdffile = ""
+MDF file to use if the keyword \fIkey_mdf\fR is not found in the image header.
+.le
+.ls mdfdir = "gmos$data/"
+Directory containing the MDF files.  The default value points to the directory
+which contains MDFs for longslit spectroscopy.
+.le
+.ls bpm = ""
+Bad pixel mask used to create the data quality extension if requested
+(\fIfl_vardq\fR=yes).  \fIbpm\fR should be created using the GBPM task.
+.le
+.ls gaindb = "default"
+Database file containing the GMOS gain data. The default value for \fIgaindb\fR
+is gmos$data/gmosamps.dat.
+.le
+.ls gratingdb = "gmos$data/GMOSgratings.dat"
+Database file containing the GMOS gratings data.
+.le
+.ls filterdb = "gmos$data/GMOSfilters.dat"
+Database file containing the GMOS filters data.
+.le
+.ls bpmfile = "gmos$data/chipgaps.dat"
+Database file containing information on the location of the gaps between the
+detectors.
+.le
+.ls refimage = ""
+Reference image for information about the slit positions.
+.le
+.ls qe_refim = ""
+Wavelength reference image used as a template to create the QE correction image.
+This file must have an associated wavelength database solution (from
+gswavelength); as such, it will also have been mosaicked by GMOSAIC and, if
+applicable (for MOS), had its spectra separated by GSCUT. For more detailed
+information please read the gmos example for your given observation mode. This
+parameter accepts a list of files. However, if a list is supplied there must be
+one reference image for each input image. In either case the reference image
+must have been observed with the same observing set up as the corresponding
+input image(s).
+.le
+.ls fl_keep_qeim = yes
+Keep the image that is created to QE correct the input data?
+.le
+.ls qe_corrpref = "qecorr"
+Prefix added to \fIqe_refim\fR to name the output QE correction image.
+.le
+.ls qe_corrimages = ""
+Either output name for the QE correction image when creating the QE correction
+image for the first time, or a previously created QE correction image to be
+used to QE correct the input data instead of creating one from
+scratch. This parameter accepts a list. If using this parameter to supply
+the output name for a new created QE correction image, the list must contain
+the same number of entries as \fIqe_refim\fR. Or if supplying the names of
+previously created QE correction images, the number of supplied names must be
+the same as the number of input images or just one that will be applied to all.
+Previously created QE correction images must have the same observing set up
+as the input images.
+.le
+.ls qe_data = "gmosQEfactors.dat"
+Database file that contains the QE fit coefficients and factors to be used
+when creating the QE correction image (spectroscopy) or QE correcting the data
+directly (imaging only).
+.le
+.ls qe_datadir = "gmos$data/"
+Directory containing the file given in \fIqe_data\fR.
+.le
+.ls sat = "default"
+Saturation level of raw images in ADU.
+Used to flag saturated pixels in the data quality extension (if
+\fIfl_vardq\fR=yes).
+The default value of \fIsat\fR for the EEV CCDs is 65000 ADU. For the GMOS-N
+e2vDD CCDs each individual amplifier has its own saturation value. For more
+information about the saturation levels used as the default please read the
+help file for the task GSAT, as this calculates the default saturation levels
+for the new e2vDD CCDs.
+.le
+.ls xoffset = INDEF
+The offset in the X (wavelength) direction between the theoretically
+predicted position of the spectra and the actual position.  The units are
+nanometers.  This overrides the offset value in \fIgratingdb\fR if it
+is not equal to INDEF.
+.le
+.ls yoffset = INDEF
+The offset in the Y (the spatial direction) direction between the
+theoretically predicted position of the spectra and the actual position.  The
+units are unbinned pixels.  This overrides the offset value in \fIgratingdb\fR
+if it is not equal to INDEF.
+.le
+.ls yadd = 0
+The  additional  length  to  add in the Y direction (the spatial
+direction) to each end of every MOS slitlet region.   The  units
+are unbinned pixels.
+.le
+.ls wave_limit = INDEF
+The upper wavelength limit of cut spectra in nanometers. This parameter is only
+important if \fIfl_detec\fR=yes. If \fIwave_limit\fR is set to INDEF, the red
+end of the spectrum is cut using a value of either the upper wavelength limit
+of the grating, the upper wavelength limit of the filter band-pass, the 2%
+quantum efficiency cut-off of the detector in the red (which is typically 1025
+nm and 1050 nm for the EEV and e2vDD CCDs, respectively) or the edge of the
+detector, whichever has the shortest wavelength. The user can use
+\fIwave_limit\fR to override this default behaviour. However, if the edge of
+the detector occurs before the value supplied for \fIwave_limit\fR, the
+spectrum will end at the edge of the detector. The same value must be used for
+both the gsflat and gsreduce \fIwave_limit\fR parameters. The one exception is
+when the science data are not cut, e.g., for longslit data. In this instance,
+if the user requires information in the science data beyond the default
+wavelength range determined automatically by gscut, the gsflat \fIwave_limit\fR
+parameter should be increased. See the gscut help file for more information.
+.le
+.ls fl_usegrad = no
+Use gradient method to find edges of slits. The method is described in the
+help file for GSCUT. The first flat field in \fIinflats\fR is used for
+the detection of the slit locations.
+.le
+.ls fl_emis = no
+Set pixels affected by emission lines to 1.0 in output flatfield. In data taken
+prior to August 2004 (GMOS-N) and September 2004 (GMOS-S) there are two
+emission lines in the flatfields, near 692.6 nm and 694.1, originating from
+a fluorescent surface inside the Gemini calibration system.  A future version
+of this script will have the ability to find and clean them in the reduced
+flatfield. This is not yet implemented, however, and fl_emis should be set to
+"no".
+.le
+.ls nbiascontam = "default"
+Number of columns removed from the overscan region before subtracting.
+The default value of \fInbiascontam\fR for the EEV CCDs is 4. Whereas, a
+default value of 5 is used for the GMOS-N e2vDD CCDs. \fInbiascontam\fR is
+used when \fIfl_over\fR=yes. The overscan regions of GMOS CCDs have some
+photon bleeding from the science frame. \fInbiascontam\fR is the number of
+columns next to the data section that are not used when calculating the
+overscan to subtract.
+.le
+.ls biasrows = "default"
+Rows to use in bias region. If \fIbiasrows\fR = "default", the entire
+length of overscan region is used. Value must be of the form "x1:x2" where
+x1 is the starting pixel row and x2 is the final pixel row. e.g. "3:64".
+.le
+.ls minval = INDEF
+Minimum pixel value in the normalized output flat. Anything below or equal
+to this level will be set to 1.0. This option is intended for use with
+\fIfl_seprows=yes\fR, where the same normalization level is used for
+unilluminated pixels as bright pixels, so flat fielding them without special
+treatment may introduce large noise levels. If INDEF, no minimum is enforced.
+.le
+.ih
+RESPONSE/PROFILE FITTING PARAMETERS USED BY FIT1D
+.le
+.ls fl_inter = no
+Fit response function interactively for all apertures.
+.le
+.ls fl_answer = yes
+Continue with interactive fitting. This parameter allows one to exit
+interactive mode (by setting \fIfl_answer\fR to "no") after examining
+only a few of the apertures. This parameter is used only if
+\fIfl_inter\fR=yes and it should in general not be specified on
+the command line. If \fIfl_answer\fR=no on the command line and
+\fIfl_inter\fR=yes, then only the first aperture will be fit interactively.
+If \fIfl_answer\fR=yes on the command line and \fIfl_inter\fR=yes, then
+every aperture will be fit interactively with no opportunity to revert to
+non-interactive mode.
+.le
+.ls fl_detec = no
+Fit response function one detector at a time (if \fIfl_detec\fR=yes) or one
+slitlet at a time (if \fIfl_detec\fR=no).  In the former case, the output
+flatfield MEF will have three science extensions, one for each detector. In
+the latter case, the output flatfield MEF will have a single science extension
+containing the mosaiced flatfield, and pixels between the slitlets will be set
+to 1.0. Do not use \fIfl_detec\fR=yes with \fIfl_seprows\fR=no for MOS data, as
+a single normalization cannot be derived meaningfully across all the slits.
+.le
+.ls fl_seprows = yes
+Fit and normalize the continuum for each image row separately? This is the
+previous GSFLAT behaviour and remains the default. The alternative is to
+make a single continuum fit to the average of all rows within each slitlet
+or detector and divide all the rows by that fit (see below). Do not use
+\fIfl_seprows\fR=no with \fIfl_detec\fR=yes for MOS data, as a single
+normalization cannot be derived meaningfully across all the slits.
+.le
+.ls function = "spline3" (spline3|legendre|chebyshev|spline1)
+Response function to be fit to the image lines.
+.le
+.ls order = "15"
+The order of the polynomials or the number of spline pieces in the response
+function. In the case of \fIfl_detec\fR=yes, a 3-, 6- or 12-element array can
+be input (e.g. "6,7,7") with the elements corresponding to the orders to be
+used for for each amplifier (in this case CCD1, CCD2, and CCD3), respectively.
+If \fIfl_detec\fR=yes and only a single number is input for \fIorder\fR, this
+number will be used for the fitting in each of the amplifiers. If the warning
+"Singular solution" is encountered, the user should try lowering the order.
+.le
+.ls low_reject = 3, high_reject = 3
+Rejection limits below and above the response function fit in units of the
+residual sigma.
+.le
+.ls niterate = 2
+Number of rejection iterations.
+.le
+.ih
+IMCOMBINE PARAMETERS
+.sp 1
+Please see the GEMCOMBINE help pages for further details.
+.le
+.ls combine = "average" (average|median)
+Type of combining operation.
+.le
+.ls reject = "avsigclip" (none|minmax|ccdclip|crreject|sigclip|avsigclip|pclip)
+Type of rejection operation.  In general "avsigclip" works well even
+for a few images.  For "sigclip" to work well at least 10 images are needed.
+.le
+.ls masktype = "goodvalue"   (none|goodvalue)
+Type of pixel masking to use.
+.le
+.ls maskvalue = 0.
+Mask value used with the \fImasktype\fR parameter.
+.le
+.ls scale = "mean" (none|mode|median|mean|exposure|@<file>|!<keyword>)
+Multiplicative image scaling to be applied.
+.le
+.ls zero = "none" (none|mode|median|mean|@<file>|!<keyword>)
+Additive zero level image shifts to be applied.
+.le
+.ls weight = "none" (none|mode|median|mean|exposure|@<file>|!<keyword>)
+Weights to be applied during the final averaging.
+.le
+.ls statsec = ""
+Section of image to use in computing statistics for scaling and
+weighting. The section refers to the GMOSAICd image and has the
+usual IRAF image section syntax ([x1:x2,y1:y2]).
+.le
+.ls lthreshold = INDEF, hthreshold = INDEF
+Low and high thresholds to be applied to the input pixels.
+.le
+.ls nlow = 1, nhigh = 1 (minmax)
+The number of low and high pixels to be rejected.
+.le
+.ls nkeep = 0 (ccdclip, crreject, sigclip, avsigclip, or pclip)
+The minimum number of pixels to retain (\fInkeep\fR > 0) or the maximum number
+to reject (\fInkeep\fR < 0).
+.le
+.ls mclip = yes (ccdclip, crreject, sigclip, avsigclip)
+Use the median rather than the average with high and low values excluded.
+.le
+.ls lsigma = 3., hsigma = 3. (ccdclip, crreject, sigclip, avsigclip, pclip)
+Low and high sigma clipping factors.
+.le
+.ls key_ron = "RDNOISE"
+Header keyword for the detector read noise (in electrons).
+This value has precedence over \fIron\fR.  If co-adding more
+than one input image (\fIinflats\fR), the value is passed to
+IMCOMBINE as the parameter \fIrdnoise\fR, is recalculated as
+a result of the coaddition and the header keywords are
+updated in the output images \fIspecflat\fR and \fIcombflat\fR.
+.le
+.ls key_gain = "GAIN"
+Header keyword for the detector gain (in electrons/ADU).
+This value has precedence over \fIgain\fR.  If co-adding more
+than one input image (\fIinflats\fR), the value is passed to
+IMCOMBINE as the parameter \fIgain\fR, is recalculated as a
+result of the coaddition and the header keywords are updated
+in the output images \fIspecflat\fR and \fIcombflat\fR.
+.le
+.ls ron = 3.5
+Detector read noise (in electrons) to use if not found from the
+header keyword \fIkey_ron\fR.
+.le
+.ls gain = 2.2
+Detector gain (in electrons/ADU) to use if not found from the
+header keyword \fIkey_gain\fR.
+.le
+.ls snoise = "0.0" (ccdclip, crreject)
+Sensitivity noise as a fraction.
+.le
+.ls sigscale = 0.1 (ccdclip, crreject, sigclip, avsigclip)
+Poisson correction to sigma parameter.
+.le
+.ls pclip = -0.5 (pclip)
+Percentile clipping algorithm parameter.
+.le
+.ls grow = 0.0
+Radius in pixels for additional pixels to be rejected by the rejection
+algorithms.
+.le
+.ih
+OVERSCAN CORRECTION PARAMETERS USED BY COLBIAS
+.le
+.ls ovs_flinter = no
+Fit overscan section interactively.
+.le
+.ls ovs_med = no
+Use median instead of average in COLBIAS.
+.le
+.ls ovs_func = "chebyshev" (spline3|legendre|chebyshev|spline1)
+The function fit to the average/median bias line.  Abbreviations are allowed.
+.le
+.ls ovs_order = "default"
+The order of the polynomials or the number of spline pieces in the bias
+overscan fitting function. Where "default" is used, \fIgireduce\fR selects
+a default value appropriate for the relevant GMOS detectors.
+.le
+.ls ovs_lowr = 3., ovs_highr = 3.
+Rejection limits below and above the bias overscan fitting function in units
+of the residual sigma.
+.le
+.ls ovs_niter = 2
+The maximum number of rejection iterations in COLBIAS.
+.le
+.ih
+NOD AND SHUFFLE PARAMETERS
+.ls fl_double = no
+Make double flats for Nod-and-shuffle science. A double flat field is required
+if the flat field correction is performed before the sky subtraction.
+.le
+.ls nshuffle = 0
+Number of shuffle pixels (unbinned). This value is usually found in the header
+of your Nod-and-Shuffle science data as "NODPIX."
+.le
+.ih
+GENERAL PARAMETERS
+.sp 1
+These general parameters are applicable to all GMOS tasks.
+.le
+.ls logfile = ""
+Name of the logfile.  Takes precedence over gmos.logfile.
+If \fIlogfile\fR="", the package logfile gmos.logfile is used.
+.le
+.ls verbose = yes
+Print actions to the screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error.
+This parameter is always set by the task and should not be modified by the
+user.
+.le
+.ih
+DESCRIPTION
+
+GSFLAT is used to generate a normalized GCAL spectroscopic flatfield
+(\fIspecflat\fR) for either longslit or MOS spectra.  The main
+function of GSFLAT is to remove the GCAL+GMOS spectral response and
+the GCAL uneven illumination from the flat-field image and leave only
+the pixel-to-pixel variations and the fringing. If used with an output
+image from GSSLITFUNCTION (\fIfl_slitcorr\fR=yes) the output spectrum
+(\fIspecflat\fR) will be multiplied with the slit function.  At this
+time GSSLITFUNCTION is not released, and the \fIfl_slitcorr\fR option
+is not supported. It will not be discussed further in this help page.
+A pair of emission lines with wavelength 692.6 and 694.1 nm are present
+in the flatfields taken with the facility calibration system, GCAL,
+prior to August 2004 (GMOS-N) and September 2004 (GMOS-S).
+The emission lines are caused by a fluorescent surface inside GCAL.
+A future version of this
+script will allow users to automatically mask these emission lines
+in the output flatfields, by setting \fIfl_emis\fR=yes.  However,
+this feature is not yet implemented and \fIfl_emis\fR should be set to
+no.
+
+GSFLAT accepts as input either a single flatfield image or a list of
+images which are combined using IMCOMBINE before the response function
+is determined.  The input files (\fIinflats\fR) must be in
+multi-extension FITS format (MEF).  The \fIinflats\fR may be either
+raw (in which case GPREPARE and GSREDUCE will be called) or reduced
+images.  GSREDUCE multiplies each extension by the gain using GGAIN
+(hidden task).
+
+If \fIfl_detec\fR=no, GMOSAIC is called to mosaic the science extensions
+into a single frame.  The slits are identified using GSCUT.  The grating and
+filter databases, \fIgratingdb\fR and \fIfilterdb\fR, and the offsets
+\fIxoffset\fR, \fIyoffset\fR, and \fIyadd\fR must be the same as used later by
+GSREDUCE for processing the science images.
+It is recommended to use \fIfl_usegrad\fR=yes (the default).
+However, it is essential that the science images are cut identically to
+the flat fields. Thus, when using GSREDUCE on the science images, the user
+may use the combined flat field \fIcombflat\fR from GSFLAT
+as the \fIrefimage\fR in GSREDUCE. Note that the combined flat field is
+only produced if  \fIcombflat\fR is defined and \fIfl_keep\fR=yes.
+
+After processing with GSREDUCE, and GSCUT if \fIfl_detec\fR=no, GSFLAT
+(by default) fits the response function row by row for each aperture
+or detector and divides the rows of the flat field by the
+corresponding fits. A limitation of this method is that any spatial
+variation along the slit is lost because each row is normalized
+separately. If \fIfl_seprows=no\fR, a single continuum fit is instead
+made to the average of the rows within each aperture or detector
+(using pixel rejection to help avoid slit edges and spurious values)
+and all the rows are normalized using that fit, retaining any spatial
+structure. Where this option is used for long slit data, only 85% of
+the central third of the slit length is used in determining the
+normalization, to preserve the flux at the middle and avoid errors due
+to the bridges (pending a better method of tracking those
+pixels). Note that \fIfl_seprows=no\fR only gives an approximation to
+the correct normalization because the continuum fit does not match the
+wavelength solution of every row accurately in the presence of
+distortions; this will lead to some low-order vignetting-type
+attenuation towards the periphery of the 2D spectra, but in the
+absence of a separate spatial correction (e.g., using a twilight flat)
+may still be preferable to leaving smaller-scale variations
+uncorrected with the default method. Do not use \fIfl_seprows\fR=no with
+\fIfl_detec\fR=yes for MOS data, as a single normalization cannot be derived
+meaningfully across all the slits.
+
+When fitting the continuum for Hamamatsu data or with \fIfl_detec\fR=no,
+any columns specified in \fIbpmfile\fR are omitted from the sample range.
+This serves to exclude artificially-bright columns at both edges of each
+Hamamatsu CCD (which later get masked out by GMOSAIC), in addition to the
+physical chip gaps themselves when using \fIfl_detec\fR=no, helping avoid
+oscillation around those features. Since gmos$data/chipgaps.dat only
+masks bright columns adjacent to the gaps themselves, those remaining at
+the far ends of the detector array are excluded in the same number as on
+either side of each gap, on average, as defined in \fIbpmfile\fR. The fitting
+can instead be forced to use all the available columns by setting
+\fIbpmfile\fR="" (requires \fIfl_detec\fR=yes or \fIfl_fixpix\fR=no).
+
+The unnormalized combined flatfield image is output to the file
+\fIcombflat\fR if \fIfl_keep\fR=yes; otherwise this intermediate image is
+deleted.  The response function (consisting of the GCAL spectral response
+and the GMOS wavelength sensitivity) is fitted with a call to FIT1D.  If
+\fIfl_inter\fR=yes the response function is determined interactively for
+each aperture defined in the mask definition file (MDF) if
+\fIfl_detec=no\fR, or for each detector if \fIfl_detec\fR=yes.  The name of
+the normalized output flatfield image is given by the parameter \fIspecflat\fR.
+
+The output of GSFLAT is a MEF image.  If \fIfl_detec\fR=no, all
+the science data will be a in a single MEF extension.  If \fIfl_detec\fR=yes,
+the data will be stored in three MEF science extensions.
+
+If bias subtracting and \fIfl_vardq\fR=yes, GIREDUCE will create variance and
+data quality extensions. Please refer to the GIREDUCE help pages for more
+information.
+.le
+.ih
+EXAMPLES
+.le
+1. Create normalized spectroscopic flatfield image from a list of
+raw input images stored in another directory.  Default settings
+of the processing flags are used. Variance and data quality planes
+are not created.  The intermediate combined image is not kept.
+The response function is fit interactively with a 25th order chebyshev
+polynomial.
+
+.nj
+
+   cl> gsflat @flist rgN20011121S1349_flat.fits mdfdir=/d1/mdfdir/ \
+.br
+   >>> rawpath=/d1/rawdata/2001nov21/ bias=N20011109S135_bias.fits \
+.br
+   >>> fl_inter+ order=25 function=chebyshev low_reject=5 \
+.br
+   >>> high_reject=5
+.ju
+
+
+.le
+2. Create normalized spectroscopic flatfield image from a list of
+raw input images stored in another directory.  The combined flat
+is fit one detector at a time. Variance and data quality planes
+are not created.  The intermediate combined image is not kept.
+The response functions are fit non-interactively with legendre polynomial
+of orders  5, 7, and 9, to CCD1, CCD2, and CCD3, respectively.
+
+.nj
+
+   cl> gsflat @flist rgN20011121S1349_flat.fits mdfdir=/d1/mdfdir/ \
+.br
+   >>> rawpath=/d1/rawdata/2001nov21/ bias=N20011109S135_bias.fits \
+.br
+   >>> fl_inter- order="5,7,9" function=legendre low_reject=5 \
+.br
+   >>> high_reject=5
+.ju
+
+3. See GMOSEXAMPLES for other examples of the use of GSFLAT.
+
+.ih
+TIME REQUIREMENTS
+Non-interactive processing on a Linux 2.0 GHz workstation with 2Gb of RAM
+of two raw GMOS GCALflats binned 2x1 with 40 slits takes about 2 min
+when fitting detector-by-detector, and 9 min if fitting slit-by-slit
+with the slits located using the gradient method.
+.ih
+BUGS AND LIMITATIONS
+There is currently no checking for accidentally mixing LONGSLIT
+and MOS flatfields. The user will have to make sure the correct
+flatfields are combined.
+
+For \fIfl_detec\fR=no, using a non-zero value for \fIyadd\fR may
+result in overlapping slit regions being written to the output
+mosaiced MEF science extension.  Strange results may occur further
+along the reductions.
+
+The option \fIfl_seprows\fR=no has undergone limited testing, so the user
+should verify that its results look sensible. The behaviour of this option
+may be tweaked further in future releases, leading to slightly different
+results from those produced now.
+
+A bug was resolved in this release which previously caused features in
+long slit flats to be offset spatially in y from the correct row by a
+grating-dependent number of rows. Since spatial structure was not
+preserved in any case due to normalizing each image row separately,
+the main consequence would have been inaccurate correction of
+pixel-to-pixel variations.
+
+When fitting longslit flat fields slit-by-slit (i.e., \fIfl_detec\fR=no) the
+frames are cut by gscut to allow the response to be fit over a sensible
+wavelength range. After which the normalized cut flat field is inserted back
+into the output frame. This means that if a user is analyzing their flat
+divided object spectra beyond the upper-wavelength limit as calculated by gscut
+for the flat field, the pixels beyond this limit will have inaccurate
+correction of pixel-to-pixel variations. The user is strongly recommended to
+alter the \fIwave_limit\fR to extend to the upper wavelength limit that the
+object spectra will be analyzed.
+
+Improvements to the (previously semi-functional) variance and
+data quality propagation in the GMOS package have undergone limited
+testing; the accuracy of the results should still be verified at
+each step by the scientist, particularly for spectroscopic data
+reduction tasks.
+.ih
+SEE ALSO
+gmosinfo, gmosinfospec, gmosexamples, gsreduce, gireduce, gprepare,
+gmosaic, gscut, gbpm
+.endhelp

@@ -1,0 +1,452 @@
+.help nswhelper December2012 gemini.gnirs
+.ih
+NAME
+nswhelper -- Sub-task to establish wavelength calibration for arclamp 
+spectra
+.ih
+USAGE
+nswhelper lampspectra
+.ih
+PARAMETERS
+.ls lampspectra
+Input lamp spectra. The task is designed for Multi-Extension FITS
+images.  \fIlampspectra\fR may be given as a comma separated list, a
+@filelist, or using wildcards.
+.le
+.ls outspectra = ""
+Output lamps spectra (MEF).  The number of output spectra must match the
+number of input spectra.
+.le
+.ls outprefix = "w"
+Prefix for output images. Names of output images are the names
+of the input images with a prefix attached.  \fIoutprefix\fR is used
+if \fIoutspectra\fR="".
+.le
+.ls reference = ""
+An additional arc frame, already wavelength calibrated, that is used to
+provide initial line identifications.  Used to calibrate cross-dispersed
+data (see below).
+.le
+.ls crval = INDEF
+Approximate wavelength at coordinate reference pixel, if not defined
+from the header.
+.le
+.ls cdelt = INDEF
+Approximate dispersion in angstroms per pixel, if not defined
+from the header.
+.le
+.ls crpix = INDEF
+Coordinate reference pixel, if not defined from the header.
+.le
+.ls dispaxis = 1
+Dispersion axis, if not defined from the header.
+.le
+.ls database = ""
+Directory for files containing output feature data.  If empty, the value
+from the GNIRS package parameters is used.
+.le
+.ls coordlist = "gnirs$data/argon.dat"
+Line list giving wavelengths of calibration lines.
+.le
+.ls fl_inter = no
+Examine identifications interactively. This allows the user to check
+the result of the line identifications for any misidentifications.
+If \fIfl_inter\fR = no then all queries and plotting are disabled.
+.le
+.sp
+The following parameters are passed to AUTOIDENTIFY and/or 
+REIDENTIFY.
+.ls section = "default"
+The section defines the one dimensional spectrum to use for 
+AUTOIDENTIFY. \fIsection\fR = default means that 
+"middle line" will be used for dispaxis=1 and "middle column" 
+will be used for dispaxis=2. See the help page for AUTOIDENTIFY
+for other choices.
+.le
+.ls nsum = 10
+Number of lines or columns to sum. 
+.le
+.ls ftype = "emission" (emission|absorption)
+Feature type. The possibly abbreviated choices are "emission" 
+and "absorption". 
+.le
+.ls fwidth = 4.
+Full-width at the base (in pixels) of features to be identified.
+.le
+.ls cradius = 5.
+The maximum distance, in pixels, allowed between a line position
+and the initial estimate when defining a new line.
+.sp
+If this is INDEF, and the extension header contains \fIkey_cradius\fR
+then the header value will be used.
+.le
+.ls threshold = 0.
+In order for a line center to be determined the range of pixel
+intensities around the line must exceed this threshold.
+.le
+.ls minsep = 2.
+The minimum separation, in pixels, allowed between line 
+positions when defining a new line.
+.le
+.ls match = -6.
+The maximum difference for a match between the line coordinate
+derived from the dispersion function and a coordinate in the
+coordinate list.  Positive values are in user coordinate units
+and negative values are in units of pixels.
+.le
+.ls function = "chebyshev" (legendre|chebyshev|spline1|spline3)
+The function to be fit to user coordinates as a function of the
+pixel coordinates.  The choices are "legendre", "chebyshev",
+"spline1", or "spline3".
+.le
+.ls order = 4
+Order of the fitting function.  The order is the number of
+polynomial terms (coefficients) or the number of spline pieces.
+.le
+.ls sample = "*"
+Sample regions for fitting specified in in pixel coordinates.
+.le
+.ls niterate = 10
+Number of rejection iterations.
+.le
+.ls low_reject = 3., high_reject = 3.
+Lower and upper residual rejection in terms of the RMS of the fit.
+.le
+.ls grow = 0.
+Distance from a rejected point in which additional points are
+automatically rejected regardless of their residuals.
+.le
+.ls refit = yes
+Refit the coordinate function when using REIDENTIFY.
+.le
+.ls step = 10
+The step in pixels in the spatial direction between each
+established coordinate function. If the lamp lines are highly
+distorted, \fIstep\fR should be smaller than the default.
+.le
+.ls trace = no
+Use the solution for the last step to fit the current step.
+If \fItrace\fR = no, then the reference spectrum is used for all steps.
+.le
+.ls nlost = 3
+Maximum allowed number of lost features.
+If \fItrace\fR = yes and more than \fInlost\fR features are not 
+found the reidentification record is not written to the database. 
+.le
+.ls aiddebug = ""
+Debug parameter for aidpars. \fIaiddebug\fR = "s" gives useful
+diagnostic debug printouts for trouble shooting. See the
+help page for AIDPARS for other possible seeings.
+If \fIverbose\fR = no, \fIaiddebug\fR = "" will be used regardless
+of the user supplied value.
+.le
+.ls fmatch = 0.2
+The maximum fraction of reference lines which are not matched in an
+acceptable wavelength solution.  See AIDPARS.
+.le
+.ls nfound = 6
+The minimum number of reference lines to matched in an acceptable
+wavelength solution.  See AIDPARS.
+.le
+.ls sigma = 0.05
+The line centre error in pixels.  See AIDPARS.
+.le
+.ls rms = 0.1
+The largest acceptable RMS value (a measure of fit quality) for an 
+acceptable wavelength solution.  See AIDPARS.
+.le
+.sp
+.ls nsappwavedb = "gnirs$data/nsappwave.fits"
+The table used by NSAPPWAVE to provide an initial wavelength estimate.
+This is used only if NSAPPWAVE was not called earlier.
+.le
+.ls fl_overwrite = yes
+Overwrite existing database entries.
+See the help file for AUTOIDENTIFY and REIDENTIFY for details.
+.le
+.ls logfile = ""
+Name of logfile. If empty, then the package logfile is used.
+.le
+.ls verbose = yes
+Print actions to screen. 
+.le
+.ls debug = no
+Print detailed actions to screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error.
+This parameter is always set by the task, and should not be modified
+by the user.
+.le
+
+.ce
+Parameters from NSHEADERS
+.sp
+The following values are read from GNIRS.NSHEADERS
+.ls sci_ext
+Name of science extension
+.le
+.ls key_dispaxis
+Header keyword for dispersion axis
+.le
+.ls key_order
+Header keyword for storing spectral order
+.le
+.ls key_cradius
+Header keyword for wavelength cal search radius
+.le
+.ih
+DESCRIPTION
+This task is normally called from NSWAVELENGTH.  It should only be
+called directed by experienced users.
+.sp
+NSWHELPER is used for establishing the wavelength calibration for
+spectra using arclamp spectra.  The calibration is established
+independently for each input spectrum.  Multiple input spectra may be
+specified.  The input spectra must have been run through NSPREPARE
+(for GNIRS data, or the equivalent prepare task for other instruments)
+previously.  The input spectra may or may not have been processed with
+NSAPPWAVE.
+.sp
+NSWHELPER performs the following actions:
+.sp
+.nf
+1) Run NSAPPWAVE if not previously run
+2) Run AUTOIDENTIFY on the section defined by \fIsection\fR.
+3) Run REIDENTIFY on the full spectrum to establish the wavelength
+   calibration for all spatial points.
+.fi
+.sp
+The process requires a minimum of user interaction. 
+\fIfl_inter\fR = yes makes it possible
+to inspect the automatic line identifications and solve any
+misidentifications manually.
+\fIfl_inter\fR = no turns off any interactive use.
+If \fIverbose\fR = yes, diagnostic output will be printed to
+the screen.  If \fIverbose\fR = no, only warnings and
+errors are printed to the screen. Specifically \fIaiddebug\fR = ""
+will be used.
+.sp
+The database files will be named 
+\fIdatabase\fR/id\fIoutspectra\fR[\fIsci_ext\fR].
+\fIoutspectra\fR is either the supplied value or the value constructed
+from \fIlampspectra\fR and \fIoutprefix\fR.
+.sp
+The directory gcal$linelists contains custom line lists for the
+Gemini Calibration Unit (GCAL). Available line lists are:
+.sp
+.nf
+    argon.dat     Argon lines from 1 micron to 4.8 microns
+    krypton.dat   Krypton lines from 1 micron to 4.7 microns
+    arkr.dat      The combination of argon.dat and krypton.dat
+    ohlines.dat   OH sky lines (from the NOAO package)
+.fi
+.sp
+The line lists may be revised in the future.
+.sp
+NSWHELPER does not select the coordinate list automatically.
+Thus, the input spectra should be of the same calibration lamp.
+This is not checked by NSWHELPER.
+.sp
+.sp
+\fIWHEN AUTOMATIC CALIBRATION FAILS - LINE DETECTION\fR
+.sp
+Sometimes the default parameters fail to find a wavelength solution,
+or the solution found is incorrect (sample solutions should be
+verified interactively against a spectral atlas).
+.sp
+Counterintuitively, it appears that many problems are due to too many
+candidate lines being detected in the data, rather than too few.  The
+following procedure can check and correct this.
+.ls Diagnostic plot
+First, run NSWHELPER interactively (\fIfl_inter+\fR) with
+\fIaiddebug\fR=l (lowercase L).  This will plot a spectrum with two
+sets of vertical tick marks arranged in horizontal bands.
+.sp
+The first set of ticks, in the band closer to the spectrum, are the
+peaks detected in the data.  The second set, slightly lower, are the
+lines in the linelist.
+.sp
+For good calibration, the number of candidate lines (top set of ticks)
+should be just a little larger than the number of entries in the
+linelist.
+.sp
+Due to a bug in the current IRAF, when there are too many candidate
+ticks they may appear bunched to one end of the spectrum.  Again,
+increase \fIthreshold\fR to fix this.
+.sp
+To exit the plot produced by \fIaiddebug\fR=l, press "Q".
+.le
+.ls Raising the \fIthreshold\fR parameter
+Spectra that fail to fit with the default parameters often have way
+too many line detections (too many ticks in the upper row).  To reduce
+the number of detections increase the \fIthreshold\fR parameter (typical
+values range from 10 to 1000) and try again.
+.le
+.sp
+By varying \fIthreshold\fR and plotting the detections it should be clear
+when a suitable number of lines are detected (similar numbers of ticks
+in the two rows).
+.sp
+.sp
+\fIWHEN AUTOMATIC CALIBRATION FAILS - LINE IDENTIFICATION\fR
+.sp
+If the line detection seems reasonable (see above), the next possible
+problem with AUTOIDENTIFY is that lines in the raw data are not being
+correctly identified, or too few lines exist.
+.sp
+To test for this, set \fIaiddebug\fR=ls (lowercase L and S).  After
+the graph(s) above, the task should print several lines of numbers,
+something like:
+.sp
+.nf
+ 1/1   7999.49   -0.695   7   6/7     7/7    14   0  0.172  0.17
+ 1/1   8004.84   -0.663   4   4/7     5/7    43  29  0.614  0.68
+ 1/1   8019.61   -0.643   3   3/7     4/7    57  43  0.000  0.37
+.fi
+.sp
+If this appears, please read the next section (fit quality),
+Otherwise, you need to adjust \fInfound\fR and \fIsigma\fR.
+.sp
+Lowering \fInfound\fR will allow AUTOIDENTIFY to continue with less
+lines.  Increasing \fIsigma\fR increases the chance of a line being
+identified with an emission feature.
+.sp
+Note that in both cases you may be accepting poorer quality
+calibration as a consequence of making these changes.
+.sp
+.sp
+\fIWHEN AUTOMATIC CALIBRATION FAILS - FIT QUALITY\fR
+.sp
+If line detection and identification is reasonable (see above), but
+AUTOIDENTIFY fails to find a solution, then a wavelength calibration
+can be found by lowering the quality threshold via parameters
+\fIfmatch\fR and \fIrms\fR.
+.sp
+Increasing \fIfmatch\fR allows more reference lines to be discarded.
+Increasing \fIrms\fR accepts solutions with greater distortion.
+.sp
+.sp
+\fICALIBRATING CROSS-DISPERSED DATA\fR
+.sp
+The wavelength calibration of cross-dispersed data must deal with two
+problems.
+.sp
+The IRAF wavelength calibration routines work on lines parallel to
+the dispersion axis in the data.  Cross-dispersed data, however, lie
+at an angle on the detector.  It can be difficult, therefore, for the 
+wavelength calibration routines to find a line through the arc spectra
+that contains a sufficiently large number of arc lines for accurate 
+results.
+.sp
+Also, neighbouring orders may cross into the data, introducing additional,
+confusing emission along a line being used to calibrate the "correct"
+order for a particular extension.
+.sp
+To combat these problems the following procedure is recommended:
+.ls
+Stack arcs using NSSTACK.  This improves signal-to-noise in the faint
+higher orders.
+.le
+.ls
+Process data using NSREDUCE and NSCUT with \fIfl_corner\fR=yes.  This
+removes overlapping orders from the science data.
+.le
+.ls
+Trace a pinhole or bright point source using NSSDIST.  This trace is
+used below to produce a reference arc image.
+.le
+.ls
+Compute the 2D dispersion and distortion maps using NSFITCOORDS with
+\fIsdisttransf\fR set to the image previously traced with NSSDIST.  Do 
+not provide a value for \fIlamptransf\fR and use \fIxorder\fR=2. Then, Rectify
+the arc observations using NSTRANSFORM.
+.le
+.ls
+Check that the rectified arcs run vertically in each frame (e.g., using
+DISPLAY).
+.le
+.ls
+Repeat the NSFITCOORDS and NSTRANSFORM processing with 
+\fInstransform.fl_stripe\fR=yes. This will median filter and extend the arc
+spectra to fill the science data, providing a reference arc image.
+.le
+.ls
+Wavelength calibrate the reference arc image with NSWHELPER in the
+"normal" manner.
+.le
+.ls
+Use the calibrated reference arc image to provide initial identifications
+for lines in the original, stacked, arc data (i.e., with the arcs running
+diagonally across the detector).  Use NSWHELPER with the \fIreference\fR 
+parameter set to the calibrated reference arc image.
+.le
+.ih
+EXAMPLES
+1. Establish the wavelength calibration using a GCAL lamp spectrum
+.sp
+.nf
+   ge> nswhelper s1nN20020303S0001
+.fi
+.sp
+2. Establish the wavelength calibration for five different NIRI lamp
+spectra all obtained with the Krypton lamp interactively.
+.sp
+.nf
+   ge> nswhelper s1nN*S001*.fits \
+   >>> coordlist="gcal$linelists/krypton.dat" fl_inter+ 
+.fi
+.sp
+3. Calibrate cross-dispersed data.
+.sp
+.nf
+   # Initial preparation
+   ge> delete all
+   ge> gemextn S200* process="none" omit="extension" > all
+   ge> imdelete n@all
+   ge> nsprepare @all
+
+   # List raw files
+   ge> delete pins,arcs
+   ge> gemlist S20040307S 243-246 > arcs
+   ge> gemlist S20040307S 247-249 > pins
+
+   # Process and trace the pinhole data
+   ge> imdelete rn@pins
+   ge> nsreduce n@pins fl_cut+ fl_process_cut+ fl_nsappwave- \
+   >>> fl_dark- fl_sky- fl_flat- fl_vardq- fl_corner+
+   ge> imdelete rnS20040307S0247_stack
+   ge> nsstack rn@pins
+   ge> nssdist rnS20040307S0247_stack coordlist=coords \
+   >>> section="first line" fl_inter+
+
+   # Generate the reference arc image
+   ge> imdelete rn@arcs
+   ge> nsreduce n@arcs fl_cut+ fl_process_cut+ fl_nsappwave- \
+   >>> fl_dark- fl_sky- fl_flat- fl_vardq- fl_corner+
+   ge> imdelete frnS20040307S0243_stack
+   ge> nsfitcoords rnS20040307S0243_stack sdist=rnS20040307S0247_stack
+   ge>> ## To rectify the spectra using this solution
+   ge> nstransform frnS20040307S0243_stack
+   ge> display ...
+   ge> imdelete frnS20040307S0243_stack
+   ge> nsfitcoords rnS20040307S0243_stack sdist=rnS20040307S0247_stack
+   ge> imdelete tfrnS20040307S0243_stack
+   ge> nstransform frnS20040307S0243_stack fl_stripe+
+   ge> imdelete wtfrnS20040307S0243_stack
+   ge> nswavelength tfrnS20040307S0243_stack
+.fi
+.ih
+BUGS AND LIMITATIONS
+NSWHELPER does not yet support different wavelength units.
+Any spectrum with the wavelength solution defined in the header
+may be plotted in microns by using:
+.sp
+.nf
+   ge> splot spectrum[SCI] units=microns
+.fi
+.ih
+SEE ALSO
+autoidentify, reidentify, aidpars, nsappwave, nswedit, nsprepare, 
+nscut, nssdist, nsfitcoords, nstransform
+.endhelp

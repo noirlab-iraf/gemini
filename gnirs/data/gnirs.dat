@@ -1,0 +1,71 @@
+
+# Standard header keywords
+print "setting header keywords"
+nsheaders.sci_ext =		"SCI"
+nsheaders.var_ext =		"VAR"
+nsheaders.dq_ext =		"DQ"
+nsheaders.key_instrument = 	"INSTRUME"
+nsheaders.key_bias =		"DETBIAS"
+nsheaders.key_ron =		"RDNOISE"
+nsheaders.key_gain =		"GAIN"
+nsheaders.key_sat =		"SATURATI"
+nsheaders.key_nonlinear =	"NONLINEA"
+nsheaders.key_arrayid =		"ARRAYID"
+nsheaders.key_filter =		"FILTER"
+nsheaders.key_decker =		"DECKER"
+nsheaders.key_slit =		"SLIT"
+nsheaders.key_prism =		"PRISM"
+nsheaders.key_order =		"NSCUTSPC"
+nsheaders.key_ndavgs =		"NDAVGS"
+nsheaders.key_coadds =		"COADDS"
+nsheaders.key_lnrs =		"LNRS"
+nsheaders.key_camera =		"CAMERA"
+nsheaders.key_grating =		"GRATING"
+nsheaders.key_fpmask =		"SLIT"
+nsheaders.key_dispaxis =	"DISPAXIS"
+nsheaders.key_wave =		"GRATWAVE"
+nsheaders.key_delta =		"(unused)"
+nsheaders.key_waveorder =	"GRATORD"
+nsheaders.key_cradius =		"CRADIUS"
+nsheaders.key_exptime =		"EXPTIME"
+nsheaders.key_section =		"SPECSEC"
+nsheaders.key_cut_section =	"NSCUTSEC"
+nsheaders.key_pixscale =	"PIXSCALE"
+nsheaders.key_wavevar =		"GRATWAVE"
+nsheaders.key_dark =		"OBSTYPE"
+nsheaders.val_dark =		"DARK"
+nsheaders.key_xoff =		"GXOFF"
+nsheaders.key_yoff =		"GYOFF"
+nsheaders.key_date =            "DATE-OBS"
+nsheaders.key_time =		"UT"
+nsheaders.key_airmass =		"AIRMASS"
+nsheaders.key_mode =            "MODE"
+nsheaders.key_obstype =         "OBSTYPE"
+
+# Clear possible chanegs from NIRI config
+print "clearing nscut.section"
+nscut.section =			""
+print "clearing nsreduce.section"
+nsreduce.section =		""
+print "setting nsflat.statsec and fitsec"
+nsflat.statsec = "MDF"
+nsflat.fitsec = "MDF"
+
+# Set dispersion direction for GNIRS
+print "setting nswavelength.dispaxies"
+nswavelength.dispaxis = 	2
+print "setting nswavelength.coordlist, nswavelength.threshold, and"
+print "   nswavelength.fl_median"
+nswavelength.coordlist = "gnirs$data/lowresargon.dat"
+nswavelength.threshold = 100.
+nswavelength.fl_median = yes
+
+
+
+# Set the logfile name
+cache ("gnirs")
+print "setting the default logfile"
+if (gnirs.logfile == "") {
+    gnirs.logfile = "gnirs.log"
+}
+;

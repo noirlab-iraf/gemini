@@ -1,0 +1,35 @@
+#Copyright(c) 2002-2009 Association of Universities for Research in Astronomy, Inc.
+#
+# Look up table for nsappwave task - to apply approximated wavelength
+# calibration for FLAMINGOS 
+# 1 July 2002 - Michael Ledlow
+#
+# ID is a string composed from the header keywords: GRISM,FILTER,SLIT + SPECSEC
+#
+# NOTE: if the wavelength increases with decreasing pixel number, then
+#  the resolution will assumed be negative!
+#
+# LambdaCn   1/dl   R   Band   Slit      ID(FILTER+GRISM+SLIT+SPECSEC#)
+# [angstrom]
+14496.5   0.11930  320.0 H --- 6pix ------ HK+HK+6pixSPECSEC1
+23221.5   0.11455  420.0 K --- 6pix ------ HK+HK+6pixSPECSEC2
+14579.0   0.12002  320.0 H --- 6pix ------ HK+JH+6pixSPECSEC1
+11774.0   0.22492  450.0 J --- 6pix ------ HK+JH+6pixSPECSEC2
+11274.5   0.22139  440.0 J --- 6pix ------ JH+JH+6pixSPECSEC1
+15982.5   0.20342  540.0 H --- 6pix ------ JH+JH+6pixSPECSEC2
+#
+14496.5   0.11930  640.0 H --- 3pix ------ HK+HK+3pixSPECSEC1
+23221.5   0.11455  840.0 K --- 3pix ------ HK+HK+3pixSPECSEC2
+14579.0   0.12002  640.0 H --- 3pix ------ HK+JH+3pixSPECSEC1
+11774.0   0.22492  900.0 J --- 3pix ------ HK+JH+3pixSPECSEC2
+11274.5   0.22139  880.0 J --- 3pix ------ JH+JH+3pixSPECSEC1
+15982.5   0.20342 1080.0 H --- 3pix ------ JH+JH+3pixSPECSEC2
+#
+14496.5   0.11930  214.0 H --- 9pix ------ HK+HK+9pixSPECSEC1
+23221.5   0.11455  280.0 K --- 9pix ------ HK+HK+9pixSPECSEC2
+14579.0   0.12002  214.0 H --- 9pix ------ HK+JH+9pixSPECSEC1
+11774.0   0.22492  300.0 J --- 9pix ------ HK+JH+9pixSPECSEC2
+11274.5   0.22139  293.0 J --- 9pix ------ JH+JH+9pixSPECSEC1
+15982.5   0.20342  360.0 H --- 9pix ------ JH+JH+9pixSPECSEC2
+
+#####################################################################

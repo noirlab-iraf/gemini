@@ -1,0 +1,20 @@
+-------------------------------------------------------------------------
+GSAOI data files included in the Gemini IRAF package
+Version: March 20, 2013
+Original Author: Mark Simpson (July 25, 2012)
+-------------------------------------------------------------------------
+
+File                     Description
+-------------------------------------------------------------------------
+README                   This file
+
+gsaoiAMPS.dat            Information on the GAIN, READNOISE, SATURATION and
+                         non-linear deviation percentages.
+
+gsaoiEDB.dat             Contains the macros used by GEMEXPR in GAREDUCE and
+                         GASKY.
+
+gsaoiNLC.dat             Contains the non-linearity correction coefficients.
+
+gsaoibpm_high_full.fits  Static bad pixel mask, full frame.
+-------------------------------------------------------------------------

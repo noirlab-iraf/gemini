@@ -1,0 +1,56 @@
+.help addbpm September2014 gemini.gemtools
+.ih
+NAME
+addbpm -- Add DQ extensions from one MEF file (eg. a BPM) to another
+.ih
+USAGE
+addbpm inimages bpm
+.ih
+PARAMETERS
+.ls inimages
+Multi-extension FITS image, or list of images, to which the DQ extensions
+of the \fIbpm\fR file will be added (either appended or bitwise ORed with any
+existing DQ).
+.le
+.ls bpm 
+Input BPM (or other reference file) in multi-extension FITS format,
+containing DQ image extensions to be copied to \fIinimages\fR.
+.le
+.ls logfile = "gemtools.log"
+Name of the output logfile (GEMEXTN).
+.le
+.ls verbose = yes
+Print messages to the screen as well as the log? Errors will be printed
+regardless.
+.le
+
+.ih
+DESCRIPTION
+
+ADDBPM is a simple MEF-file-handling wrapper that copies data quality
+extensions from one file (such as a MEF-format BPM) to another. If
+\fIinimages\fR already contains DQ extensions, the output is the bitwise
+OR of those extensions with the DQ from \fIbpm\fR.
+
+.ih
+EXAMPLES
+1. Append a previously generated MEF BPM to some GMOS science exposures:
+
+.nf
+  cl> addbpm rg@sci.lis bpm_1x1
+.fi
+
+.ih
+BUGS AND LIMITATIONS
+This task does very limited error checking so is expected to crash under
+some error conditions, such as when the number of SCI and DQ extensions
+don't match; it has undergone limited testing after inclusion from the
+experimental gmosifudr version on the Gemini Data Reduction User Forum.
+It should arguably generate a new output file instead of modifying
+its input (albeit only the DQ array). The behaviour may be modified in
+future but in the meantime this is included as-is for user convenience.
+
+.ih
+SEE ALSO
+gemfix, growdq
+.endhelp

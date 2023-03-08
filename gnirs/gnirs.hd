@@ -1,0 +1,41 @@
+# Copyright(c) 2003-2011 Association of Universities for Research in Astronomy, Inc.
+#
+# Help directory for the gnirs package
+
+$doc = "gnirs$doc/"
+
+nsheaders         hlp = doc$nsheaders.hlp, src=gnirs$nsheaders.cl
+nsmdfhelper       hlp = doc$nsmdfhelper.hlp, src=gnirs$nsmdfhelper.cl
+nsprepare         hlp = doc$nsprepare.hlp, src=gnirs$nsprepare.cl
+nsflat            hlp = doc$nsflat.hlp, src=gnirs$nsflat.cl
+nsedge            hlp = doc$nsedge.hlp, src=gnirs$nsedge.cl
+nsslitfunction    hlp = doc$nsslitfunction.hlp, src=gnirs$nsslitfunction.cl
+nsreduce          hlp = doc$nsreduce.hlp, src=gnirs$nsreduce.cl
+nscut             hlp = doc$nscut.hlp, src=gnirs$nscut.cl
+nssky             hlp = doc$nssky.hlp, src=gnirs$nssky.cl
+nsressky          hlp = doc$nsressky.hlp, src=gnirs$nsressky.cl
+nssdist           hlp = doc$nssdist.hlp, src=gnirs$nssdist.cl
+nswavelength      hlp = doc$nswavelength.hlp, src=gnirs$nswavelength.cl
+nswhelper         hlp = doc$nswhelper.hlp, src=gnirs$nswhelper.cl
+nsappwave         hlp = doc$nsappwave.hlp, src=gnirs$nsappwave.cl
+nswedit           hlp = doc$nswedit.hlp, src=gnirs$nswedit.cl
+nsfitcoords       hlp = doc$nsfitcoords.hlp, src=gnirs$nsfitcoords.cl
+nstransform       hlp = doc$nstransform.hlp, src=gnirs$nstransform.cl
+nsextract         hlp = doc$nsextract.hlp, src=gnirs$nsextract.cl
+nscombine         hlp = doc$nscombine.hlp, src=gnirs$nscombine.cl
+nschelper         hlp = doc$nschelper.hlp, src=gnirs$nschelper.cl
+nsstack           hlp = doc$nsstack.hlp, src=gnirs$nsstack.cl
+nsoffset          hlp = doc$nsoffset.hlp, src=gnirs$nsoffset.cl
+nfquick           hlp = doc$nfquick.hlp, src=gnirs$nfquick.cl
+nfflt2pin         hlp = doc$nfflt2pin.hlp, src=gnirs$nfflt2pin.cl
+peakhelper        hlp = doc$peakhelper.hlp, src=gnirs$t_peakhelper.x
+nfcube            hlp = doc$nfcube.hlp, src=gnirs$nfcube.cl
+nxdisplay         hlp = doc$nxdisplay.hlp, src=gnirs$nxdisplay.cl
+nvnoise           hlp = doc$nvnoise.hlp, src=gnirs$nvnoise.cl
+nstelluric        hlp = doc$nstelluric.hlp, src=gnirs$nstelluric.cl
+
+gnirsinfo         hlp = doc$gnirsinfo.hlp
+gnirsinfols       hlp = doc$gnirsinfols.hlp
+gnirsinfoxd       hlp = doc$gnirsinfoxd.hlp
+gnirsinfoifu      hlp = doc$gnirsinfoifu.hlp
+gnirsexamples     hlp = doc$gnirsexamples.hlp

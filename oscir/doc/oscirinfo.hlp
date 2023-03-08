@@ -1,0 +1,219 @@
+.help oscirinfo June2012 gemini.oscir
+.ih
+NAME
+oscirinfo -- Reduction scripts for OSCIR data
+.ih
+USAGE
+oscirinfo
+.ih
+DESCRIPTION
+
+The OSCIR package contains tasks for processing OSCIR data 
+obtained at Gemini North. The specifics of the individual tasks can 
+be found in their help files. This document describes the common 
+features of the tasks and gives a description of the OSCIR 
+data format.
+
+The tasks are designed to provide a fast nearly "hands-off" reduction
+as well as the flexibility to optimize the hidden parameters to
+achieve the best possible results.
+
+The tasks produce logfiles of the performed processing steps.
+The name of the logfile may be set in each individual task, or at
+the package level by setting the parameter \fIoscir.logfile\fR.
+
+The tasks may add header keywords to the output images. These header
+keywords contain information about the performed processing steps
+and the values of the critical parameters for the tasks that were
+used.
+
+All data from OSCIR are simple FITS images. The OSCIR 
+package is designed to process the images as simple FITS. It is
+recommended to use \fIimtype\fR="fits". This is set automatically
+when loading the GEMINI package.
+
+.ih
+OSCIR DATA FORMAT
+
+The raw FITS files from OSCIR are 6-dimensional simple FITS files.
+
+.nf
+ Dim  Name                     Size
+  1   X dimension of array     128
+  2   Y dimension of array     128
+  3   Chop position            Number of chop positions (1 or 2)
+  4   Savesets                 Number of savesets per nod position
+  5   Nod position             Number of nod positions  (1 or 2)
+  6   Nod sets                 Number of nod sets
+.fi
+
+The file format is much different from a visible or near-infrared FITS file,
+which usually contains a single 2-D image representing a single readout of the
+detector.  Briefly, the OSCIR detector must be read out at several tens or
+hundreds of Hz in synchronization with the chopping secondary, so frames are 
+co-added into two hardware buffers (one buffer for each chop position).  The 
+buffers are periodically (every 2 sec for most data) written to 
+disk, forming a "Saveset".  After several savesets are recorded, the data 
+collection stops while the telescope nods, then resumes.  A cycle during which 
+the telescope nods to a new position and then back is called a "Nodset".
+
+This pattern is summarized in the following example where the number of 
+savesets per nod position is 3 and the number of nod sets is 4. With two frames
+per saveset this results in a total of 48 frames; the IRAF task IMHEAD
+will report the file dimensions as [128,128,2,3,2,4].
+
+.nf
+Frame  ChopPos  Source   Saveset  NodPos  Nodset  IRAFimage
+
+ 1       A         *        1       1       1     [*,*,1,1,1,1]
+ 2       B                                        [*,*,2,1,1,1]
+ 3       A         *        2                     [*,*,1,2,1,1]
+ 4       B                                        [*,*,2,2,1,1]
+ 5       A         *        3                     [*,*,1,3,1,1]
+ 6       B                                        [*,*,2,3,1,1]
+     ---Nod---
+ 7       A                  1       2             [*,*,1,1,2,1]
+ 8       B         *                              [*,*,2,1,2,1]
+ 9       A                  2                     [*,*,1,2,2,1]
+10       B         *                              [*,*,2,2,2,1]
+11       A                  3                     [*,*,1,3,2,1]
+12       B         *                              [*,*,2,3,2,1]
+     ---Nod---
+13       A         *        1       1       2     [*,*,1,1,1,2]
+14       B                                        [*,*,2,1,1,2]
+15       A         *        2                     [*,*,1,2,1,2]
+16       B                                        [*,*,2,2,1,2]
+17       A         *        3                     [*,*,1,3,1,2]
+18       B                                        [*,*,2,3,1,2]
+     ---Nod---
+19       A                  1       2             [*,*,1,1,2,2]
+20       B         *                              [*,*,2,1,2,2]
+21       A                  2                     [*,*,1,2,2,2]
+22       B         *                              [*,*,2,2,2,2]
+23       A                  3                     [*,*,1,3,2,2]
+24       B         *                              [*,*,2,3,2,2]
+     ---Nod---
+        etc                                 3
+     ---Nod---
+36       A         *        1       1       4     [*,*,1,1,1,4]
+37       B                                        [*,*,2,1,1,4]
+39       A         *        2                     [*,*,1,2,1,4]
+40       B                                        [*,*,2,2,1,4]
+41       A         *        3                     [*,*,1,3,1,4]
+42       B                                        [*,*,2,3,1,4]
+     ---Nod---
+43       A                  1       2             [*,*,1,1,2,4]
+44       B         *                              [*,*,2,1,2,4]
+45       A                  2                     [*,*,1,2,2,4]
+46       B         *                              [*,*,2,2,2,4]
+47       A                  3                     [*,*,1,3,2,4]
+48       B         *                              [*,*,2,3,2,4]
+.fi
+
+
+The "IRAFimage" column gives the IRAF notation for accessing the specific
+frame, e.g. if the example given above is contained in a FITS file "image",
+the first frame would be accessed
+as "image[*,*,1,1,1,1]" and the last frame as "image[*,*,2,3,2,4]"
+
+The "Source" column indicates whether the source is in Chop Beam A or B. 
+This changes when the telescope nods. 
+For the first nod position the object is in beam A and the sky is in beam B.
+For the second nod position the object is in beam B and the sky is in beam A.
+Thus, for the first nod position the difference beam_A - beam_B
+will be a sky subtracted image. For the second nod position the difference
+beam_B - beam_A will be a sky subtracted image.
+
+The usual method of reducing the images is to difference the chop pairs
+(compute [beam_A - beam_B] or [beam_B - beam_A] for each saveset, 
+depending on the nod position), then average these differences to form 
+a final image.  The task OREDUCE does this.
+
+Sky flat fields are usually taken without chopping and nodding. For an
+image containing 8 savesets IMHEAD would report the dimensions 
+[128,128,1,8,1,1], since there is only one chop position, one nod position, and
+one nod set. The task OFLAT can be used to derive the flat fields. The task
+OREDUCE can be used to apply the flats after deriving the average of the chop
+and nod differences.
+
+.ih
+SHORT DESCRIPTIONS OF THE TASKS
+
+.ls OHEAD - Print header information for OSCIR files.
+
+.le
+.ls OVIEW - Quick view of OSCIR frames, i.e., "movie"
+
+OVIEW is intended to allow one to quickly view the raw OSCIR frames 
+within an OSCIR data file.  By default it will view the 'sig' frames, 
+which are the sum of all of the differenced savesets in a nodset, 
+that is, there is one 'sig' frame per nodset.  It is also possible to 
+view the raw 'src' or 'ref' frames or the 'dif' frames from each 
+saveset by setting the 'type' parameter.  When viewing sig frames, 
+you may set 'interactive=yes' and the task will start an imexam 
+session with each frame displayed. (In this mode, you must type 'q' 
+before the next frame will display.)
+
+.le
+.ls OBACKGROUND - Compute and plot statistics of reference frames.
+
+OBACKGROUND is used to analyze the background level in the reference 
+frames and identify bad savesets or nodsets.  This task will plot the
+mean background level in all reference frames and identify saveset and
+nodset values for any frames outside some sigma of the average mean
+level (default sigma=4).
+
+.le
+.ls OFLAT - Derive flat field for OSCIR
+
+OFLAT is used for deriving normalized flat fields for the OSCIR data. 
+The input images are sky flat fields and exposures through polystyrene.
+OFLAT assumes that the images were taken without chopping and nodding.
+The output image is the normalized flat field.
+.le
+.ls OREDUCE - Reduce images from OSCIR
+
+OREDUCE is used for deriving the average of the chop and nod differences.
+The input image is a raw OSCIR data file, the output image is a 2-dimensional
+image which is the average of the chop and nod differences.
+The output image may also be flat field corrected.
+Bad nodsets and savesets can be omitted from the reduction.
+
+.le
+.ih
+TYPICAL REDUCTIONS
+
+For typical reductions the user will need appropriate flat fields
+(if desired) and on-target science images. The on-target science 
+images will have two chop positions. 
+
+1. Use OFLAT to derive normalized flat fields.
+
+2. Use OVIEW to view the sig frames as a quick check for bad frames.
+Also use OVIEW to view 'src', 'ref' or 'dif' frames as needed.
+
+3. Use OBACKGROUND to analyze the background levels in the reference
+frames and identify any bad nodsets or savesets to be omitted.
+
+4. Use OREDUCE to derive the chop and nod differences and average
+these to get a 2-dimensional image. Input bad nodsets or savesets 
+which will be omitted from the co-added frame.  OREDUCE can also 
+apply the flat field.
+.ih
+WHAT TO DO NEXT
+
+The processed images may be co-added with the task GEMTOOLS.IMCOADD.
+
+Photometry may be derived with any suitable photometry package. 
+.ih
+BUGS AND LIMITATIONS
+
+The tasks in the OSCIR package are designed to operate on simple FITS
+images. The tasks will not work on multi-extension FITS files.
+The tasks should be used with \fIimtype\fR="fits". It cannot be 
+guaranteed that the tasks work as expected if \fIimtype\fR is set to
+any other image type.
+.ih
+SEE ALSO
+oscir tasks: ohead, oview, obackground, oflat, oreduce
+.endhelp

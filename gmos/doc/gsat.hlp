@@ -1,0 +1,186 @@
+.help gsat January2015 gemini.gmos
+.ih
+NAME
+
+gsat -- Return the saturation value for a given GMOS image extension.
+.ih
+USAGE
+
+gsat inimage extension
+.ih
+PARAMETERS
+.ls inimage
+Input image name. Only file extension can be supplied at a time.
+.le
+.ls extension
+Extension for which the saturation value is to be calculated and returned.
+.le
+.ls satdb = "gmos$data/gmosFWdepths.dat"
+Database file containing the full-well depths in electrons (1x1 binning) for
+each of the GMOS CCDs. Currently, only information for the e2vDD CCDs can be
+found in this files.
+.le
+.ls gaindb = "default"
+Database containing gain data. Default value is "gmos$data/gmosamps.dat"
+.le
+.ls bias = "static" (static|calc|<value>)
+Bias level to use when comparing the on board controller limit to the detector
+saturation limit if not already overscan corrected. If \fIbias\fR="static" the
+static bias value recorded in \fIgaindb\fR for the gain and read modes for this
+image is used. If \fIbias\fR="calc", the calculated statistic, defined by
+\fIpixstat\fR, of the overscan section is used instead.
+.le
+.ls pixstat = "midpt"
+Statistical value to be determine for the overscan section. Imstatistics is
+used to calculate the value.
+.le
+.ls statsec = "default"
+Region of the overscan section, (defined by the BIASSEC keyword) that is to be
+used to calculate the bias value is \fIbias\fR="calc". The region defined by
+\fIstatsec\fR is relative to the region defined by the BIASSEC keyword. The
+default value is the entire overscan region excluding the 4 and 5 columns
+adjacent to the data section, for the EEV and e2vDD CCDs, respectively.
+.le
+.ls gainval = "default"
+Gain value for requested extension. The default behavior is to use the GAIN,
+GAINORIG or the GAINMULT keyword values depending on the processed state of
+the image. If a raw image is supplied (i.e., not gprepare'd), the gain value is
+ taken from \fIgaindb\fR for the gain and read mode of that observation.
+.le
+.ls saturation = 0.
+Output parameter for this task.
+Returned saturation value for requested extension. Please read the description
+for detailed information on the calculation of this output parameter. This
+parameter should not be updated by the user.
+.le
+.ls scale = INDEF (min=0.95, max=1.)
+Scale the determined saturation value by the factor \fIscale\fR. This is
+helpful for Hamamatsu data as the recorded and / or calculated overscan value
+is a single value, whereas, the overscan value model fit is not of order 1 (a
+straight line).
+.le
+.ls logfile = ""
+Logfile for this task. Default behavior is to use the logfile defined by
+gmos.logfile, if one is not specified here.
+.le
+.ls verbose = no
+Verbose?
+.le
+.ls status = 0
+Output status of task. 0=GOOD, 1=ERROR. This is updated internally by the
+task. The user should not update this parameter value.
+.le
+.ih
+DESCRIPTION
+
+GSAT calculates and returns the saturation value for the desired extension of
+the supplied image.
+
+The current behavior for this task when a GMOS EEV CCD image is supplied is to
+return a value of 65,000 regardless of the units of the input image, or whether
+the image has been overscan subtracted or not. This is the default value set
+within tasks for previous versions of the GEMINI IRAF package.
+
+In the case of GMOS-N e2vDD and GMOS-S Hamamatsu data each amplifier has its
+own saturation limit. The description below describes how the saturation limit
+of the input GMOS-N e2vDD image is calculated.
+
+There are two saturation levels to consider for non-EEV CCD data. The first is
+the hard saturation determined by the on board controller. The other is
+the full well saturation of the individual amplifiers. The saturation value
+returned by this task is the lower of these two limits, after being converted
+into the same units and adjusted for overscan correction as needed.
+
+The hard saturation limit is determined by the on-board controller. This limit
+includes any bias levels present during the observation. This hard saturation
+is the digitization limit of the on-board software controller and is set at
+65535 [ADU] (2^16 - 1; zero based).
+
+The full well depth saturation is governed by the characteristics of the CCDs
+themselves. Each amplifier has its own full well depth. This information is
+listed below (in electrons). There is a further complication in that binning
+also affects the full well depth. At the simple level, it is assumed that the
+full well depth for the e2vDD CCDs scale linearly with binning. Thus, after
+converting the full-well depth into ADU and adjusting for any bias level, in
+the case of 2x2 or more binning the hard saturation level will be the lower
+saturation value. This means that only in the 1x1, 2x1 and 1x2 binning cases
+are the full well depth saturation limits are the saturation limits that take
+prescience.
+
+The true determination of the saturation level is to perform two calculations,
+compare the resulting values and return the lowest value.
+
+First the units of the input image are determined using the values of GAIN, or
+GAINMULT or GAINORIG if present. The hard saturation or the 1x1 full well depth
+are converted into the input units of the image as required. The next step is
+to adjust the full well saturation limit according to the binning of the image,
+i.e., multiply the 1x1 full well depth value by the product of the x and y
+binning. The third action is to determine if the input image has been overscan
+corrected or not. If so, the hard limit is reduced by this amount. If not,
+either a calculated overscan value or static bias value are used to adjust the
+full well depth limit. See the \fIbias\fR parameter description above for more
+information on how the bias is calculated if the image is not overscan
+corrected. The final step is to compare the values determined for the two
+saturation limits and return the smaller value.
+
+As an example, the 1x1 full well depths (in electrons) for the 6 GMOS-N e2vDD
+amplifiers are listed below. The amplifier name is given by the AMPNAME keyword
+in the header of the image data extensions. All full well depths can be found
+in \fIsatdb\fR.
+
+.nf
+      AMPNAME (e2vDD CCDs)          Full Well Depth [electrons]
+      -------------------           ---------------------------
+    "e2v 10031-23-05, left"                  110,900
+    "e2v 10031-23-05, right                  105,100
+    "e2v 10031-01-03, left"                  115,500
+    "e2v 10031-01-03, right                  108,900
+    "e2v 10031-18-04, left"                  115,700
+    "e2v 10031-18-04, right"                 109,200
+.fi
+
+.ih
+EXAMPLES
+
+.nf
+    cl> gsat infile.fits 5
+.fi
+
+This will return the saturation value for the 5th extension of infile.fits
+
+.nf
+    cl> gsat infile.fits "SCI,1"
+.fi
+
+This will return the saturation value for the [SCI,1] extension of infile.fits.
+
+.nf
+    cl> gsat infile.fits "[SCI,1]"
+.fi
+
+This will also return the saturation value for the [SCI,1] extension of
+infile.fits.
+
+.nf
+    cl> gsat rawfile.fits 2 bias="calc" statsec="[10:25,50:100]
+.fi
+
+This will first calculate the median of the region of the BIASSEC defined by
+statsec, for the second extension of rawfile.fits. Then return the updated
+saturation value. (NOT YET IMPLEMENTED)
+
+.ih
+LIMITATIONS
+
+The current behavior for this task is to only ever return a value of 65000 for
+GMOS EEV CCD data.
+
+This task returns the information for the 'science' read mode (low gain, slow
+read out). For Hamamatsu data the full well depths have been found to be
+different for the various read modes.
+.ih
+SEE ALSO
+
+imstatistics
+
+.endhelp

@@ -1,0 +1,241 @@
+# Copyright(c) 2004-2005 Association of Universities for Research in Astronomy, Inc.
+
+include <mefio.h>
+
+# mefiodata.gx
+#  (this file is a generic file (you may be reading this in an instance, eg. mefiodatai.x))
+#
+# These routines thinly wrap IMIO or TABLES calls, currently with
+#  single line thunks to the libraries in question.  The purpose
+#  of these routines however is to act as a mediation for access
+#  to data which is in the same routine.  So future work (TODO::)
+#  involves mediating file access contention (e.g. simultaneous
+#  get by next line and put by next line)... such access is not
+#  going to be simultaneous in a non-threaded system like IRAF
+#  and yet there are still possible issues since reads or writes
+#  to one extension may conflict with reads or writes to another
+#  extension if it is in the same MEF but not otherwise.
+#
+# This layer exists now in order to allow development against the
+#  final interface before contention management is implimented
+
+# non generic data access
+
+#
+pointer procedure imgnlb(ep, buffer, v)
+pointer ep,buffer
+long v[ARB]
+
+#
+# ... variables declaration ...
+#
+pointer imgnli()
+begin
+	return imgnli(EXT_EXTP(ep), buffer, v)
+end
+
+pointer procedure impnlb(ep, buffer, v)
+pointer ep,buffer
+long v[ARB]
+
+#
+# ... variables declaration ...
+#
+pointer impnli()
+begin
+	return impnli(EXT_EXTP(ep), buffer, v)
+end
+
+int procedure megftype(mextp, parmname)
+pointer mextp
+char parmname[ARB]
+# ---
+char extname[SZ_FNAME]
+pointer immap()
+int imgftype()
+begin
+    # note: I'd like to have a function for this lazy loading
+    if (ME_PHU(mextp)==0) {
+		call sprintf(extname, SZ_LINE, "%s[0]")
+		call pargstr(Memc[ME_PFILENAME(mextp)])
+        ME_PHU(mextp)= immap(extname, READ_ONLY, 0)
+	}		
+    return imgftype(ME_PHU(mextp), parmname)
+end
+
+
+# GENERIC FUNCTIONS, expanded in-file
+# For Most functions, cover these Types
+#
+$for (bsilrd)
+PIXEL procedure meget$t(mextp, parmname) 
+pointer mextp
+char parmname[ARB]
+#---
+char extname[SZ_FNAME]
+PIXEL imget$t()
+pointer immap()
+begin
+    # note: I'd like to have a function for this lazy loading
+	if (ME_PHU(mextp)==0) {
+		call sprintf(extname, SZ_LINE, "%s[0]")
+		call pargstr(Memc[ME_PFILENAME(mextp)])
+        ME_PHU(mextp)= immap(extname, READ_ONLY, 0)
+	}		
+    
+    return imget$t(ME_PHU(mextp),parmname)
+end
+$endfor
+
+$for (silrd)
+
+
+pointer procedure mignl$t(ep, buffer, v)
+pointer ep,buffer
+long v[ARB]
+
+#
+# ... variables declaration ...
+#
+pointer imgnl$t()
+bool ldebug
+begin
+	ldebug = false
+	 
+		if (ldebug)
+		{
+			call printf("at mignl$t()\n")
+			call flush(STDOUT)
+		}
+
+	
+	return imgnl$t(EXT_EXTP(ep), buffer, v)
+
+end
+
+pointer procedure mipnl$t(ep, buffer, v)
+pointer ep,buffer
+long v[ARB]
+
+#
+# ... variables declaration ...
+#
+pointer impnl$t()
+bool ldebug
+begin
+	ldebug = false
+	 
+		if (ldebug)
+		{
+			call printf("in mipnl$t()\n")
+			call flush(STDOUT)
+		}
+
+	
+	return impnl$t(EXT_EXTP(ep), buffer, v)
+
+end
+
+# migl1$t -- get line from a 1D image
+
+pointer procedure migl1$t(ep)
+pointer ep
+#
+# ... variables declaration ...
+#
+pointer imgl1$t()
+
+begin
+	
+	return imgl1$t(EXT_EXTP(ep))
+
+end
+
+
+# miplt$t -- put line into a 1D image
+
+pointer procedure mipl1$t(ep)
+pointer ep
+#
+# ... variables declaration ...
+#
+pointer impl1$t()
+
+begin
+	
+	return impl1$t(EXT_EXTP(ep))
+
+end
+
+# migl2$t -- get line from a 2D image
+
+pointer procedure migl2$t(ep, line)
+pointer ep
+int line
+#
+# ... variables declaration ...
+#
+pointer imgl2$t()
+
+begin
+	
+	return imgl2$t(EXT_EXTP(ep), line)
+
+end
+
+# mipl2$t -- put line into a 2D image
+
+pointer procedure mipl2$t(ep, line)
+pointer ep
+int line
+#
+# ... variables declaration ...
+#
+pointer impl2$t()
+
+begin
+	
+	return impl2$t(EXT_EXTP(ep), line)
+
+end
+
+# migl3$t -- get line from a 3D image
+
+pointer procedure migl3$t(ep, line, band)
+pointer ep
+int line, band
+#
+# ... variables declaration ...
+#
+pointer imgl3$t()
+
+begin
+	
+	return imgl3$t(EXT_EXTP(ep), line, band)
+
+end
+
+
+# mipl3$t -- put line into a 3D image
+
+pointer procedure mipl3$t(ep, line, band)
+pointer ep
+int line, band
+#
+# ... variables declaration ...
+#
+pointer impl3$t()
+
+begin
+
+	return impl3$t(EXT_EXTP(ep), line, band)
+
+end
+
+# NOTES:
+# TODO:: these are not all tested... a related TODO:: note exists in the 
+# gtest task t_testmefio.x code (that's where testing code should go)
+
+
+$endfor
+# this is the generic for for silrd

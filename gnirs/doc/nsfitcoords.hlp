@@ -1,0 +1,228 @@
+.help nsfitcoords December2011 gemini.gnirs
+.ih
+NAME
+nsfitcoords -- Compute 2D dispersion and distortion maps
+.ih
+USAGE
+nsfitcoords inimages
+.ih
+PARAMETERS
+.ls inimages
+List of input multiextension FITS (MEF) files containing science,
+variance, and data quality extensions. 
+The list may be given as  a  comma  separated  list,
+a @filelist, or using wildcards.
+.le
+.ls outspectra = ""
+List of output files.  The number of output files must match the
+number of input files or be null.
+.le
+.ls outprefix = "f"
+Prefix for  output files when no \fIoutspectra\fR list is specified. In
+this case the names of output files will be the names of the input files
+with the prefix attached.
+.le
+.ls lamptransf = ""
+List of arc lamp files used to determine the wavelength calibration with
+NSWAVELENGTH.  The number of lamp files must either match the number
+of input files or it should be one.  The lamp files and their matching
+entries in the directory \fIdatabase\fR must exist.
+.le
+.ls sdisttransf = ""
+List of files used to determine the S-distortion using NSSDIST.  The number
+of S-distortion images must either match the number of input files or it
+should be one.  The S-distortion files and their matching entries in the
+directory \fIdatabase\fR must exist.
+.le
+.ls dispaxis = 1
+Dispersion axis, if not defined in the headers.
+.le
+.ls database = ""
+Directory for calibration files (traced feature input data and fitting
+output).  If unspecified, \fInifs.database\fR will be used.
+.le
+.ls fl_inter = no
+Examine  fits  of  coordinate   functions   interactively.    If
+fl_inter  =  no  then fl_dbwrite is set to "YES" and all queries
+and plotting are disabled.
+.le
+.ls fl_align = no
+Include alignment for telescope nodding in the sdist correction?  If a list
+of input images is specified, fl_align+ essentially performs the task of
+NSCOMBINE to shift all images to be aligned with the first image in the list
+(but does not combine them).
+.le
+
+The following parameters are passed to FITCOORDS:
+.ls function = "chebyshev" (legendre|chebyshev|spline1|spline3)
+Coordinate fitting function.
+.le
+.ls lxorder = 2
+X order of arc lamp fitting function
+.le
+.ls lyorder = 2
+Y order of arc lamp fitting function
+.le
+.ls sxorder = 2
+X order of S-distortion fitting function
+.le
+.ls syorder = 2
+Y order of S-distortion fitting function
+.le
+.ls pixscale = 1.
+Pixel scale (arcsec) is \fIkey_pixscale\fR not present (see below).
+.le
+.ls logfile = ""
+Name of logfile for processing information. If null the package logfile
+is used.
+.le
+.ls verbose = yes
+Print actions to screen?
+.le
+.ls debug = no
+Print detailed actions to the screen.
+.le
+.ls force = no
+The GEMOFFSETLIST task may not work on versions of IRAF before 2.12.2a.
+Setting this flag ignores a test for those versions when that task is
+called.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error.
+This parameter is always set by the task, and should not be modified
+by the user.
+.le
+
+.ce
+Parameters from NSHEADERS
+
+The following values are read from gnirs.nsheaders
+.ls key_dispaxis
+Header keyword for dispersion axis.
+.le
+.ls sci_ext
+Name of science extension.
+.le
+.ls var_ext
+Name of variance extension.
+.le
+.ls dq_ext
+Name of data quality extension.
+.le
+.ls key_xoff
+Header keyword for storing gemoffsetlist x offset (in arcsec)
+.le
+.ls key_yoff
+Header keyword for storing gemoffsetlist y offset (in arcsec)
+.le
+.ls key_pixscale
+Header keyword for pixel scale
+.le
+.ls key_mode
+Header keyword for reduction mode (value will be LS, IFU, or XD)
+.le
+
+.ih
+DESCRIPTION
+NSFITCOORDS adds distortion and dispersion mapping information and
+a 3D world coordinate system to the output headers of each science
+extension in the input files.  This information is a prerequisite for
+the tasks NSTRANSFORM and NIFCUBE which resample the data to distortion
+rectified, wavelength linearized, and WCS calibrated 2D and 3D formats.
+The mapping information includes dispersion and distortion maps stored
+in files, information for mapping the IFU image slices to a data cube
+in WCS keywords, and size and scale information in the header for the
+resampled formats.
+
+The dispersion and distortion maps are determined by fitting
+identifications and traces from arc lamp and S-distortion calibration
+exposures produced by NSWAVELENGTH and NSSDIST as a function of x and y.
+This task will skip files or abort if some or all of the input files
+have not been processed with these tasks.  The task FITCOORDS is used to
+fit the data, either interactively or non-interactively as specified by
+\fIfl_inter\fR, to determine the maps.  See the help for FITCOORDS for
+more details on the fitting process and the database files.
+.sp
+If either \fIlamptransf\fR="" or \fIsdisttransf\fR="", NSTRANSFORM
+applies only the supplied calibration.
+Both the spectra and the feature files must exist for \fIlamptransf\fR
+and \fIsdisttransf\fR. The feature files are named:
+.sp
+.nf
+    database/idlamptransf_SCI_version_
+    database/idsdisttransf_SCI_version_
+.fi
+.sp
+(assuming that SCI is the value of nsheaders.sci_ext).
+.sp
+Using the \fIfl_align\fR flag allows NSCOMBINE to be omitted, by shifting
+all the images to be aligned with the first image in the list.  This
+option is provided so that the data are resampled only once.  The output
+is still one image per input image; to combine the aligned files, use
+GEMCOMBINE or NSSTACK.
+.sp
+The alignment for telescope offset is included only if the spatial
+feature files are used.
+.sp
+In addition, for IFU data (identified by \fInsheaders.key_mode\fR), all
+output images are aligned so that they:
+.sp
+.nf
+1) Share the same wavelength scale.
+2) Are spatially aligned on the same grid, relative to the MDF.
+.fi
+.sp
+IFU data should be transformed specifying both \fIlamptransf\fR and
+\fIsdisttransf\fR, since NFCUBE assumes that the image slices are all
+on the same co-ordinate grid before stacking them in the second spatial
+dimension. If one of these reference images is omitted, any datacube
+generated from the output by NFCUBE may contain discontinuities in
+wavelength or spatially along the image slices, due to differences in
+distortion between the spectra from different slices.
+.sp
+The feature files for \fIlamptransf\fR and \fIsdisttransf\fR are matched
+to the input spectra. Thus, the number of lamp spectra must either be
+one or the same as the number of input spectra. In the first case the
+same wavelength calibration will be applied to all the input spectra.
+The same rule applies to the S-distortion spectra.
+.sp
+NSFITCOORDS may use one or both types of calibrations.  The fitted
+maps are recorded in the specified database directory and the name of
+the database is written to the output science extension headers under the
+keyword FCDB.  The database fit names, which correspond to files in the
+database, are written to the output science extension headers under the
+keywords FCFIT1 for the dispersion map and FCFIT2 for the S-distortion map.
+
+The maps across all the extensions (slices) define the maximum limits
+of the exposure for the data in the dispersion and slice dimensions.
+These limits are recorded in the output primary header under the keywords
+FCX1, FCX2, FCY1, and FCY2 for later use in defining the size and coverage
+of the final 2D and 3D formats.
+
+A 3D WCS is also added to each output extension for use by NIFCUBE.
+This uses information from the headers and the MDF file for the instrument.
+Note that a 3D WCS for the 2D slices is a accepted method
+by which a coordinate for the position of the slice is associated to
+the pixels.  Additional information about how this 3D WCS is defined
+is found for the task NFWCS which is called by this task.
+
+.ih
+EXAMPLES
+1. Set the fitting and WCS information using the 
+wavelength calibration from the file "argon", and the S-distortion
+calibration from the file "sdist".
+
+.nf
+   ge> nsfitcoords rs1nN20020303S0100 lamptransf=argon \
+   >>> sdisttransf=sdist
+.fi
+
+2. Do only the dispersion calibration without an S-distortion calibration.
+
+.nf
+   ge> nsfitcoords s1nN20020303S0100 lamptransf=argon
+.fi
+.ih
+SEE ALSO
+fitcoords, nstransform, nifcube, nfwcs, nswavelength, nssdist.
+.endhelp

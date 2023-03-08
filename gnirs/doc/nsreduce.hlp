@@ -1,0 +1,526 @@
+.help nsreduce December2012 gemini.gnirs
+.ih
+NAME
+nsreduce -- Sky-subtract and flatten spectroscopic data
+.ih
+USAGE
+nsreduce inimages
+.ih
+PARAMETERS
+
+.ce
+Input / Output Parameters
+.ls inimages
+Spectroscopic images to reduce. Can be a list of images.  The images must be
+multi-extension FITS images.  If there are no existing variance or
+data quality extensions, the reduced image will not have them either.  
+All input files must have been run through the appropriate prepare task 
+beforehand (NSPREPARE for GNIRS data).
+.le
+.ls outimages = ""
+Output multi-extension FITS images. Can be a list of images. \fIoutimages\fR 
+has preference over \fIoutprefix\fR.
+.le
+.ls outprefix = "r"
+Prefix for output images. Names of output images are the names of the input 
+images with a prefix attached.  
+\fIoutprefix\fR is used if \fIoutimages\fR="".
+.le
+
+.ce
+NSCUT Parameters
+.sp
+.ls fl_cut = yes
+Cut images using NSCUT or, for FLAMINGOS-2 data only, F2CUT.
+.le
+.ls section = ""
+Defines the section to be cut.  If undefined, the input image must contain
+an appropriate MDF extension.  Otherwise, this should specify the section
+directly (e.g., [*,*]) or give a suitable header key name (e.g., SPECSEC).
+.le
+.ls fl_corner = yes
+Blank the "corners" of the science extensions for cross-dispersed data?  This
+sets the data outside the slit for the order in question to zero, removing
+overlapping orders.
+.sp
+The data will only be modified if the MDF associated with the image has 
+a non-zero value in the "corner" column.  This value defines the maximum
+number of pixels masked top left/bottom right.
+.le
+.ls fl_process_cut = yes
+Should the data being processed have been cut?  The task checks to
+ensure that the input data are consistent with this parameter.  If
+\fIfl_cut\fR is also selected then this parameter indicates whether 
+the cutting is performed before or after processing.
+.le
+.ls gradimage = ""
+The FLAMINGOS-2 MOS image to be used to identify slit edges. A single image
+should be supplied. \fIgradimage\fR is normally a flat image taken using the
+same configuration (including the same MOS mask) as the input images
+\fIinimages\fR. The flat image should be dark subtracted but not normalized.
+Either \fIgradimage\fR or \fIrefimage\fR should be defined, but not both. For
+FLAMINGOS-2 MOS data only.
+.le
+.ls outslitim = "slits.fits"
+An output image containing peaks at the position of the slit edges that were
+found in \fIgradimage\fR. This output slit image can be used as input to the
+task NSSDIST to determine the spatial distortion (s-distortion) solution. For
+FLAMINGOS-2 MOS data only.
+.le
+.ls edgediff = 2.0
+The allowed difference in pixels between the offset between the left slit edge
+found using the gradient image \fIgradimage\fR and the left slit edge as
+determined from the MDF and the offset between the right slit edge found using
+the gradient image \fIgradimage\fR and the right slit edge determined from the
+MDF. If this difference is larger than the number of pixels given by the
+\fIedgediff\fR parameter, a warning is issued. Theoretically, the difference
+between the offsets should be zero, meaning that the edges found using the
+gradient image \fIgradimage\fR belong to the same particular slit in the
+MDF. In practice, the difference between the offsets is less than 0.1 pixels.
+Troublesome slits will have a difference greater than this. For FLAMINGOS-2 MOS
+data only.
+.le
+.ls refimage = ""
+The FLAMINGOS-2 MOS reference image containing an MDF that has columns
+describing the location of the slits. A single image should be supplied. The
+reference image \fIrefimage\fR is an image taken using the same configuration
+(including the same MOS mask) as the input images \fIinimages\fR that has
+already been processed by F2CUT. If \fIrefimage\fR contains DQ extensions, the
+areas contaminated by overlap as described by the pixels in the DQ extension of
+the reference image \fIrefimage\fR are flagged in the output data quality
+extensions and used to set the corresponding pixels in the output science
+extensions to zero. Either \fIgradimage\fR or \fIrefimage\fR should be defined,
+but not both. For FLAMINGOS-2 MOS data only.
+.le
+.ls database = ""
+The name of the directory that will contain the database files for the finding
+and tracing of the slits in \fIgradimage\fR. If unspecified, \fIf2.database\fR
+will be used. For FLAMINGOS-2 MOS data only.
+.le
+
+.ce
+NSAPPWAVE Parameters
+.sp
+.ls fl_nsappwave = yes
+Should NSAPPWAVE be called? NSAPPWAVE is only run on data that have been
+previously cut or that will be cut by NSREDUCE.
+.le
+.ls nsappwavedb = "gnirs$data/nsappwave.fits"
+The calibration table for NSAPPWAVE.
+.le
+.ls crval = INDEF
+Central wavelength for NSAPPWAVE. This value overrides any value found in
+\fInsappwavedb\fR.
+.le
+.ls cdelt = INDEF
+Wavelength per pixel for NSAPPWAVE. This value overrides any value found in 
+\fInsappwavedb\fR.
+.le
+
+.ce
+Dark Parameters
+.sp
+.ls fl_dark = no
+Perform dark subtraction using \fIdarkimage\fR?
+.le
+.ls darkimage = ""
+Dark current image to subtract.
+.le
+.ls fl_save_dark = no
+Save processed dark files?
+.le
+
+.ce
+Sky Parameters
+.sp
+.ls fl_sky = yes
+Perform sky subtraction using \fIskyimages\fR?
+.le
+.ls skyimages = ""
+Sky image(s) to subtract.  If the parameter \fIskyrange\fR is defined, then
+it is used to select suitable sky images for each input file from this 
+list.  Otherwise, either a single sky image must be given (used for all 
+input images), or a list with the same number of entries as in 
+\fIinimages\fR must be given (successive sky images are paired with 
+successive input images).
+.sp
+If \fIskyimages\fR is not specified then sky frames will be selected from 
+the input images themselves using \fIskyrange\fR and \fInodsize\fR.
+.le
+.ls skysection = ""
+Level (in the form of a float), sample area (in the form [x1:x2,y1:y2]), or
+header keyword that defines the scale factor to apply to the sky frame prior to
+subtraction from \fIinimages\fR (interpretation of the value is made in that
+order, until a suitable value is found). When supplying a header keyword, the
+keyword should be present in the header of all science extensions of each input
+supplied to \fIinimages\fR and the value should specify a sample area in that
+science extension (in the form [x1:x2,y1:y2]) that should be used to determine
+the scale factor to apply to the sky frame.  The process for calculating the
+scaling for the sky subtraction is described below.
+.le
+.ls combtype = "median" (average|median)
+Type of combining operation performed on the input \fIlampson\fR, 
+\fIlampsoff\fR, and \fIdark\fR images.  Combining is disabled if
+only a single input image is specified.
+.le
+.ls rejtype = "avsigclip" (none|minmax|ccdclip|crreject|sigclip|avsigclip|pclip)
+Type of rejection operation performed when combining the input images.
+The algorithms are described in the help for 
+IMCOMBINE. The rejection choices are:
+.nf
+      none - No rejection
+    minmax - Reject the nlow and nhigh pixels
+   ccdclip - Reject pixels using CCD noise parameters
+  crreject - Reject only positive pixels using CCD noise parameters
+   sigclip - Reject pixels using a sigma clipping algorithm
+ avsigclip - Reject pixels using an averaged sigma clipping algorithm
+     pclip - Reject pixels using sigma based on percentiles
+.fi
+.le
+.ls masktype = "goodvalue"  (none|goodvalue)
+Type of pixel masking to use.  See GEMCOMBINE.
+.le
+.ls maskvalue = 0.
+Mask value used with the \fImasktype\fR parameter.  See GEMCOMBINE.
+.le
+.ls scale = "none" (none|mode|median|mean|exposure|@<file>|!<keyword>)
+Multiplicative image scaling to be applied when combining the input sky images.
+The choices are none, multiply by the reciprocal of the mode, median, or mean
+of the specified statistics section, multiply by the reciprocal of the exposure
+time in the image header, multiply by the values in a specified file, or
+multiply by a specified image header keyword. When specified in a file the
+scales must be one per line in the order of the input images. This scale factor
+only controls the relative weighting of the input sky frames when creating the
+combined master sky image and does not adjust the sky level relative to the
+input science images. See GEMCOMBINE.
+.le
+.ls zero = "median" (none|mode|median|mean|@<file>|!<keyword>)
+Additive zero level image shifts to be applied when combining the
+input images. The choices are none, add
+the negative of the mode, median, or mean of the specified statistics
+section, add the values given in a file, or add the values given by an
+image header keyword. When specified in a file the zero values must be one
+per line in the order of the input images. File or keyword zero offset
+values do not allow a correction to the weights.
+.le
+.ls weight = "none" (none|mode|median|mean|exposure|@<file>|!<keyword>)
+Weights to be applied during the final averaging. The choices are none,
+the mode, median, or mean of the specified statistics section, the exposure
+time, values given in a file, or values given by an image header keyword.
+When specified in a file the weights must be one per line in the order of
+the input images and the only adjustment made by the task is for the number of
+images previously combined. In this case the weights should be those
+appropriate for the scaled images which would normally be the inverse
+of the variance in the scaled image.
+.le
+.ls statsec = "[*,*]"
+Section of the images to use for statistics when combining sky images.
+.le
+.ls lthreshold = INDEF, hthreshold = INDEF
+Low and high thresholds to be applied to the input pixels. This is done
+before any scaling, rejection, and combining. If INDEF, the thresholds
+are not used.
+.le
+.ls nlow = 1,  nhigh = 1 (minmax)
+The number of low and high pixels to be rejected by the "minmax" algorithm.
+These numbers are converted to fractions of the total number of input images
+so that if no rejections have taken place the specified number of pixels
+are rejected while if pixels have been rejected by masking, thresholding,
+or nonoverlap, then the fraction of the remaining pixels, truncated
+to an integer, is used.
+.le
+.ls nkeep = 0
+The minimum number of pixels to retain or the maximum number to reject
+when using the clipping algorithms (ccdclip, crreject, sigclip,
+avsigclip, or pclip). When given as a positive value this is the minimum
+number to keep. When given as a negative value the absolute value is
+the maximum number to reject. The latter is in addition to pixels
+missing due to non-overlapping offsets, bad pixel masks, or thresholds.
+.le
+.ls mclip = yes (ccdclip, crreject, sigclip, avsigclip)
+Use the median as the estimate for the true intensity rather than the
+average with high and low values excluded in the "ccdclip", "crreject",
+"sigclip", and "avsigclip" algorithms? The median is a better estimator
+in the presence of data which one wants to reject than the average.
+However, computing the median is slower than the average.
+.le
+.ls lsigma = 3., hsigma = 3. (ccdclip, crreject, sigclip, avsigclip, pclip)
+Low and high sigma clipping factors for the "ccdclip", "crreject", "sigclip",
+"avsigclip", and "pclip" algorithms. They multiply a "sigma" factor
+produced by the algorithm to select a point below and above the average or
+median value for rejecting pixels.  See help pages for IMCOMBINE for details.
+.le
+.ls snoise = "0.0" (ccdclip, crreject)
+Sensitivity noise as a fraction.  See help pages for IMCOMBINE for details.
+.le
+.ls sigscale = 0.1 (ccdclip, crreject, sigclip, avsigclip)
+This parameter determines when poisson corrections are made to the
+computation of a sigma for images with different scale factors.
+See help pages for IMCOMBINE for details.
+.le
+.ls pclip = -0.5 (pclip)
+Percentile clipping algorithm parameter.  See help pages for IMCOMBINE 
+for details.
+.le
+.ls grow = 0.0
+Radius in pixels from a rejected pixel for additional pixels to be rejected 
+in an image. This applies only to
+pixels rejected by one of the rejection algorithms and not the masked or
+threshold rejected pixels.  See help pages for IMCOMBINE for details.
+.le
+.ls skyrange = INDEF
+If this is defined then it is used to select sky images from either 
+\fIinimages\fR or, if provided, \fIskyimages\fR.  For each observation,
+a sky frame is only selected if it was observed within \fIskyrange\fR seconds
+of the object.  Note that \fInodsize\fR is also used if the sky frame is
+selected from \fIinimages\fR (to avoid using frames in which the object
+is at the same position on the slit).
+.sp
+If \fIskyrange\fR is not defined (the default), then the behaviour depends
+on the source of the sky frames.  If separate sky frames are provided via
+\fIskyimages\fR then they are used in turn for the observations (i.e., "paired
+off" with \fIinimages\fR) unless only a single sky frame is provided, in
+which case it is used for all observations.  This allows external logic
+to specify the sky/object relationship directly.
+.sp
+If \fIskyrange\fR is not defined and no sky frames are provided via 
+\fIskyimages\fR then the NSSKY task will attempt to find a suitable value for
+\fIskyrange\fR that includes only nearest neighbour exposures from
+\fIinimages\fR.  If this is impossible (when the times at which exposures 
+are made vary sufficiently for a single value of \fIskyrange\fR to
+be inappropriate for all observations) then the task will fail.
+.le
+.ls nodsize = 3.
+If \fIskyimages\fR = "", NSREDUCE will select input files separated
+by more than 0.5x\fInodsize\fR arcseconds and within \fIskyrange\fR seconds
+to combine to form the sky image.
+.le
+
+.ce
+Flat Parameters
+.sp
+.ls fl_flat = yes
+Perform flat field correction (division) using \fIflatimage\fR?
+.le
+.ls flatimage = ""
+Normalized flat field image.
+.le
+.ls flatmin = 0.0
+Lower limit to flat.  Used to avoid overflows.
+.le
+
+.ce
+Output options
+.sp
+.ls fl_vardq = yes
+Create the variance and data quality images?
+.le
+
+.ce
+Standard Parameters
+.sp
+.ls logfile = ""
+Name of logfile.
+.le
+.ls verbose = yes
+Print actions to the screen.
+.le
+.ls debug = no
+Print detailed actions to the screen.
+.le
+.ls force = no
+The GEMOFFSETLIST task may not work on versions of IRAF before 2.12.2a.
+Setting this flag ignores a test for those versions when that task is
+called.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error.
+This parameter is always set by the task, and should not be modified
+by the user.
+.le
+
+
+.ce
+Parameters from NSHEADERS
+.sp
+The following values are read from gnirs.nsheaders
+.ls sci_ext
+Name of science extension.
+.le
+.ls var_ext
+Name of variance extension.
+.le
+.ls dq_ext
+Name of data quality extension.
+.le
+.ls key_camera
+Header keyword for camera.
+.le
+.ls key_grating
+Header keyword for grating.
+.le
+.ls key_filter
+Header keyword for filter.
+.le
+.ls key_decker
+Header keyword for decker.
+.le
+.ls key_fpmask
+Header keyword for focal plane mask (slit).
+.le
+.ls key_order
+Header keyword for storing spectral order.
+.le
+.ls key_dispaxis
+Header keyword for dispersion axis.
+.le
+.ls key_wave
+Header keyword for central grating wavelength.
+.le
+.ls key_waveorder
+Header keyword for grating wavelength order.
+.le
+.ls key_sat
+Header keyword for saturation (ADU).
+.le
+.ls key_nonlinear
+Header keyword for non-linear regime (ADU).
+.le
+.ls key_ron
+Header keyword for read noise (e-).
+.le
+.ls key_gain
+Header keyword for gain (e-/ADU).
+.le
+.ls key_date
+Header keyword for date of observation.
+.le
+.ls key_time
+Header keyword for time of observation.
+.le
+.ls key_instrument
+Header keyword for instrument name.
+.le
+.ih
+DESCRIPTION
+The task NSREDUCE sky-subtracts and flattens NIR spectroscopic data.
+All input images must have been prepared (e.g., using NSPREPARE for GNIRS
+data).  The input images \fIinimages\fR are sky or dark-subtracted and
+flattened, as specified with the various flags.
+.sp
+The parameter \fIskyimages\fR can be a single file, which is subtracted
+from all the input images.  If more than one file is specified,
+NSREDUCE combines them into a sky frame before subtracting.  The
+combining operation makes use of the combination and rejection
+parameters (see the IMCOMBINE help file for a complete description of
+how they work).
+.sp
+If \fIskyimages\fR="default", NSREDUCE will attempt to create sky
+frames for each input file.  It does so by finding all the images in
+the input list that are more than 0.5x\fInodsize\fR arcseconds away from
+a given input spectrum and taken within \fIskyrange\fR seconds.
+These images are combined using the combination and rejection parameters
+and subtracted from the input image.  For each subsequent input image,
+a new sky image is created (with the suffix "_sky").  NSREDUCE checks
+that the sky frame to be generated would be unique before combining.
+If generating a new sky frame would overwrite an existing file, the
+existing file is subtracted instead.
+.sp
+.ce
+Cutting the Image (via NSCUT or F2CUT)
+.sp
+NSREDUCE will call NSCUT or, for FLAMINGOS-2 data only, F2CUT if \fIfl_cut\fR
+is selected, either before or after other processing, depending on the value of
+\fIfl_process_cut\fR.  The sequence to be used will depend upon the
+reduction strategy (mainly whether the flat field is generated for the
+whole image, or for each cut image).  If some processing steps are
+required before cutting and some after, then the task should be called
+twice, changing the cut related flags appropriately.
+.sp
+.ce
+Sky Scaling
+.sp
+Sky subtraction may also include scaling to match the sky to the
+correct level.  If sky scaling is not selected, then either sky or
+dark frames may be used to subtract the dark current from the data.
+The offset level is calculated by subtracting the sky and dark current
+from the data.
+.sp
+It is possible (although a warning will be given) for both sky and
+dark to be subtracted together.  In such a case the sky data are
+presumably already dark subtracted.  The warning can be suppressed by
+giving a fixed sky scaling of 1.0 (see below).
+.sp
+When sky scaling is selected, the sky is assumed to already be dark
+subtracted (otherwise, the scaling would also apply to the dark
+current structure, which is probably not what is required).  The sky
+scaling is chosen to match the sky image against the data after the
+dark has been subtracted.
+.sp
+Note that the above description is conceptual - in practice the
+calculations are made by measuring the levels in the various images
+using the specified section (\fIstatsec\fR) with outlier rejection.
+This section should be used to select areas of the data with sky
+emission, so that scaling is not biased by residual zero level
+values.
+.sp
+.ce
+Variance and Data Quality Handling
+.sp
+The calculations within NSREDUCE (i.e., correcting for the flatfield,
+subtracting darks, subtracting a zero point correction) should all
+propagate errors and data quality correctly (variance is propagated
+assuming a gaussian distribution and the usual linear approximations).
+.sp
+Any combination of images, via GEMCOMBINE, generates error estimates
+based on the variations within the data being combined.  Variance is
+not propagated through image combination, but generated from the raw
+data.  Data quality affects the combined data, but is also regenerated
+(since bad pixels are excluded during combination; if some good data
+remain at a particular pixel then the combined image will contain 
+data at that point and no flag will be set in the data quality array).
+.sp
+.ce
+Sky Subtraction
+.sp
+See GNIRSINFO for a detailed discussion of how to select sky
+data.
+.ih
+EXAMPLES
+1. Sky-subtract and flatten 2 images at nod position A and 2 images at 
+nod position B, using the median-combined images at A to sky-subtract
+the images at B, and vice-versa:
+.sp
+.nf
+   gn> nsreduce file1,file2,file3,file4 fl_flat+ flat=specflat \
+   >>> nodsize=5.
+.fi
+.sp
+2. Combine two particular files and use them to sky-subtract two others:
+.sp
+.nf
+   gn> nsreduce file1,file3 skyimages=file2,file4 fl_flat+ flat=specflat
+.fi
+.sp
+3. Subtract a previously-constructed sky image from a list of images:
+.sp
+.nf
+   gn> nsreduce @filelist skyimages=specsky fl_flat-
+.fi
+.sp
+4. Flatfield and sky subtract, letting nsreduce determine the appropriate 
+sky image for each image from the input list, with separation > 1.5 
+arcseconds (default mode); turn off approximate wavelength calibration:
+.sp
+.nf
+   gn> nsreduce @filelist flatimage=myflat fl_nsappwave-
+.fi
+.ih
+TIME REQUIREMENTS
+.ih
+BUGS AND LIMITATIONS
+.ih
+SEE ALSO
+nsprepare, nscut, f2cut, nsappwave, imcombine, nsflat, gemcombine,
+gemoffsetlist, gnirsinfo
+.endhelp

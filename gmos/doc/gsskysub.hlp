@@ -1,0 +1,218 @@
+.help gsskysub January2015 gemini.gmos
+.ih
+NAME
+gsskysub -- Sky subtract GMOS spectra (longslit or MOS)
+.ih
+USAGE   
+gsskysub input fl_answer
+.ih
+PARAMETERS
+.ls input
+Input GMOS images to sky subtract. List and wildcards are supported.
+It is assumed that the input images have been processed with
+GSREDUCE, GSCUT and GSTRANSFORM. 
+The input images must be either longslit spectra or MOS data.
+Directory names should not be included as part of the image names.
+.le
+.ls output = ""
+List of output GMOS sky subtracted images. The number of output 
+images must match the number of input images. 
+.le
+.ls outpref = "s"
+Prefix for output images. Names of output images will be the names of 
+the input images with the prefix attached. The parameter \fIoutpref\fR
+is used if \fIoutput\fR="".
+.le
+.ls sci_ext = "SCI"
+Name of the MEF extension containing the science data.
+.le
+.ls var_ext = "VAR"
+Name of the MEF extension containing the variance frame.
+.le
+.ls dq_ext = "DQ"
+Name of the MEF extension containing the data quality array.
+.le
+.ls fl_vardq = no
+Propagate the variance and data quality planes to the output images.
+.le
+.ls fl_oversize = yes
+Were the slit lengths scaled by 1.05x in gscut, to accommodate distortions?
+This parameter is used when determining sky sample regions and should match
+the value used for \fIgscut.fl_oversize\fR or else the regions will be
+calculated incorrectly. The historical default of "yes" is currently
+retained for backwards compatibility but oversizing the slits is no longer
+normally necessary when using a gradient image in gscut. This parameter
+will be removed again once the calculation can be revised to match the
+GSCUT parameter automatically.
+.ls long_sample = "*"
+Sample to be used in the background fits for longslit spectra. The 
+default "*" selects all rows. To use rows r1 to r2 and r3 to r4, specify
+\fIlong_sample\fR as "r1:r2,r3:r4".
+.le
+.ls mos_sample = "0.9"
+Maximum fraction of the MOS slit length used as the sky sample.
+.le
+.ls mosobjsize = 1.
+Object size for MOS data. An aperture of this size centered on each object
+is excluded from the sky sample.
+.le
+.ls naverage = 1
+Number of sample points to combined to create a fitting point.
+A positive value specifies an average and a negative value
+specifies a median. The parameter is used by FIT1D.
+.le
+.ls function = "chebyshev" (spline3|legendre|chebyshev|spline1)
+Function to be fit to the sky sample. The parameter is used by FIT1D.
+.le
+.ls order = 1
+The order of the polynomials or the number of spline pieces. 
+The parameter is used by FIT1D.
+.le
+.ls low_reject = 2.5, high_reject = 2.5
+Low and high rejection limits in units of the residual sigma. 
+The parameter is used by FIT1D.
+.le
+.ls niterate = 2
+Number of rejection iterations. The parameter is used by FIT1D.
+.le
+.ls grow = 0.
+When a pixel is rejected, pixels within this distance of the rejected pixel 
+are also rejected. The parameter is used by FIT1D.
+.le
+.ls fl_inter = no
+Fit interactively. If \fIfl_inter\fR=yes, a plot of the fit is drawn 
+and the cursor is available for interactively examining and adjusting the fit.
+.le
+.ls fl_answer
+Continue with interactive fitting. This parameter allows one to exit
+interactive mode (by setting \fIfl_answer\fR to "no") after examining
+only a few of the apertures. This parameter is used only if
+\fIfl_inter\fR=yes and it should in general not be specified on
+the command line. If \fIfl_answer\fR=no on the command line and
+\fIfl_inter\fR=yes, then only the first aperture will be fit interactively. 
+If \fIfl_answer\fR=yes on the command line and \fIfl_inter\fR=yes, then 
+every aperture will be fit interactively with no opportunity to revert to
+non-interactive mode.
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes the task use the logfile
+defined by gmos.logfile.
+.le
+.ls verbose = yes
+Print actions to the screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error. 
+This parameter is always set by the task, and should not be modified by 
+the user.
+.le
+
+.ih 
+DESCRIPTION 
+
+GSSKYSUB is used to subtract sky from GMOS spectra of type longslit and MOS.
+The images are assume the have been processed with GSREDUCE, and for MOS
+data also been cut with GSCUT. GSREDUCE calls GSCUT as default.
+The images are normally also processed with GSTRANSFORM before being
+skysubtracted. If the images have not been processed with GSTRANSFORM,
+GSSKYSUB will warn the user, but will still proceed with the skysubtraction.
+
+For longslit data, the sky sample is defined by \fIlong_sample\fR.
+For MOS data, the sky sample for each slitlet is derived using the parameters
+\fImos_sample\fR and \fImosobjsize\fR together with the information in
+the MDF as follows.
+
+.ls 
+The slit length is determined as the total cut out slit length. See GSCUT for 
+details.
+.le
+.ls 
+The central fraction \fImos_sample\fR of this slit length derived.
+For the default setting of the parameter, the central 90% of the slit
+will be used. This defines the lower and upper limits of the sky sample.
+.le
+.ls 
+The position of the object in the slit is derived using the information
+in the MDF.
+.le
+.ls 
+An aperture of size \fImosobjsize\fR (in arcsec) is excluded from the sky
+sample. The tasks takes into account the on-chip binning and rounds the 
+aperture size to the nearest integer pixel.
+.le
+.ls
+The resulting sky sample is usually of the form "r1:r2,r3:r4", where 
+r1:r2 defines the rows on one side of the object aperture and r3:r4
+defines the rows on the other side of the object aperture. 
+If the object is too close to one of the slit ends to allow the sky
+sample to contain rows on both sides of the object aperture, the sky sample
+will contain the first and the last row of the slit fraction defined by 
+\fImos_sample\fR, plus the sky sample allowed on the one side of the object 
+aperture which is not close to one of the slit ends.
+If the object size \fImosobjsize\fR is larger
+than the slit length, the first and the last row of the slit fraction 
+defined by \fImos_sample\fR will be used as the sky sample. Only if
+\fImos_sample\fR=1.0 will this be the first and the last row of the
+cut out slit.
+.le
+
+If a MOS observation contains objects that require very different aperture
+sizes, it is recommended to run GSSKYSUB several times with different 
+aperture sizes and afterwards extract the relevant extensions of the 
+output images.
+
+For each input spectra a function is fit to the rows specified by 
+the resulting sky sample. The fit is performed column by column using FIT1D.
+The fit is then subtracted from the column.
+
+The output images are MEF files with the 2D spectra located in separate 
+science extensions. If \fIfl_vardq\fR=yes, then variance and data quality 
+planes are propagated to the output images.
+
+When \fIfl_inter\fR=yes, the fitting with FIT1D will be interactive.
+
+If \fIfl_vardq\fR=yes, the task GFIT1D is used to recover the rms of the fit.
+This is used for the propagation of the variance plane.
+When the task is running interactively, the sample region for the fit in 
+GFIT1D must be same as the sample used in FIT1D.
+
+.ih
+EXAMPLES
+
+1. Subtract sky for a image of type LONGSLIT using a background sample
+\fIlong_sample\fR=300:600,1800:2100. Do the fitting interactively,
+
+.nf
+   cl> gsskysub input.fits long_sample="300:600,1800:2100" fl_inter+
+.fi
+
+2. Non-interactive sky subtraction for a MOS spectra using the default 
+fraction of the slit length \fImos_sample\fR=0.9, and an object aperture
+size of 1.5 arcsec.
+
+.nf
+   cl> gsskysub input.fits mosobjsize=1.5
+.fi
+.ih
+TIME REQUIREMENTS
+Sky subtraction of a typical standard star observation (1024 rows read out,
+unbinned, with the \fIlong_sample\fR="400:500,600:700") in non-interactive
+mode takes 6.25 minutes on a Sun Ultra 30 300Mhz workstation
+with 1Gb of RAM.
+
+For a single MOS image (unbinned, full frame), the time required to
+to subtract the sky in non-interactive mode, will depend of the number
+of slits present in the image. For 35-40 slits the sky subtraction takes
+10-12 min on a Sun Ultra 30 300Mhz workstation with 1Gb of RAM.
+
+.ih
+BUGS AND LIMITATIONS
+Improvements to the (previously semi-functional) variance and
+data quality propagation in the GMOS package have undergone limited
+testing; the accuracy of the results should still be verified at
+each step by the scientist, particularly for spectroscopic data
+reduction tasks.
+.ih
+SEE ALSO
+gmosinfo, gmosinfospec, fit1d, gfit1d, gsreduce, gscut, gstransform
+.endhelp

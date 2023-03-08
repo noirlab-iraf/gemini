@@ -1,0 +1,220 @@
+.help oreduce November2011 gemini.oscir
+.ih
+NAME
+oreduce -- Reduce images from OSCIR
+.ih
+USAGE
+oreduce inimages
+.ih
+PARAMETERS
+.ls inimages
+Images to reduce. \fIinimages\fR can be a comma-separated 
+list of image names or defined by using the * wild card. OREDUCE also 
+accepts @filename to point to a file containing the names of the 
+input images.
+.le
+.ls outimages= ""
+Output images. \fIoutimages\fR can be a comma-separated list of image
+names. OREDUCE also accepts @filename to point to a file containing 
+the names of the output images.
+\fIoutimages\fR has preference over \fIoutprefix\fR.
+.le
+.ls outprefix = "r"
+Prefix for output images. Names of output images are the
+names of the input images with a prefix attached.
+\fIoutprefix\fR is used if \fIoutimages\fR="".
+.le
+.ls normtype = "sec" (sec|raw|frame)
+Normalization of output image(s)
+.le
+.ls logfile = ""
+Name of logfile. If empty, then the package logfile (\fIoscir.logfile\fR) is 
+used.  If neither is defined, then \fIlogfile\fR = "oscir.log" is used.
+.le
+.ls fl_chopnod = yes
+Combine chop and nod positions.
+.le
+.ls bnod = ""
+Bad nodsets to omit. 
+\fIbnod\fR is specified as a list of comma-separated integers.
+\fIbnod\fR is ignored if more than one input image is given.
+.le
+.ls bset = ""
+Bad savesets to omit in the bad nodsets defined by \fIbnod\fR.
+\fIbset\fR is specified as a list of comma-separated integers.
+\fIbset\fR is ignored if more than one input image is given.
+If \fIbnod\fR != "" and \fIbset\fR = "", all savesets in the defined bad
+nodsets are omitted. 
+If \fIbnod\fR != "" and \fIbset\fR != "", the number of elements in the 
+two lists must be the same and the elements in the lists are 
+matched in the order given. See EXAMPLES for details.
+.le
+.ls frameeff = "oscir$data/oscirframeeff"
+Frame efficiency image. The image is used only if \fInormtype\fR = "sec".
+If \fIframeeff\fR = "" or if the image cannot be found, the average frame
+efficiency of 0.9946 is used.
+.le
+.ls fl_flat = no
+Perform flat field correction using \fIflatimageN\fR (N=1,6).
+.le
+.ls key_filter = "FILTER"
+Image header keyword for filter id. OSCIR data has the filter wheel
+encoder reading included in the value in the FILTER keyword. This 
+encoder reading (after the first space in the value) is cut off before
+matching the value with the parameters \fIfilterN\fR (N=1,6).
+.le
+.ls flatimage1 = "", flatimage2 = "", flatimage3 = "",
+flatimage4 = "", flatimage5 = "", flatimage6 = ""
+
+Normalized flat field images to use with the filters
+\fIfilter1\fR, \fIfilter2\fR, \fIfilter3\fR, \fIfilter4\fR,
+\fIfilter5\fR and \fIfilter6\fR, respectively.
+.le
+.ls filter1 = "N_wide", filter2 = "IHW_(17-19)", filter3 = "Q3_(20-22)", 
+filter4 = "S_10.3", filter5 = "S_11.7", filter6 = "S_12.5"
+
+Filter identifications for the flat field images
+\fIflatimage1\fR, \fIflatimage2\fR, \fIflatimage3\fR, \fIflatimage4\fR,
+\fIflatimage5\fR and \fIflatimage6\fR, respectively.
+.le
+.ls verbose = no
+Print actions to the screen.
+.le
+.ls status = 0
+This flag is non-zero after execution of OREDUCE if a fatal error was
+encountered.
+.le
+.ih
+DESCRIPTION
+The raw FITS files from OSCIR are 6-dimensional, see OSCIRINFO for
+a full description of the data format.
+
+OREDUCE is used for reductions of images from OSCIR.
+The reduction steps are defined by the flags
+(\fIfl_chopnod\fR, \fIfl_flat\fR).
+
+If \fIfl_chopnod\fR = yes, the average of the chop and nod differences 
+is derived.
+The result is a co-added image for which the sky and telescope contributions
+have been subtracted off. This image is 2-dimensional.
+There is made no attempt to align the
+individual chop and nod differences, ie. it is assumed that these are 
+already aligned.
+Bad nodsets and savesets can be omitted from the average
+by setting \fIbnod\fR and \fIbset\fR. 
+
+If \fIfl_flat\fR = yes, flat field correction is performed.
+If the input image is a raw FITS file from OSCIR, it is required 
+that \fIfl_chopnod\fR = yes before flat field correction can be
+performed.
+The flat field images are assumed to be normalized flat fields.
+The correct flat field as found by comparing the content of the
+image header keyword \fIkey_filter\fR with the parameters 
+\fIfilterN\fR (N=1,6).
+
+After processing the header of the output image is updated with
+information about the processing. The following keywords are added
+or updated.
+
+.nf
+Keyword   Explanation
+--------  ------------
+GEM-TLM   Time of the last modification done with the GEMINI package
+OREDUCE   Time of processing with OREDUCE
+EXPCOADD  Total exposure time in seconds for co-added reduced image
+NORMTYPE  Normalization type (sec|frame|raw)
+NORMVAL   Normalization value
+FLATIMAG  Name of flat field (if \fIfl_flat\fR = yes)
+.fi
+
+.ih
+DIFFERENCES COMPARED TO THE UF IDL OSCIR SOFTWARE
+For \fInormtype\fR = "raw", OREDUCE and the University of Florida
+(UF) IDL OSCIR software produce identical pixel output.
+
+For \fInormtype\fR = "sec", OREDUCE normalizes with the exposure time 
+on-source, while the UF IDL OSCIR software normalizes with the total exposure 
+time, on-source and off-source, which is twice as long. 
+
+For \fInormtype\fR = "sec", there are small round-off differences between
+the results from OREDUCE and the results from the UF IDL OSCIR software.
+
+For \fInormtype\fR = "frame", OREDUCE normalizes with the number of 
+saved co-added frames on-source, which is 
+
+.nf
+   2 * number_of_nodsets * number_of_savesets_per_nod_position =
+   2 * i_naxis6 * i_naxis4
+.fi
+
+The UF IDL OSCIR software normalizes with the number of read frames,
+on-source and off-source, which is
+
+.nf
+   4 * number_of_nodsets * number_of_savesets_per_nod_position * 
+   coadded_frames_per_chop_position * coadded_chop_cycles_per_saveset =
+   4 * i_naxis6 * i_naxis4 * FRMCOADD * CHPCOADD
+.fi
+
+.ih
+EXAMPLES
+
+1. Combine the chop and nod frames for one input image.
+.sp
+.nf
+    cl> oreduce inimage1 outim=outimage1 
+.fi
+.sp
+2. Combine the chop and nod frames for one input image, but omit all of
+the first nodset.
+.sp
+.nf
+    cl> oreduce inimage1 outim=outimage1 bnod="1"
+.fi
+.sp
+3. Combine the chop and nod frames for one input image, but omit the
+two first savesets in the the first nodset.
+.sp
+.nf
+    cl> oreduce inimage1 outim=outimage1 bnod="1,1" bset="1,2"
+.fi
+.sp
+4. Combine the chop and nod frames for one input image, but omit the
+the second saveset in the first nodset, and the fourth saveset in 
+the third nodset.
+.sp
+.nf
+    cl> oreduce inimage1 outim=outimage1 bnod="1,3" bset="2,4"
+.fi
+.sp
+5. Reduce a list of images all taken in the filter N_wide, 
+including flatfield correction (\fIbnod\fR and \fIbset\fR 
+are ignored if more than one input image is given).
+.sp
+.nf
+    cl> oreduce inimage1,inimage2,inimage3 \
+    >>> outim=outimage1,outimage2,outimage3 \
+    >>> flatimage1=flatN
+.fi
+.sp
+6. Reduce a list of images, constructing the output image names
+by attaching a prefix "r" to the input image names.
+All images are taken in the filter N_wide.
+.sp
+.nf
+    cl> oreduce 0*fits outpre="r" flatimage1=flatN
+.fi
+.sp
+.ih
+BUGS AND LIMITATIONS
+\fIoutprefix\fR cannot be used together with \fIinimages\fR
+containing an IRAF environment variable, e.g. this will not work:
+.sp
+.nf
+  set rawdata=/home/mydata/
+  oreduce rawdata$image1 outprefix=r
+.fi
+.ih
+SEE ALSO
+oscirinfo, oflat
+.endhelp

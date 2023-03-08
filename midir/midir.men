@@ -1,0 +1,49 @@
+Michelle specific tasks:
+       mprepare - Prepare Michelle data for reduction with the MID-IR tasks
+          mview - Interactively inspect each frame in a Michelle file
+   mcheckheader - Make Michelle headers GSA-compatible
+
+T-ReCS specific tasks:
+       tprepare - Prepare T-ReCS data for reduction with the MID-IR tasks
+    tbackground - Perform statistics on frames in a T-ReCS file
+          tview - Interactively inspect each frame in a T-ReCS file
+tcheckstructure - Check the structure of a T-ReCS file.
+
+Imaging tasks:
+         miview - View MID-IR data frames that have been M/TPREPAREd
+         miflat - Derive flat field and bad pixel mask for MID-IR images
+        mistack - A straight coadd of nod images within a given data file
+     miregister - Register and coadd nod images within a given data file
+       mireduce - Reduce images from MID-IR instruments
+        miclean - Remove pattern noise from Michelle or T-ReCS images
+          mipsf - Measure FWHM and Strehl value in Gemini mid-IR data
+      mistdflux - Find flux density of a standard star for either Michelle or 
+                  T-ReCS
+
+Michelle polarimetry reductions:
+       mipsplit - Write polaritry waveplate images to series of simple FITS 
+                  file
+       mipstack - Straight average of nod images. Michelle polarimetry
+      mipstokes - Calculate Stokes parameters for each nod pair
+       miptrans - Calculate Stokes parameters from a stacked polarimetry file 
+        mipsstk - Combine individual Stokes images from mipstokes into a 
+                  single set of images
+          mipql - Calculate Stokes parameters and polarization vectors from a 
+                  stacked Michelle Polarimetry file
+
+Spectroscopy tasks:
+       msreduce - Wrapper routine for reduction of T-ReCS or Michelle spectra
+     mstelluric - Telluric correction using a blackbody 
+      msabsflux - Telluric correction and absolute calibration
+     msdefringe - Defringe T-ReCS or Michelle 1-D spectra
+      msflatcor - Apply bias and flat corrections to Michelle spectra
+        msslice - Extract spectral slices along the slit for T-ReCS or 
+                  Michelle spectra
+
+   
+... and the GNIRS package
+
+Cook book tasks:
+      midirinfo - Overview over the MIDIR package
+  midirexamples - Print reduction examples to the screen
+

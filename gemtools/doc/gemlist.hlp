@@ -1,0 +1,57 @@
+.help gemlist November2011 gemini.gemtools
+.ih
+NAME
+gemlist -- Generate a list of file names in standard Gemini format
+.ih
+USAGE
+gemlist root range
+.ih
+PARAMETERS
+.ls root
+The date/instrument part of the file name (everything up to the
+per-night index, typically ending in "S").
+.le
+.ls range
+A range specification (see "help ranges") for the file name indices.
+.le
+.ih 
+DESCRIPTION
+
+The GEMLIST task is used to expand a root name and index range to
+provide a list of file names for processing.
+
+Gemini packages typically provide an output prefix by default, so a
+convenient way of reducing data is to list related images (object,
+arc, flats etc) in separate files using GEMLIST and then use the
+@-expansion feature of the IRAF CL to process those files.
+.ih
+EXAMPLES
+
+1. Here three object files are passed to NSPREPARE.  That task, by
+default, prepends the character "n" the the file names for output.  So
+the same list, with an "n" prefix, is used to stack the prepared data.
+
+.nf
+    cl> gemlist S20040307S 1-3 > obj
+    cl> type obj
+    S20040307S0001
+    S20040307S0002
+    S20040307S0003
+    cl> nsprepare @obj
+    ...
+    cl> nsstack n@obj
+.fi
+
+2. Some examples of the range syntax.  See "help ranges" for more
+details.
+
+.nf
+    cl> gemlist S20040307S 1-4x2
+    S20040307S0001
+    S20040307S0003
+    cl> gemlist S20040307S 10-11,13
+    S20040307S0010
+    S20040307S0011
+    S20040307S0013
+.fi
+.endhelp

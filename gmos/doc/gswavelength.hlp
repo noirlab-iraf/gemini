@@ -1,0 +1,273 @@
+.help gswavelength January2015 gemini.gmos
+.ih
+NAME
+gswavelength -- Establish wavelength calibration for GMOS spectra
+.ih
+USAGE
+gswavelength inimages
+.ih
+PARAMETERS
+.ls inimages
+Input lamp spectra. Lists and wildcards are supported.
+The task is designed for Multi-Extension FITS images. 
+Directory names should not be included as part of the image names.
+.le
+.ls crval = CRVAL1
+Approximate wavelength at coordinate reference pixel, either as header keyword
+or as a numerical value.
+.le
+.ls cdelt = CD1_1
+Approximate dispersion in angstroms per pixel, either as a header keyword or 
+as a numerical value.
+.le
+.ls crpix = CRPIX1
+Coordinate reference pixel, either as a header keyword or 
+as a numerical value.
+.le
+.ls key_dispaxis = "DISPAXIS"
+Header keyword for dispersion axis
+.le
+.ls dispaxis = 1
+Dispersion axis, if not defined from the header.
+.le
+.ls database = "database"
+Directory for files containing identifications and fits.
+.le
+.ls coordlist = "gmos$data/CuAr_GMOS.dat"
+Line list giving wavelengths of calibration lines.
+An alternative line list is provided in "gmos$data/GCALcuar.dat".
+.le
+.ls gratingdb = "gmos$data/GMOSgratings.dat"
+Database file with GMOS grating information.
+.le
+.ls filterdb = "gmos$data/GMOSfilters.dat"
+Database file with GMOS filter information.
+.le
+.ls fl_inter = "yes" (yes|no|YES|NO)
+Examine identifications interactively. This allows the user to check
+the result of the line identifications for any misidentifications.
+If \fIfl_inter\fR = no then \fIfl_dbwrite\fR is set to "YES"
+and all queries and plotting are disabled.
+.le
+
+The following parameters are passed to AUTOIDENTIFY and/or 
+REIDENTIFY.
+.ls section = "default"
+The section defines the one dimensional spectrum to use for 
+AUTOIDENTIFY. \fIsection\fR = default means that 
+"middle line" will be used for dispaxis=1 and "middle column" 
+will be used for dispaxis=2. See the help page for AUTOIDENTIFY
+for other choices.
+.le
+.ls nsum = 10
+Number of lines or columns to sum. 
+.le
+.ls ftype = "emission"
+Feature type. The  possibly  abbreviated choices are "emission" 
+and "absorption". 
+.le
+.ls fwidth = 10.
+Full-width at the base (in pixels) of features to be identified.
+.le
+.ls gsigma = 1.5
+The sigma of the Gaussian kernal used to smooth the arcs in the the
+dispersion direction. This smoothing is needed so that AUTOIDENTIFY can find 
+lines in highly oversampled data. The user will need to increase \fIgsigma\fR
+if wide slits (1 arcsec or wider) are used with the detector unbinned or
+binned by 2 in the spectral direction.
+.le
+.ls cradius = 12.
+The maximum distance, in pixels, allowed between a line position
+and the initial estimate when defining a new line. The user will need to 
+increase \fIcradius\fR if wide slits (1 arcsec or wider) are used with the 
+detector unbinned or binned by 2 in the spectral direction.
+.le
+.ls threshold = 0.
+In  order  for a line center to be determined the range of pixel
+intensities around the line must exceed this threshold.
+.le
+.ls minsep = 5.
+The  minimum  separation,  in  pixels,  allowed   between   line 
+positions when defining a new line.  The user will need to 
+increase \fIminsep\fR if wide slits (1 arcsec or wider) are used with the 
+detector unbinned or binned by 2 in the spectral direction.
+.le
+.ls  match = -6.
+The  maximum  difference for a match between the line coordinate
+derived from the dispersion function and  a  coordinate  in  the
+coordinate  list.   Positive values are in user coordinate units
+and negative values are in units of pixels.
+The user will need to increase the absolute value of \fImatch\fR if 
+wide slits (1 arcsec or wider) are used with the detector unbinned or 
+binned by 2 in the spectral direction.
+.le
+.ls function = "chebyshev"  (legendre|chebyshev|spline1|spline3)
+The function to be fit to user coordinates as a function of  the
+pixel  coordinates.   The  choices  are "chebyshev", "legendre",
+"spline1", or "spline3".
+.le
+.ls order = 4
+Order of the fitting function.   The  order  is  the  number  of
+polynomial terms (coefficients) or the number of spline pieces.
+.le
+.ls sample = "*"
+Sample regions for fitting specified in in pixel coordinates.
+.le
+.ls niterate = 10
+Number of rejection iterations.
+.le
+.ls low_reject = 3., high_reject = 3.
+Lower  and  upper  residual rejection in terms of the RMS of the fit.
+.le
+.ls grow = 0.
+Distance from a rejected point in which  additional  points  are
+automatically rejected regardless of their residuals.
+.le
+.ls refit = yes
+Refit the coordinate function when using REIDENTIFY.
+.le
+.ls step = 10
+The step in pixels in the spatial direction between each
+established coordinate function. If the lamp lines are highly
+distorted, \fIstep\fR should be smaller than the default. For MOS 
+data, the step parameter must be set equal to 2 so that the 
+distortion in the spatial direction can be properly determined.
+.le
+.ls trace = yes
+Use the solution for the last step to fit the current step.
+If \fItrace\fR = no, then the reference spectrum is used for all steps.
+.le
+.ls nlost = 15
+Maximum allowed number of lost features.
+If \fItrace\fR = yes and more than \fInlost\fR features are not 
+found the reidentification record is not written to the database. 
+.le
+.ls maxfeatures = 150
+Maximum number of features to use for REIDENTIFY.
+.le
+.ls ntarget = 30
+Target number of features to use for AUTOIDENTIFY.
+.le
+.ls npattern = 5
+Number of lines in pattern matching used by AUTOIDENTIFY.
+.le
+.ls fl_addfeat = yes
+Allow REIDENTIFY to add features.
+.le
+.ls aiddebug = ""
+Debug parameter for aidpars. \fIaiddebug\fR = "s" gives useful
+diagnostic debug printouts for trouble shooting. See the
+help page for AIDPARS for other possible seeings.
+If \fIverbose\fR = no, \fIaiddebug\fR = "" will be used independently
+of the user supplied value.
+.le
+.ls fl_dbwrite = "YES" (yes|no|YES|NO)
+Automatically  write  or  update  the  database  with  the  line 
+identifications and dispersion function?  
+The upper-case responses  suppress  any  further  queries  for  
+any remaining spectra. See the help file for AUTOIDENTIFY
+for details.
+.le
+.ls fl_overwrite = yes
+Overwrite existing database entries.
+See the help file for AUTOIDENTIFY and REIDENTIFY for details.
+.le
+.ls fl_gsappwave = no
+Force GSAPPWAVE to be run on all input images.
+.le
+
+The following parameters are used by FITCOORDS
+.ls fitcfunc = "chebyshev"  (chebyshev|legendre)
+The fitting function used by FITCOORDS, the options are chebyshev and legendre.
+.le
+.ls fitcxord = 4
+Order of the fit in the x direction.
+.le
+.ls fitcyord = 4
+Order of the fit in the y direction.
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes the task use the logfile
+defined by gmos.logfile.
+.le
+.ls verbose = yes
+Print actions to the screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error. 
+This parameter is always set by the task, and should not be modified by 
+the user.
+.le
+
+.ih
+DESCRIPTION
+
+GSWAVELENGTH is used for establishing the wavelength calibration for 
+GMOS spectra. The calibration is established independently for each 
+input spectrum. Multiple input spectra may be specified using lists or
+wildcards.  The input spectra should be preprocessed through GSREDUCE
+which calls GSCUT and GSAPPWAVE by default.
+See the help page for GSAPPWAVE regarding limitations of rerunning
+GSAPPWAVE on MOS data.
+For MOS data, only extensions with SELECT=1 in the
+rows of the MDF associated with the extensions are processed.
+This can be used to avoid calibrating spectra of acquisition objects.
+The MDF may be edited with the tools in the package TABLES.TTOOLS.
+
+GSWAVELENGTH performs the following actions on each input file:
+
+.nf
+1) Run GSAPPWAVE if not previously run, or if \fIfl_gsappwave\fR=yes
+   (see GSAPPWAVE for limitations on rerunning GSAPPWAVE on MOS data).
+2) Run AUTOIDENTIFY on the section defined by \fIsection\fR.
+3) Run REIDENTIFY on the full spectrum to establish the wavelength
+   calibration for all spatial points.
+4) If the input image has not been taken with the IFU, run FITCOORDS
+to determine the final 2D wavelength solution.
+.fi
+
+\fIfl_inter\fR = yes makes it possible to inspect the automatic line 
+identifications and solve any misidentifications manually.  
+\fIfl_inter\fR = no turn off any interactive use.  
+The automatic line identification is currently unreliable because 
+GSAPPWAVE does not correct for spectrograph distortion. It is therefore
+recommended to use \fIfl_inter\fR = yes.
+If \fIverbose\fR = yes, diagnostic output
+will be printed to the screen.  If \fIverbose\fR = no, only warnings
+and errors are printed to the screen. Specifically \fIaiddebug\fR = ""
+will be used.
+
+The database files from AUTOIDENTIFY/REIDENTIFY will be named 
+\fIdatabase\fR/id<inimage_root>_[N], (N=1,2,...,NSCIEXT). The results
+from FITCOORDS will be called similarly except 'fc' instead of 'id'.
+
+The RMS values listed by REIDENTIFY for each spectrum are given in
+Angstroms.
+
+.ih
+EXAMPLES
+1. Establish the wavelength calibration for a MOS arc lamp image
+processed by GSREDUCE using the linelist from the GMOS package.
+
+.nf
+ge> gswavelength rg24081.fits coordlist=gmos$data/GCALcuar.dat
+.fi
+
+2. Compute the wavelength calibration for an IFU arc lamp image
+extracted with GFEXTRACT (not yet available)
+
+.nf
+ge> gswavelength ifuarcr400.fits step=1 nsum=1 fwidth=4.0 gsigma=0.0 \\
+>>> cradius=5. 
+.fi
+
+.ih
+BUGS AND LIMITATIONS
+The automatic line identification is not reliable. It is recommended
+to use \fIfl_inter\fR = yes.
+
+.ih
+SEE ALSO
+gmosinfo, gmosinfospec, autoidentify, reidentify, aidpars, fitcoords, 
+gsappwave, gstransform
+.endhelp

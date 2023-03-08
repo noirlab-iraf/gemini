@@ -1,0 +1,12 @@
+# Copyright(c) 2002-2015 Association of Universities for Research in Astronomy, Inc.
+
+inimage,s,l,"",,,"Input image with extracted IFU spectra"
+outimage,s,h,"",,,"Output image with x/y/lambda datacube"
+outprefix,s,h,"d",,,"Output prefix"
+ssample,r,h,0.1,0,,"Output spatial pixel size (arcsec)"
+bitmask,i,h,8,0,65535,"DQ bits to use for excluding input pixels"
+fl_atmdisp,b,h,"no",,,"Compensate for atmospheric dispersion?"
+fl_flux,b,h,"no",,,"Convert flux/fibre to flux/arcsec^2?"
+fl_var,b,h,"no",,,"Propagate variance array to the output?"
+fl_dq,b,h,"no",,,"Generate data quality array in output?"
+logfile,s,h,"",,,"Log file name"

@@ -1,0 +1,171 @@
+GEMINI (Apr2004)	Gemini IRAF package v1.6	GEMINI (Apr2004)
+
+Release date: April 19, 2004
+
+This document describes the revisions relative to the Gemini IRAF package v1.5.
+User upgrading from v1.4 are encouraged to also read gemini_v15_rev.txt.
+
+The upgrade to Gemini IRAF package is strongly recommended, as several bugs have
+been fixed since v1.5.
+
+This version of the Gemini IRAF package requires IRAF V2.12.2.
+
+PRIMARY REVISIONS:
+
+1) New functionalities/parameters.
+     In particular, the GMOS package now supports GMOS-South IFU data.  Several 
+     changes have been applied to the GMOS IFU tasks (GF*). Please read the 
+     details given below carefully.
+2) New or revised supporting data (GMOS package)
+3) Bug fixes.
+     Users of flatfields produced by GSFLAT with the parameter 'fl_detec' set to
+     'yes' should read section 3-(i) below.
+
+
+DETAILS OF THE REVISIONS:
+
+1) New functionalities/parameters
+
+   (i) GMOS South IFU support:
+   
+       Support for the reduction of IFU data from GMOS-South is now available. 
+       Significant changes to the GMOS IFU tasks (GF* tasks) have been made to 
+       the code but also the parameter files.  The user is advised to 'unlearn' 
+       the GF* tasks to insured that the new parameters and the new default 
+       values are picked up.  Please read the help pages for more information 
+       on the new functionalities and parameters.
+      
+       gmos.gfapsum:
+         - New parameter:
+	     * apertures
+	 - New default value:
+	     * expr = "default"
+
+       gmos.gfdisplay:
+         - New default values:
+	     * config = "default"
+	     * deadfib = "default"
+	 - New functionality:
+	     The configuration files ('config' and 'deadfib') can be
+	     automatically obtained from the MDF.  This is the default
+	     behaviour.
+
+       gmos.gfextract:
+         - New parameters:
+	     * fl_gnsskysub
+	     * fl_fixnc
+	     * fl_novlap
+	     * perovlap
+	 - Added support for two filters
+
+       gmos.gfreduce:
+         - New parameters:
+	     * fl_nodshuffle
+	     * fl_gnsskysub
+	     * fl_fixnc
+	     * fl_novlap
+	     * perovlap
+	 - New default values:
+	     * expr = "default"
+	     * observatory = "default"
+
+       gmos.gfskysub:
+         - New parameter:
+	     * apertures
+         - New default value:
+	     * expr = "default"	     
+
+  (ii) Other changes
+
+       gmos.girmfringe:
+          - New default value for the 'scale' parameter.  The auto-scale 
+	    algorithm is now the default.
+
+       gmos.gfextract:
+       gmos.gsappwave:
+       gmos.gscut:
+          - Added support for the simultaneous use of two filters in the beam.
+	
+
+
+2) New or revised supporting data for GMOS
+
+   gmos/data/GMOSfilters.dat:
+       - Added RG780
+       
+   gmos/data/gmosamps.dat:
+       - Revised values for gain and ron
+       
+   gmos/data/gnifu_slitb_mdf.fits
+   gmos/data/gnifu_slitr_mdf.fits
+   gmos/data/gnifu_slits_mdf.fits
+       - New format with 'ldisplay' columns.
+   
+   gmos/data/gsifu_ns_slitb_mdf.fits   (New)
+   gmos/data/gsifu_ns_slitr_mdf.fits   (New)
+   gmos/data/gsifu_ns_slits_mdf.fits   (New)
+   gmos/data/gsifu_slitb_mdf.fits      (New)
+   gmos/data/gsifu_slitr_mdf.fits      (New)
+   gmos/data/gsifu_slits_mdf.fits      (New)
+   gmos/data/gsifu_slitb_mdf_2003nov.fits  (New)
+   gmos/data/gsifu_slitr_mdf_2003nov.fits  (New)
+   gmos/data/gsifu_slits_mdf_2003nov.vits  (New)
+       - New data files for GMOS-South IFU support.
+
+   gmos/data/RG780.dat   (New)
+       - GMOS RG780 filter info
+ 
+   See also gmos/data/README for a complete listing of the files in the
+   directory gmos/data.  
+
+3) Bug fixes
+   
+   (i) Bug fixes affecting the science results
+       
+       gmos.gsreduce:
+          - For the case of  3 science extension (i.e. non-gmosaiced) flatfield
+	    produced by GSFLAT with 'fl_detec=yes', a logical problem was found 
+	    in which the gain was applied twice.  This is now fixed.
+   
+  (ii) Improved used of the FITS kernel cache
+
+       IRAF's FITS kernel caches header information based on FITS file name. 
+       Because of this caching, the re-use of temporary file names can cause
+       problems, often leading to segmentation faults.
+       
+       All the tasks in the Gemini IRAF package have been reviewed and made 
+       "FITS kernel cache"-safe.
+
+ (iii) Other bug fixes
+ 
+       Various bug fixes have been made all over the package (mostly GMOS
+       tasks).  Below is a truncated list summarizing a few of the most relevant
+       ones from a user's point of view.
+ 
+       gemtools.gemarith:
+          - Fixed a problem caused by more than one instance of "PREPARE" string
+	    in header.
+
+       gmos.gdisplay:
+          - For reduce data, uses the header's GAINORIG value rather than GAIN.
+
+       gmos.gfreduce:
+          - Fixed an "Unknown parameter" error.
+
+       gmos.giflat:
+          - Fixed a bug causing a crash when the inputs are not gireduced and
+	    the user still do not want the images biased or trimmed.	    
+
+       gmos.gmosaic:
+          - Force the use of 'proto.fixpix' rather than 'nmisc.fixpix'. 
+	    'nmisc.fixpix' was causing segmentation faults on some systems.
+	  - Improved rotations and Xoffsets for GMOS-South CCDs.
+
+       gmos.gsreduce:
+          - Type coercion bugs fixed.
+	  - Also see item 3-(i) above.
+
+       midir.tbackground:
+          - Fundamental bug fixed: the previous version could not work for any
+	    image where one or more frames was automatically flagged as bad.
+	    

@@ -1,0 +1,81 @@
+.help gacaltrim October2013 gemini.gsaoi
+.ih
+NAME
+gacaltrim -- Return version of input calibration file with regions
+               matching input science frame
+.ih
+USAGE
+gacaltrim sciimg calimg
+.ih
+PARAMETERS
+.ls sciimg
+Input GSAOI image that acts as reference to compare and trim calibration image,
+\fIcalimg\fR, to.
+.le
+.ls calimg
+Calibration image, master FLAT or DARK, that is to be trimmed to the size of
+\fIsciimg\fR.
+.le
+.ls outimg = ""
+Name of trimmed output calibration image. This can be the same as
+\fIcalimg\fR when the dimensions compared, using the information stored in
+\fIkey_check\fR, match. If \fIcalimg\fR is trimmed this will be a temporary
+file name. This is an output parameter for this task and should not be modified
+by the user.
+.le
+.ls key_check = "CCDSEC" (CCDSEC|DETSEC)
+Image header keyword to perform the dimension comparison with.
+.le
+.ls sci_ext = "SCI"
+Name of the MEF extension containing the science data.
+.le
+.ls var_ext = "VAR"
+Name of the MEF extensions containing the calculated variance planes.
+.le
+.ls dq_ext = "DQ"
+Name of the MEF extensions containing the data quality information.
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes use of the logfile
+defined by gsaoi.logfile.
+.le
+.ls verbose = yes
+Print actions to screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted
+with an error. This parameter is set by the task and should not be
+modified by the user.
+.le
+.ih
+DESCRIPTION
+
+GACALTRIM trims (if required) the input calibration file (DARK or FLAT) to the
+size of input science image. The dimensions of the two files are compared using
+the information stored by \fIkey_check\fR in each of the \fIsci_ext\fR
+extensions. If they match, i.e., no trimming required, \fIoutimg\fR will be set
+to the same as \fIcalimg\fR. If they do not match and the calibration image
+contains the area covered by \fIsciimg\fR, as reported by \fIkey_check\fR, then
+\fIcalimg\fR will be trimmed to match that of \fIsciimg\fR - updating relevant
+header keywords, e.g., \fIkey_check\fR and "DATASEC". If the calibration image
+is trimmed \fIoutimg\fR will be set to a temporary file name containing the
+trimmed calibration image.
+
+If \fIsciimg\fR contains \fIvar_ext\fR and \fIdq_ext\fR extensions,
+\fIcalimg\fR must also contain \fIvar_ext\fR and \fIdq_ext\fR extensions. In
+the  case where \fIsciimg\fR contains only \fIsci_ext\fR, \fIcalimg\fR can
+contain \fIvar_ext\fR and \fIdq_ext\fR extensions. In this case, \fIoutimg\fR
+will be the same as \fIcalimg\fR if the files' dimensions match.
+.ih
+EXAMPLES
+
+.nf
+   cl> gacaltrim S20120101S001.fits S20120429S0133_flat.fits
+   cl> trim_img = gacaltrim.outimg
+.fi
+.ih
+SEE ALSO
+
+GADIMSCHK
+.endhelp
+

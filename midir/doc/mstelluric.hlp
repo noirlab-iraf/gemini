@@ -1,0 +1,193 @@
+.help mstelluric December2011 gemini.midir
+.ih
+NAME
+mstelluric -- Divide science target spectrum by a telluric calibrator 
+(calibrator is corrected for blackbody continuum shape). 
+.ih
+USAGE
+mstelluric inimages cal bbody
+.ih
+PARAMETERS
+.ls inimages
+The input spectra to be processed by the task. It can be an spectrum name, 
+a list of spectra names, a wild-card file name, or the "@" syntax can be 
+used to direct the task to read a list of file names.  These all must be 
+Michelle or T-ReCS spectroscopy files that have been run through previous
+steps of the MIDIR spectroscopy reduction: MIREDUCE, NSWAVELENGTH, 
+NSTRANSFORM, and NSEXTRACT.  Note, at the present time the input spectra 
+into MSTELLURIC must be extracted in NSEXTRACT, no 2D telluric correction
+is currently supported.
+.le
+.ls cal 
+The input calibration spectra to be used by the task to correct out
+the telluric features in the target \fIinimages\fR.  This spectral file must be
+Michelle or T-ReCS spectroscopy files that have been run through previous
+steps of the MIDIR spectroscopy reduction: MIREDUCE, NSWAVELENGTH, 
+NSTRANSFORM, and NSEXTRACT.  Note that at the present time this task only
+accepts one calibration spectral file - correcting multiple spectral data 
+files with multiple calibrators is not currently supported.
+.le
+.ls bbody  
+The blackbody temperature of the calibration object.  This input
+is required to correct the continuum shape of the calibrator so that it is
+not folded into the output science data when the telluric division is done.
+The default value is set to 1.0, the task will prompt the user for a value
+if this is not set in the command call.
+.le
+.ls outimages = ""
+The output spectra name(s) for the reduced files.  If this field is left 
+blank the \fIoutpref\fR string is used to create new file names from the 
+input file names.  Otherwise the number of output file names must match 
+the number of input file names or an error condition occurs.  The field 
+must contain either a list of output file names or use the "@" syntax to 
+direct the task to read a list of file names.  The task tests for whether 
+the output spectra exist and exits with an error condition if any of them 
+do exist.
+.le
+.ls outpref = "a"
+A prefix string which is prefixed to each input image name to make
+the corresponding output image name if the output file name(s) are 
+not specified via the \fIoutimages\fR parameter.
+.le
+.ls xcorr = no
+Cross-correlate   each   input  spectrum  with  the  calibration 
+spectrum to determine the shift  for  the  calibration  spectrum?
+Only  regions  specified by the sample regions parameter will be
+used in the cross-correlation.  
+.le
+.ls lag = 10
+The cross-correlation lag to use when \fIxcorr\fR = yes.  The  lag  is
+given  in  pixels.    This is the distance to either side of the
+initial  shift  over  which  the  cross-correlation  profile  is 
+computed.    If   a   value   of   zero   is   given   then  the 
+cross-correlation step is not done.
+.le
+.ls shift = 0., dshift = 0.5
+The  initial  shift  and shift step in pixels.  This initializes
+the \fIshift\fR search parameters for the first spectrum.   If  \fIdshift\fR
+is  zero  then  there  will be no search for a new shift and the
+'x' interactive function is disabled.  These parameters  may  be
+changed  interactively.   After  the  first  spectrum subsequent
+spectra begin with the values from the last spectrum.
+.le
+.ls scale = 1., dscale = 0.1
+The  initial  scale  and scale step.  This initializes the \fIscale\fR
+search parameters for the first spectrum.   If  \fIdscale\fR  is  zero
+then  there  will  be  no  search  for  a  new scale and the 'y'
+interactive function  is  disabled.   These  parameters  may  be
+changed  interactively.   After  the  first  spectrum subsequent
+spectra begin with the values from the last spectrum.
+.le
+.ls threshold = 0.01
+Since  the  calibration  consists  of  division  by  the  scaled 
+calibration data it is possible for totally saturated  lines  to
+have  zero  or  negative  values.  The task will quit if detects
+negative or  zero  calibration  values.   The  threshold  allows
+applying  a  minimum  threshold to the calibration values so the
+task may continue.
+.le
+.ls fl_inter = no
+A boolean value to toggle on or off the interactive tweaking of the
+correction.
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes the task use the logfile
+defined by \fImidir.logfile\fR.
+.le
+.ls verbose = yes
+Print actions to the screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error. 
+This parameter is always set by the task, and should not be modified by 
+the user.
+.le
+.ih
+DESCRIPTION
+This task requires input of a science spectrum (or list of spectra),
+a telluric calibration star and the blackbody temperature of the calibrator
+as the input values.  The task corrects the calibration star spectrum
+for the continuum shape of the blackbody, then uses the result to
+divide out the telluric atmospheric absorption features in the science 
+spectra.  The telluric correction is done using a call to the NOAO onedspec
+task TELLURIC. 
+.sp
+One output file is produced for each input file.  If the number of input 
+and output files listed do not match the task exits with an error condition. 
+One can have automatically generated output file names by specifying the 
+\fIoutpref\fR parameter and NOT specifying the \fIoutimages\fR parameter. 
+If neither of these is specified, the \fIoutpref\fR parameter is set to be 
+"a".  One cannot overwrite the input file by the output file.
+.sp
+The routine writes to a \fIlogfile\fR.  If the task logfile name is not 
+specified then the routine looks for the MIDIR logfile name.  If the logfile 
+exists, any messages are appended to it.  The \fIverbose\fR parameter 
+does not effect the logfile, but does change how much information is 
+written to the terminal.
+.ih 
+EXAMPLES
+1. The basic usage is
+.sp
+.nf
+     cl> mstelluric xtrS20031228S0175 xtrS20031228S0176 bbody=10400
+.fi
+.sp
+which will produce an output file named "axtrS20031228S0175.fits". (This is 
+assuming that there are no errors.)  In this case the original file must be in 
+the current directory, and that is where the output file is created.
+.sp
+2. Using MSTELLURIC for spectra in another directory is done as with 
+.sp
+.nf
+    cl> mstelluric xtrS20031228S0175 xtrS20031228S0176 bbody=10400
+.fi
+.sp
+which would read "/home/user/trecs/xtrS20031228S0175.fits" and produce an 
+output file named "axtrS20031228S0175.fits" in the current directory if 
+all goes well.
+.sp
+3. Defining the output file name works the following way:
+.sp
+.nf
+    cl> mstelluric xtrS20031228S0175 xtrS20031228S0176 bbody=10400 \
+    >>> outimages=frame175
+.fi
+.sp
+which should produce "frame75.fits" from "xtrS20031228S0175", 
+both files being in the current directory.
+.sp
+4. If one wants to define the prefix explicitly and apply it to all 
+the spectra in a list it is done by
+.sp
+.nf
+    cl> mstelluric xtrS20031228S0175 xtrS20031228S0176 bbody=10400 \
+    >>> outpref="new" logfile="test.log" verbose=no
+.fi
+.sp
+which produces an output file named "newxtrS20031228S0175.fits" for an 
+input file named "xtrS20031228S0175".  In this 
+example the logfile name is set to "test.log" and the messages to the 
+terminal are kept to a minimum by setting verbose to "no".
+.sp
+5. To run the routine using a cross correlation in the call to the telluric 
+task:
+.sp
+.nf
+    cl> mstelluric xtrS20031228S0175 xtrS20031228S0176 bbody=10400 \
+    >>> fl_xcorr+
+.fi
+.sp
+which will do a cross correlation of the science target and the telluric 
+standard and determine and apply a shift to the data before the division is 
+done.  
+.ih
+BUGS AND LIMITATIONS
+At the present time, the best output spectrum obtained automatically when 
+MSTELLURIC is run with the \fIxcorr\fR parameter set to "no".  However, much 
+better cross correlation correction of the telluric features can be obtained if
+the task is run interactively with the cross correlation option on.  (i.e.,
+with \fIxcorr\fR+ and \fIfl_inter\fR+).
+.ih
+SEE ALSO
+telluric, midir, mireduce
+.endhelp

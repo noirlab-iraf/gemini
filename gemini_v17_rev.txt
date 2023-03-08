@@ -1,0 +1,569 @@
+GEMINI (Oct2004)        Gemini IRAF package v1.7        GEMINI (Oct2004)
+
+Release date: October 25, 2004
+
+This document describes the revisions relative to the Gemini IRAF package v1.6.
+
+This version of the Gemini IRAF package is compatible with, and requires, the
+recent IRAF patch release V2.12.2a.
+
+The upgrade to Gemini IRAF package v1.7 is strongly recommended, as previous 
+versions are not compatible with the new IRAF patch.
+
+PRIMARY REVISIONS:
+1) The package has been made compatible with IRAF V2.12.2a.
+2) New package for GNIRS data (gemini.gnirs)
+	This package offers support for the longslit and cross-dispersed modes.
+	Minimal support is offered for IFU data.
+3) Reorganization of the NIRI package (gemini.niri)
+	For spectroscopic data, the NIRI package makes use of the new tools 
+	found in the GNIRS package.
+4) Support for mid-IR spectroscopy data reduction (Michelle and T-ReCS)
+5) New MEF handling library.
+6) New logging tools, GEMLOG.
+7) More new tasks.
+8) More new functionalities/parameters.
+9) Bug fixes.
+
+
+DETAILS OF THE REVISIONS:
+
+1) Version 1.7 of the Gemini IRAF package is fully compatible with the IRAF
+   patch release V2.12.2a.  Changes in the handling of filenames by certain 
+   IRAF spectroscopy tasks are not backward compatible.  The user will not be 
+   able to use, for example, wavelength calibration and spectrum extraction 
+   database files created with a version of IRAF prior to V2.12.2a.
+
+2) New package for GNIRS data (gemini.gnirs)
+
+   The current package offers support for GNIRS's longslit and cross-dispersed
+   modes.  Minimal support is offered for IFU data.
+   
+   The core of the GNIRS tasks is based on the old NIRI spectroscopy package. 
+   The NS* tasks have been reworked and improved, and now fully support GNIRS
+   data.  Users familiar with the former NIRI spectroscopy tasks should not
+   assume exactly the same behavior out of the GNIRS spectroscopy tasks. 
+   Although they bare the name of their predecessors, the GNIRS.NS* tasks 
+   should be seen as new tasks, and all users are encouraged to read the
+   documentation.
+   
+   The GNIRSINFO, GNIRSINFOLS, and GNIRSINFOXD tasks offer an overview of the
+   tasks found in the package.  Data reduction examples for the longslit and 
+   cross-dispersed modes are available via GNIRSEXAMPLES.  Finally, graphical
+   representations of the GNIRS package are available in the directory 
+   gnirs$doc/; the files names are gnirs-flow.pdf and gnirs-graphics.gif.
+
+3) Reorganization of the NIRI package (gemini.niri)
+
+   The NIRI spectroscopy tasks have been replaced by the GNIRS package, and 
+   new tasks have been added.  All the NIRI spectroscopy data reduction is now 
+   done through the GNIRS tasks.  While the task names will be familiar to 
+   experienced NIRI spectroscopy users, new functionalities, new or modified 
+   parameters, new default values are found throughout the new NS* tasks. Users 
+   familiar with the former NIRI spectroscopy tasks are advised to read the 
+   documentation and to some extent consider the GNIRS versions as new tasks. 
+   Please refer to NIRIINFO and NIRIEXAMPLES, as well as GNIRSINFO, for more 
+   information.
+   
+   (i) Notes on NIRI Imaging tasks:
+   
+     In the process of better dealing with saturated objects and masking 
+     objects in derived skyframes, two important changes have been made to the 
+     NIRI package.  The first is the addition of a new task, NRESIDUAL.  The 
+     second is the use of OBJMASK (instead of DAOFIND) for the mask-making.  
+     This change simplifies greatly the code and leads to a significant 
+     efficiency improvement.  The tasks affected are NISKY and NIFLAT. 
+   
+     niri.niflat:
+       - New parameters:
+           * ngrow
+	   * agrow
+	   * minpix
+       - Retired parameters:
+           * fwhmpsf
+	   * fl_gemseeing
+	   * maskfactor
+	   * key_filter
+	   * key_airmass
+	   
+     niri.nisky:
+       - New default value:
+           * threshold = 3.
+       - New parameters:
+           * ngrow
+	   * agrow
+	   * minpix
+       - Retired parameters:
+           * fwhmpsf
+	   * rebin
+	   * maskfactor
+	   * fl_gemseeing
+	   * key_sat
+	   * key_filter
+	   * key_airmass
+	   
+     New NIRI task:
+       - niri.nresidual
+     
+     
+   (ii) Notes on NIRI/GNIRS Spectroscopy tasks:
+   
+     The header keyword mapping is now done through the NSHEADER task.  This
+     improvement has made several parameters obsolete. In particular, the 
+     key_* and sci_ext/var_ext/dq_ext parameters have been removed from the 
+     tasks' parameter lists.
+   
+     gnirs.nsappwave:
+       - Modified parameter:
+           * outprefix replaces prefix
+       - New parameters:
+           * cradius
+	   * fl_phu
+	   * debug
+       - Retired parameters:
+           * all the key_*
+	   * sci_ext, var_ext, dq_ext
+     
+     gnirs.nscalibrate:
+        - New default value:
+	    * observatory = "gemini-south"
+	- Modified parameters:
+	    * bandwidth is now of type 'real' (was 'string')
+	    * bandsep is now of type 'real' (was 'string')
+	    * fl_extinct replaces flag_extinct
+	    * fl_flux replaces flag_flux
+	    * fl_fnu replaces fnu
+	    * fl_findneg replaces findneg
+	    * fl_answer replaces answer
+	    * fl_inter replaces interactive
+	- Retired parameters:
+	    * obj_sci_ext, obj_var_ext, obj_dq_ext
+	    * std_sci_ext, std_var_ext, std_dq_ext
+	    * key_airmass, key_exptime
+	    * project
+	    * keep_sfunction
+	    
+     gnirs.nscombine:
+        - New default values:
+	    * output_suffix = "_add"
+	    * rejtype = "sigclip"
+	    * lsigma = 5.
+	    * hsigma = 5.
+	- New parameters:
+	    * dispaxis
+	    * fl_cross
+	    * fl_inter
+	    * force
+	- Retired parameters:
+	    * key_pixscale, key_xoff, key_yoff, key_exptime, key_ron, key_gain
+	    * sci_ext, var_ext, dq_ext
+     
+     gnirs.nscut:
+        - New default value:
+	    * outprefix = "s"  (will be reconfigured for NIRI by NSHEADERS)
+	- New parameter:
+	    * fl_corner
+	- Retired parameters:
+	    * fl_nsappwave
+	    * nsappwavedb
+	    * crval
+	    * cdelt
+	    * key_*
+	    * sci_ext, var_ext, dq_ext
+     
+     gnirs.nsextract:
+        - New default values:
+	    * database = ""
+	    * background = "average"
+	    * fl_apall = yes
+	- New parameters:
+	    * ylevel
+	    * fl_addvar
+	    * fl_skylines
+	    * fl_flipped
+	    * aptable
+	    * bgsample
+	    * fl_trace
+	    * trace
+	    * tr_nsum, tr_step, tr_nlost, tr_function, tr_order, tr_sample,
+	      tr_naver, tr_niter, tr_lowrej, tr_highrej, tr_grow
+	- Retired parameters:
+	    * key_dispaxis
+	    * sci_ext, var_ext, dq_ext
+     
+     gnirs.nsflat:
+        - New default values:
+	    * statsec = "MDF"
+	    * fitsec = "MDF"
+	    * rejtype = "ccdclip"
+	- New parameters:
+	    * darkfile
+	    * fl_corner
+	    * fl_save_darks
+	    * process
+	    * fl_range
+	    * box_width, box_length
+	    * threshold
+	    * aptable
+	    * database
+	    * apsum
+	    * tr_step, tr_nlost, tr_function, tr_order, tr_naver, tr_niter,
+	      tr_lowrej, tr_highrej, tr_grow
+	    * ap_lower, ap_upper
+	- Retired parameters:
+	    * key_exptime, key_filter, key_ron, key_gain, key_sat, key_nonlinear
+	    * sci_ext, var_ext, dq_ext
+     
+     gnirs.nsreduce:
+        - New default values:
+	    * skyimages = ""
+	    * skyrange = 60.  *** expressed in seconds rather than minutes ***
+	- Modified parameter:
+	    * skyrange: units are in seconds rather than minutes
+	- New parameters:
+	    * fl_nscut
+	    * section
+	    * fl_corner
+	    * fl_process_cut
+	    * fl_nsappwave
+	    * nsappwavedb
+	    * crval, cdelt
+	    * fl_save_dark
+	    * skysection
+	    * flatmin
+	    * debug
+	    * force
+	- Retired parameters:
+	    * key_*
+	    * sci_ext, var_ext, dq_ext
+	
+     gnirs.nsressky:
+	- New parameter:
+	    * dispaxis
+	- Retired parameters:
+	    * sci_ext, var_ext, dq_ext
+
+     gnirs.nssdist:
+        - New default values:
+	    * database = ""
+	    * aiddebug = ""
+	- Modified parameter:
+           * firstcoord replaces firstycoord
+	- New parameters:
+	   * aptable
+	   * force
+	- Retired parameters:
+	    * key_xoff, key_yoff, key_pixscale, key_dispaxis
+	    * sci_ext, var_ext, dq_ext
+	
+     gnirs.nsstack:
+        - New default values:
+	    * rejtype = "sigclip"
+	    * lsigma = 5.
+	    * hsigma = 5.
+	- New parameters:
+	    * dispaxis
+	    * pixscale
+	    * nrejfile
+	    * force
+	- Retired parameters:
+	    * key_exptime, key_xoff, key_yoff, key_ron, key_gain
+	    * sci_ext, var_ext, dq_ext
+     
+     gnirs.nstransform:
+        - New default values:
+	    * database = ""
+	    * fl_inter = no
+	    * xorder = 2
+	    * yorder = 2
+	- New parameters:
+	    * fl_stripe
+	    * fl_align
+	    * pixscale
+	    * force
+	- Retired parameters:
+	    * key_dispaxis
+	    * sci_ext, var_ext, dq_ext
+     
+     gnirs.nswavelength:
+        - New default values:
+	    * database = ""
+	    * coordlist = "gnirs$data/nsappwave.fits"
+	    * nsappwavedb = "gnirs$data/nsappwave.dat"
+	- New parameters:
+	    * sdist
+	    * sdorder
+	    * aptable
+	    * fmatch
+	    * nfound
+	    * sigma
+	    * rms
+	    * debug
+	- Retired parameters:
+	    * key_dispaxis, key_filter, key_fpmask, key_camera
+	    * sci_ext
+
+4) Mid-IR spectroscopy data reduction is now supported.  This includes both
+   Michelle and T-ReCS data.  Like for the NIRI spectroscopy data, the mid-IR
+   spectroscopy data is reduced through the GNIRS package.  The only exception 
+   is the telluric correction which is done through a mid-IR specific task,
+   MSTELLURIC.  Please refer to MIDIRINFO, MIDIREXAMPLES, and GNIRSINFO for 
+   more information on reducing mid-IR spectroscopy data.
+   
+   (i) New MIDIR task:
+   
+      - midir.mstelluric
+
+5) A new internal library has been designed to handle MEF files natively and
+   efficiently as whole units rather than handling each extension as an 
+   entirely separate entity.  As such it includes ways to iterate over 
+   extensions, access data, and also performed centralized housekeeping and 
+   cleanup.
+  
+   As of this release, the library is not yet fully documented.  Internally, 
+   the library is used by the new GEMTOOLS tasks GEMARITH and GEMEXPR (see 
+   item 7, below).
+
+6) A new Gemini logging system, referred to as GEMLOG, is introduced with this 
+   version.  The system facilitates the review of the logs generated by 
+   GEMLOG-enabled tasks.  Currently, only the MIDIR package, and GEMTOOLS' 
+   GEMEXTN, GEMARITH, and GEMEXPR, support the new logging system.
+
+   The GEMLOG tasks are:
+
+      gemtools.glogextract
+      gemtools.glogfix
+      gemtools.glogpars  (parameter set)
+      gemtools.gloginit  (hidden task)
+      gemtools.glogprint (hidden task)
+      gemtools.glogclose (hidden task)
+
+   Full documentation is available through the task help pages and the GEMLOG
+   help page.
+
+7) More new tasks.
+
+   (i) GEMTOOLS
+   
+       - gemextn
+           List, filter and verify MEF image extensions
+       - gemexpr
+           Gemini image expression evaluator for MEF images or spectra
+       - gemarith
+           Generic arithmetic on MEF images or spectra.  The old gemarith CL
+	   script has been replaced by a faster, compiled version.  
+       - gemlist
+           Generate file name lists in standard Gemini format
+       - gemwcscopy
+           Hidden task.  Copy WCS from a MEF's PHU (Primary Header Unit) to
+	   another PHU.
+
+8) More new functionalities/parameters.
+
+   (i) GEMTOOLS
+
+      (a) Modifications to parameter lists:
+      
+          gemtools.gemcombine:
+	     - Modified parameter:
+	         * bpmfile replaces bpm
+             - New parameter:
+	         * nrejfile
+      
+          gemtools.gemoffsetlist:
+	     - Modified parameter:
+	         * the functionality of the parameters 'tolerance' and 
+		   'offsettype' is now controlled through the parameters
+		   'distance' and 'age'
+             - New parameters:
+	         * distance    (see 'Modified parameters', above)
+		 * age         (see 'Modified parameters', above)
+		 * fl_nearer
+		 * fl_younger
+		 * direction
+		 * fl_noref
+		 * wcs_source
+		 * force
+		 * count
+	     - Retired parameters:
+	         * tolerance   (see 'Modified parameters', above)
+		 * offsettype  (see 'Modified parameters', above)
+      
+      (b) New functionalities:
+      
+          gemtools.gemhedit:
+	     - Recognizes dates as string and adds them to the header as such 
+	       rather than as numbers.  Complies with FITS standards.
+
+          gemtools.gemoffsetlist:
+	     - This task's behavior has changed a fair bit.  Users are
+	       encouraged to read the help page.
+	     - It is now possible to test for both distance and time 
+	       interval in one call to GEMOFFSETLIST.
+	  
+	  gemtools.gemseeing:
+	     - Support for T-ReCS data
+	  
+
+   (ii) GMOS
+
+      (a) Modifications to parameter lists:
+      
+          gmos.gifringe:
+	     - New parameter:
+	         * msigma
+	
+	  gmos.gscut:
+	     - New parameters:
+	         * fl_update
+		 * gradimage
+		 * refimage
+
+          gmos.gsflat:
+	     - New parameters:
+	         * refimage
+		 * fl_usegrad
+      
+          gmos.gsreduce:
+	     - New parameters:
+	         * gradimage
+		 * refimage
+      
+      (b) New functionalities:
+      
+          gmos.gdisplay:
+	     - The ability to display cut MOS slits has been restored.  
+	       However, for binned data, the image must have been cut with
+	       the Gemini v1.7 version of GSCUT.
+	  
+	  gmos.gifringe:
+	     - Object masking with OBJMASKS.
+	     
+	  gmos.gprepare:
+	     - Clean old MDFs with double EXTNAME.
+	  
+	  gmos.gscut:
+	     - Automatic slit edge detection.
+
+	  gmos.gsflat:
+	  gmos.gsreduce:
+	     - Automatic slit edge detection.
+	     - Support for 6amp GMOS data.
+  
+   (iii) MIDIR package
+
+       All the tasks in the MIDIR package used the new Gemini logging system, 
+       or GEMLOG (see item 6, above)
+
+       (a) Modifications to parameter lists:
+
+	   midir.mireduce:
+              - New default value:
+		  * status = 0
+	      - New parameters:
+		  * frametype
+		  * combine
+		  * fl_check
+
+	   midir.miregister:
+              - New default value:
+		  * status = 0
+	      - New parameter:
+		  * combine
+
+           midir.mistack:
+              - New default value:
+	          * status = 0
+	      - New parameter:
+	          * frametype
+	          * combine
+
+	   midir.miview:
+              - New parameter:
+		  * status
+	      - Retired parameter:
+	          * fl_test_mode
+
+	   midir.mprepare:
+	      - Retired parameters:
+	          * sci_ext
+		  * key_sat, key_filter
+		  * database
+
+	   midir.mview:
+	      - Modified parameter:
+	          * verbose replaces fl_verbose
+              - New parameter:
+		  * status
+	      - Retired parameter:
+	          * fl_test_mode
+
+
+	   midir.tprepare:
+              - New default value:
+		  * status = 0
+	      - New parameter:
+		  * combine
+		  * fl_check
+
+	   midir.miflat:
+	   midir.tcheckstructure:
+	   midir.tview:
+              - New default value:
+		  * status = 0
+
+
+       (b) New functionalities:
+
+           midir.mireduce:
+	   midir.miregister:
+	   midir.mistack:
+	   midir.tprepare:
+	      - choose between 'sum' or 'average' combine
+	      - allow rescuing of incomplete T-ReCS observations, if possible
+
+9) Bug fixes.
+
+   This list is not exhaustive.
+   
+     gemtools.gemqa:
+        Avoid appending data processing tags to DATALAB if they have already
+	been appended.
+
+     gemtools.imcoadd:
+     niri.nisky:
+        Use proto.fixpix rather than nmisc.fixpix.  nmisc.fixpix is out-of-date
+	and it has been shown to cause segmentation violations.
+
+     gemtools.wmef:
+        Has been made more robust through the use of GEMEXTN.
+
+     gmos.gdisplay:
+        Can now display MEF files in which the MDF is in extension 1.  Also, the
+	sci_ext value has been made case-insensitive.
+	
+     gmos.giflat:
+        Better handling when the number of input files is low and conflicting
+	with the IMCOMBINE rejection parameters.
+
+     gmos.gmosaic:
+        Better support of binned data.
+
+     gmos.gscut:
+        Correct updates of DETSEC for binned data.  This enables use of 
+	gdisplay on cut data.
+     
+     gmos.gsextract:
+        Delete incomplete output images if an error occurs while processing.
+
+     gmos.gsflat:
+        Prevent the output of a misleading warning (re: gain and rdnoise)
+	when fl_detec is yes.
+
+     midir.mistack:
+     midir.mprepare:
+        Fix bug when working on "nod" mode data.
+	
+     midir.tprepare:
+        Fix typo in GRATWAVE keyword value for LowRes-20 grating.  Also, add the
+	keyword DISPAXIS to the primary header.

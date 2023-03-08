@@ -1,0 +1,26 @@
+# Copyright(c) 2012-2013 Association of Universities for Research in Astronomy, Inc.
+#
+# Help directory for the gsaoi package
+
+$doc = "gsaoi$doc/"
+
+# Imaging tasks
+gacalfind          hlp = doc$gacalfind.hlp, src=gsaoi$gacalfind.cl
+gacaltrim          hlp = doc$gacaltrim.hlp, src=gsaoi$gacaltrim.cl
+gadark             hlp = doc$gadark.hlp, src=gsaoi$gadark.cl
+gadimschk          hlp = doc$gadimschk.hlp, src=gsaoi$gadimschk.cl
+gadisplay          hlp = doc$gadisplay.hlp, src=gsaoi$gadisplay.cl
+gafastsky          hlp = doc$gafastsky.hlp, src=gsaoi$gafastsky.cl
+gaflat             hlp = doc$gaflat.hlp, src=gsaoi$gaflat.cl
+gaimchk            hlp = doc$gaimchk.hlp, src=gsaoi$gaimchk.cl
+gamosaic           hlp = doc$gamosaic.hlp, src=gsaoi$gamosaic.cl
+gaprepare          hlp = doc$gaprepare.hlp, src=gsaoi$gaprepare.cl
+gareduce           hlp = doc$gareduce.hlp, src=gsaoi$gareduce.cl
+gasky              hlp = doc$gasky.hlp, src=gsaoi$gasky.cl
+gastat             hlp = doc$gastat.hlp, src=gsaoi$gastat.cl
+
+# Information
+gsaoiinfo          hlp = doc$gsaoiinfo.hlp
+
+# Examples
+gsaoiexamples      hlp = doc$gsaoiexamples.hlp, src=gsaoi$gsaoiexamples.cl

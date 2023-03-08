@@ -1,0 +1,133 @@
+.help app2objt October2004 gemini.gmos.mostools
+.ih
+NAME
+app2objt -- Make Object Table from apphot/daophot output
+.ih
+USAGE
+app2objt intable
+.ih
+PARAMETERS
+.ls intable
+Input table, which should be output from one of the tasks
+PHOT, DAOFIND, NSTAR or ALLSTAR in the APPHOT/DAOPHOT packages. 
+Lists of tables are not supported.
+.le
+.ls image = "default"
+Image containing the WCS information for the \fIintable\fR.
+If \fIimage\fR="default" and 
+the \fIintable\fR has a root name and an extension, e.g.
+rootname.mag, the matching image names is assumed to be rootname.fits.
+.le
+.ls outtable = "default"
+Output table.
+If \fIouttable\fR="default" and 
+the \fIintable\fR has a root name and an extension, e.g.
+rootname.mag, then \fIouttable\fR=rootname_OT.fits.
+.le
+.ls priority = "2"
+Default priority for the objects.
+.le
+.ls logfile = ""
+Logfile for the task. If \fIlogfile\fR="", the file name defined by
+mostools.logfile is used as the logfile.
+.le
+.ls verbose = no
+Print actions to the screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error. 
+This parameter is always set by the 
+task and should not be modified by the user. 
+.le
+.ih
+DESCRIPTION
+The task converts output files from APPHOT or DAOPHOT to 
+Object Tables. \fIintable\fR from the tasks PHOT, DAOFIND, NSTAR and 
+ALLSTAR in the APPHOT/DAOPHOT packages are supported. 
+\fIouttable\fR is an Object Table (FITS table) which may be used 
+for the design of masks for GMOS.
+
+The task uses the WCS information in \fIimage\fR to derive the
+RA and DEC from the x- and y-coordinate information in \fIintable\fR.
+
+For an input file from the task PHOT, the output Object Table will
+contain the following columns
+
+.nf
+    Column_name     Type  Print_format Unit
+    -------------------------------------------
+    x_ccd            R          %14.3f pixels          
+    y_ccd            R          %11.3f pixels          
+    MAG              R           %7.3f mag             
+    ID               I             %5d ##              
+    RA               R          %16.6f H               
+    DEC              R          %16.6f deg             
+    priority         CH*1          %1d ""              
+    MERR             R           %6.3f mag             
+    MSKY             R          %18.7g counts          
+    STDEV            R          %15.7g counts          
+    aperture         R          %12.2f scale           
+.fi
+
+The columns x_ccd, y_ccd, MAG, ID, RA and DEC are required by the 
+mask making software.
+
+The following information is collected from the header of \fIimage\fR
+and included in the header of the output Object Table
+
+.nf
+     Keyword  Example                   Description
+  --------------------------------------------------------------------
+  #K PID_IMAG GN-2001B-Q-10             Program ID for imaging
+  #K PID_SPEC GN-2001B-Q-10             Program ID for spectroscopy
+  #K DATEIMAG 2001-11-17                Observing date for image
+  #K TIMEIMAG 14:08:25.6                Observing time for image
+  #K RA_IMAG  9.7158333333333           RA for image
+  #K DEC_IMAG 46.9875                   DEC for image
+  #K FILTER   r_G0303                   FILTER for image
+  #K ADCMODE  1                         ADCMODE  (1=not used, 0=used)
+  #K DATE_OT  Thu 18:14:18 06-Dec-2001  Time stamp for Object Table
+  #K TIME_OT  Thu 18:14:18 06-Dec-2001  Time stamp for Object Table
+  #K EXTSOFT  apphot/daophot            Source of input table
+  #K GEMSOFT  Gemini IRAF package gmos v1.3   Gemini software version
+  #K INSTRUME GMOS-N                    Instrument
+  #K PIXSCALE 0.0727                    Pixel scale for image
+.fi
+
+
+.ih
+EXAMPLES
+1. Full example script is available as
+
+.nf
+    cl> help app2objt option=sysdoc
+.fi
+
+2. Make and Object Table from output from PHOT, using the default
+parameters for \fIimage\fR and \fIouttable\fR
+
+.nf
+    cl> app2objt mrgN20020112S100.mag
+.fi
+
+The matching image is mrgN20020112S100.fits. The output table will
+be named mrgN20020112S100_OT.fits
+
+
+3. Make an Object Table from outuptu from PHOT, specifying the
+image name
+
+.nf
+    cl> app2objt AndV.mag image=mrgN20020112S100.fits
+.fi
+
+The output table will be named AndV_OT.fits
+
+.ih
+TIME REQUIREMENTS
+.ih
+BUGS AND LIMITATIONS
+.ih
+SEE ALSO
+stsdas2objt
+.endhelp

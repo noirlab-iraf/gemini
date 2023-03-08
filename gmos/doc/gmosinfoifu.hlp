@@ -1,0 +1,376 @@
+.help gmosinfoifu December2012 gemini.gmos
+.ih
+NAME
+gmosinfoifu -- Description of reduction scripts for GMOS IFU data
+.ih
+USAGE
+gmosinfoifu
+.ih
+DESCRIPTION
+
+The GMOS package contains tasks for processing GMOS imaging, long-slit,
+multi-object and integral field spectroscopy data.  The specifics of the
+individual tasks can be found in their help files. This document describes 
+the common features of the tasks for the Integral Field Units (IFUs).  
+
+The tasks are designed to provide a fairly complete and flexible
+reduction for the purpose of assessing data quality at the time of
+observation.  Real-time reductions may not be optimal for a particular
+science application.  The GMOS package scripts can be optimized for a
+particular application using the hidden parameters to achieve the best
+possible results.
+
+The tasks produce logfiles of the performed processing steps.  The name 
+of the logfile may be set in each individual task, or at the package level
+by setting \fIgmos.logfile\fR.
+
+The tasks add header keywords to the output images.  These header keywords
+contain valuable information about the performed processing steps and the 
+values of the critical parameters that were used.
+
+All GMOS images are written as multi-extension FITS (MEF) files.  Raw data
+can have up to six unnamed extensions.  Most of the header information is
+written to the primary header unit [0] (PHU).  After being processed with
+GPREPARE, GMOS data extensions will be named as described in GMOSINFO.
+
+It is recommended to use \fIimtype\fR="fits".  This is set automatically 
+when loading the GEMINI package.
+
+.ih
+IFU MDF FILES
+
+GMOS IFU reductions fundamentally depend on having the proper Mask
+Definition File (MDF) at the beginning of the process.  The MDF
+contains information about the relative lenslet positions and, more
+importantly, about the locations of spectra that are not extractable
+by GFEXTRACT.  During commissioning a standard set of MDFs were
+produced for each major mode and are listed below.
+
+.nf
+    IFU FPU               MDF in gmos$data/
+    --------------------------------------------------
+    GMOS-N
+    2 Slits               gnifu_slits_mdf.fits
+    Left Slit (blue)      gnifu_slitb_mdf.fits
+    Right Slit (red)      gnifu_slitr_mdf.fits
+    
+    GMOS-S - data taken in November 2003
+    2 Slits               gsifu_slits_mdf_2003nov.fits
+    Left Slit (blue)      gsifu_slitb_mdf_2003nov.fits
+    Right Slit (red)      gsifu_slitr_mdf_2003nov.fits
+
+    GMOS-S - data taken February 2004 and later
+    2 Slits               gsifu_slits_mdf.fits
+    Left Slit (blue)      gsifu_slitb_mdf.fits
+    Right Slit (red)      gsifu_slitr_mdf.fits
+
+    N&S 2 Slits           gsifu_ns_slits_mdf.fits
+    N&S Left Slit (blue)  gsifu_ns_slitb_mdf.fits
+    N&S Right Slit (red)  gsifu_ns_slitr_mdf.fits
+    --------------------------------------------------
+
+In most cases one should be able to use the default MDFs, therefore
+GFREDUCE will pick the appropriate MDF to use if \fIslits\fR is set to
+the correct slit(s), \fIfl_nodshuffle\fR reflects whether a
+nod&shuffle slit mask was used, and \fImdffile\fR="default".  When
+reducing GMOS-S data taken during November 2003 \fImdffile\fR will
+have to be given explicitly.
+
+Unfortunately, the standard MDFs sometimes need to be modified for
+specific datasets in which more than the standard number of spectra
+cannot be extracted.  For example, it sometimes happens that flexure
+of the instrument results in additional spectra being lost at the top
+of the CCD array.  In these cases the standard MDF for the
+configuration used should be copied to the working directory and
+modified there. It is important to look at the flat carefully to
+identify any additional missing lenslets/fibers and flag them as bad.
+Spectra that cannot be extracted have BEAM=-1 in the MDF and GFEXTRACT
+uses the MDF to create an aperture id table for APALL.  The best way
+to identify which spectra are not being identified is to run GFEXTRACT
+in interactive mode.  The left-most spectrum of each block should have
+a '1' in the last digit of the aperture ID (e.g. 101, 251, 701, ...)
+and there shouldn't be any fibers with 2 aperture IDs.  Once the
+missing spectra have been identified their BEAM values in the MDF can
+modified using TCALC or TEDIT.
+
+In previous Gemini IRAF package releases (1.5 and earlier) there were
+specific GFDISPLAY configuration files associated with each MDF and
+making configuration files for a new MDF was very difficult.  Starting
+in version 1.6 of the Gemini IRAF package the information needed for
+GFDISPLAY is included in the MDF and no special configuration files
+are needed. For more information see the help page for GFDISPLAY.
+
+A schematic of the GMOS IFU instrument coordinate systems that are
+used in the MDFs is given below.  The coordinates are approximate
+relative coordinates and do not account for slight rotations of the
+fields or the exact field separations.  A distance of 60 arcseconds
+was assumed for the distance between the centers of the two fields.
+This is accurate to within about 1 arcseconds.
+
+.nf
+GMOS-N
+(65.0,4.9) |---|    (6.8,4.9) |-------|
+           |   |              |       |
+           |   |              |       |
+           |   |              |       |
+           |---| (61.7,0)     |-------| (0,0)
+GMOS-S
+(65.0,4.9) |-------|    (3.3,4.9) |---|       
+           |       |              |   |       
+           |       |              |   |       
+           |       |              |   |       
+           |-------| (58.3,0)     |---| (0,0)
+.fi
+
+.ih
+FORMATS FOR IFU IMAGES
+
+GMOSINFO gives the description of the data format and naming conventions
+for the raw and GPREPAREd data.
+
+After processing with GFREDUCE the data format will have changed
+according to the processing steps chosen. The tables below give the
+processing flags and the output data format in terms of the number
+of science extensions (SCI) and the MDF extension. The MDF extension 
+contains the binary MDF. The flags are listed in the order the reflects 
+the reduction steps. The output format of one step is the input format
+to the next step. The first table is for data taken with the IFU
+in 1-slit mode, while the second table is for data taken with the
+IFU in 2-slit mode.  For N&S reductions there is no SKY extension
+since the sky is subtracted using GNSSKYSUB or GNSCOMBINE before the
+extraction step and a mean sky spectrum is not produced.
+
+.nf
+    IFU 1-slit data
+    --------------------------------------------------
+    Processing flag       Output format
+    --------------------------------------------------
+    none                  Raw data: 3 image extensions
+    fl_addmdf+            3 SCI 1 MDF 
+    fl_over+              3 SCI 1 MDF 
+    fl_bias+              3 SCI 1 MDF 
+    fl_crrej+             3 SCI 1 MDF 
+    fl_extract+           1 SCI 1 MDF
+    fl_gsappwave+         1 SCI 1 MDF
+    fl_wavtran+           1 SCI 1 MDF
+    fl_skysub+            1 SCI 1 MDF 1 SKY
+    fl_fluxcal+           1 SCI 1 MDF 1 SKY
+    --------------------------------------------------
+
+    IFU 2-slit data
+    --------------------------------------------------
+    Processing flag       Output format
+    --------------------------------------------------
+    none                  Raw data: 3 image extensions
+    fl_addmdf+            3 SCI 1 MDF 
+    fl_over+              3 SCI 1 MDF 
+    fl_bias+              3 SCI 1 MDF 
+    fl_crrej+             3 SCI 1 MDF 
+    fl_extract+           2 SCI 1 MDF
+    fl_gsappwave+         2 SCI 1 MDF
+    fl_wavtran+           1 SCI 1 MDF
+    fl_skysub+            1 SCI 1 MDF 1 SKY
+    fl_fluxcal+           1 SCI 1 MDF 1 SKY
+    --------------------------------------------------
+.fi    
+
+The output images from GFCUBE contain one 3-D science extension.
+This format is in the following referred to as a "datacube".
+
+The output images from GFQUICK and GFDISPLAY are simple 
+2-D FITS images.
+
+.ih
+SHORT DESCRIPTIONS OF THE IFU SPECTROSCOPY TASKS
+
+.ls GFQUICK -  Produce a rapid image reconstruction of IFU observations
+
+GFQUICK produces a crude reconstructed image for use during object
+acquisition.  The input image must be a full-frame read out in 3-amp
+mode, and can either be a undispersed image taken through the IFU,
+or an dispersed observation taken with the IFU and a grating. In the
+latter case, the object needs to have a strong continuum in order
+to be visible in this crude reconstruction.
+.le
+.ls GFREDUCE - Process IFU spectroscopic images 
+
+GFREDUCE applies processing steps to GMOS IFU images.  The possible
+processing steps are: pre-processing (GPREPARE), overscan subtraction,
+trimming, bias subtraction, cosmic ray rejection, extraction, flat
+fielding, wavelength calibration, sky subtraction, and flux
+calibration. If requested GFREDUCE calls GIREDUCE to create variance 
+and data quality frames. This task is the primary task used for reducing 
+IFU data.
+.le
+.ls GFDISPLAY - Reconstruct and display images from IFU observations
+
+GFDISPLAY uses the GEMTOOLS.LDISPLAY task to reconstruct
+and display GMOS IFU "white light" images.  Selecting a lenslet in the
+reconstructed image causes the spectrum to be plotted in the graphics
+window.  Also, the wavelength range for the image reconstruction can
+be selected in order to produce images of emission lines, etc.
+See also GFCUBE for a different possibility of analysing the data.
+.le
+.ls GFRESPONSE - Produce relative fiber throughputs from GMOS IFU flatfields
+
+GFRESPONSE produces flat fields that correct for pixel-pixel variations
+in the wavelength direction and for relative fiber throughputs.  The
+input image should be an extracted GCAL flat. A twilight flat can be
+used to correct illumination patterns in the GCAL flat. 
+.le
+.ls GFEXTRACT - Extract IFU observations to 1-D spectra
+
+GFEXTRACT locates and extracts IFU spectra to 1-D spectra and applies 
+the flat field (fiber throughput) correction from GFRESPONSE.  
+The three chips are joined into a single image with GMOSAIC, 
+if not done already, and the chip gaps are bridged by interpolating 
+the spectra. The spectra are then summed over a region +/-2.5 pixels 
+on either side of the trace. This task is normally called by GFREDUCE.
+.le
+.ls GSCRREJ - Clean spectroscopic data for cosmic ray hits
+
+GSCRREJ cleans spectroscopic data for cosmic ray hits by fitting each
+line of an image with a high order function. Then residuals (cosmic ray
+hits) that are narrower than the expected instrumental line width
+are replaces with the fitted value. The method is useful for 
+removing cosmic ray hits from single exposures. GSCRREJ calls the 
+hidden task GSCRMASK in order to make the mask of the cosmic ray hits.
+For IFU data, GSCRREJ is normally called by GFREDUCE.
+.le
+.ls GSAPPWAVE - Add approximate wavelength calibration to the headers
+
+GSAPPWAVE provides a quick wavelength solution for GMOS spectroscopic
+images. The wavelength solution is based on the filter, grating and central
+wavelength information found in the header. The task is for quick
+reduction purposes and to provide a starting point for the wavelength
+calibration derived by GSWAVELENGTH. For IFU data, GSAPPWAVE is normally 
+called by GFREDUCE.
+.le
+.ls GSWAVELENGTH - Establish wavelength calibration for GMOS spectra
+
+GSWAVELENGTH (automatically) determines the wavelength solution for GMOS
+calibration lamp images starting with the initial value supplied by
+GSAPPWAVE.
+.le
+.ls GFTRANSFORM - Wavelength calibrate GMOS IFU spectra
+
+GFTRANSFORM applies the wavelength solution found by GSWAVELENGTH to GMOS
+IFU spectra. For IFU data taken in 2-slit mode, the spectra from the 
+two slits are merged into one science extension and all
+spectra have the same wavelength calibration.
+GFTRANSFORM is normally called by GFREDUCE. If run alone, the input
+images have to be GFREDUCEd with the preceding processing steps.
+.le
+.ls GFSKYSUB - Sky subtract GMOS IFU spectra
+
+GFSKYSUB averages spectra in the defined sky region and subtracts the
+result from all spectra in the input image.  Regions are defined as in
+GFAPSUM. The sky spectrum is kept in an extension named "SKY" in the
+output image.
+.le
+.ls GFAPSUM - Combine all IFU spectra in a spatial region
+
+GFAPSUM either sums or averages all spectra in a specified spatial
+region and produces a single one-dimensional spectrum.  Fractional
+flux is not calculated, that is, if the center of a lenslet falls in
+the selected region, then all the flux from the lenslet is included.
+.le
+.ls GFCUBE - Resample GFREDUCEd IFU spectra into a 3-D datacube
+
+GFCUBE resamples a GFREDUCEd IFU spectrum into a 3-D datacube.
+The output image from GFCUBE is a MEF file with one image extension.
+The image extension is 3-dimensional and not uniformly gridded 
+in [x,y,lambda]. The datacube is useful for visualization, datacube merging,
+as well as analysis. The help page for GFCUBE describes in more 
+detail how to plot the spectra and visualize the content of the
+cube using standard IRAF tasks.
+.le
+.ls GSSTANDARD - Establish spectrophotometric calibration for GMOS spectra
+
+GSSTANDARD calls the tasks STANDARD and SENSFUNC in NOAO.IMRED.SPECRED
+to determine the detector sensitivity function based on observations of 
+standard stars.  For IFU data, the input spectra are assumed to have 
+been processed with GFREDUCE, including the wavelength calibration 
+(GFTRANSFORM) and the sky subtraction (GFSKYSUB).
+.le
+.ls GSCALIBRATE - Apply flux calibration and extinction correction
+
+GSCALIBRATE applies the flux calibration derived with GSSTANDARD, and may
+also be used to apply a correction for the extinction.
+.le
+.ih
+TYPICAL REDUCTIONS
+
+For typical reductions the user will need appropriate flat fields
+(GCAL and twilight), arc calibration images, and science
+images. Observations of spectrophotometric standard stars may also be
+required.
+
+1. Use GPREPARE to update the raw data headers and attach the
+mask definition file (MDF) as a binary table.  The other tasks will
+call GPREPARE as needed if this step is omitted.  GPREPARE will
+also create and attach data quality and variance planes if requested
+(\fIfl_vardq\fR=yes).
+
+2. Use GBIAS to create a bias image.  
+
+3. Use GFREDUCE to trim, bias-subtract, and extract the GCAL flats
+and twilight flats. The traces of the GCAL flat are used as references 
+for extracting the twilight flats, arcs, and science images.  
+Make the final flat field with GFRESPONSE. 
+
+4. Use GFREDUCE to trim, overscan-subtract, and extract the arcs. 
+Because the arcs are usually taken in fast read and only slow read
+bias images are available, it is recommended to overscan
+subtract the arcs.
+Use GSWAVELENGTH to establish an accurate wavelength calibration.
+
+5. Use GFREDUCE to reduce the observations of the science target.
+The steps include trimming, subtraction of the bias image, 
+cleaning for cosmic ray hits, mosaicing the
+data from the separate CCDs together, division by the flat field,
+interpolation across the detector gaps in the GMOSAICd image, extraction
+of the spectra (using the GCAL flat as a reference), wavelength
+calibration, and subtraction of the sky.  
+
+6. Use GFCUBE to resample the reduced IFU images onto a 3-D
+datacube.
+
+.ih
+WHAT TO DO NEXT
+
+GSSTANDARD can be used to establish a sensitivity function from
+GFREDUCEd and GFAPSUMed standard star spectral data.  The output from
+GSSTANDARD can be used by GSCALIBRATE (along or via GFREDUCE) to flux
+calibrate extracted spectra.
+
+.ih
+REDUCTION EXAMPLES
+
+Example reduction scripts are available, see GMOSEXAMPLES.
+
+.ih
+BUGS AND LIMITATIONS
+
+The tasks in the GMOS package have been tested with up to three extension
+MEF files.
+
+The tasks in the GMOS package are designed to operate on MEF FITS
+images only that have been processed using GPREPARE.  GPREPARE will not
+run on data from instruments other than GMOS.  The GMOS tasks will
+not run on simple FITS files.
+
+Input image names should in general not contain directory paths as not
+all tasks have been tested in this mode.
+
+Improvements to the (previously semi-functional) variance and
+data quality propagation in the GMOS package have undergone limited
+testing; the accuracy of the results should still be verified at
+each step by the scientist, particularly for spectroscopic data
+reduction tasks.
+.ih
+SEE ALSO
+gmosinfo, gmosinfospec, gmosexamples, gfapsum, gfdisplay, gsappwave,
+gswavelength, gftransform, gfskysub, gsstandard, gscalibrate, gscrrej,
+gfextract, gprepare, gbias, gmosaic, gfcube
+.endhelp

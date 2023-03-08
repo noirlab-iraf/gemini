@@ -1,0 +1,41 @@
+# Copyright(c) 2004-2006 Association of Universities for Research in Astronomy, Inc.
+
+sci_expr,s,h,"",,,Expression to apply to SCI (science) frames
+var_expr,s,h,"",,,Expression to apply to VAR (variance) frames
+dq_expr,s,h,"default",,,Expression to apply to DQ (data quality) frames
+sci_ext,s,h,"SCI",,,extension name for SCI extensions
+var_ext,s,h,"VAR",,,extension name for VAR extensions
+dq_ext,s,h,"DQ",,,extension name for DQ extensions
+mdf_ext,s,h,"MDF",,,extension name for MDF extension 
+fl_vardq,b,h,no,,,should gemexpr process VAR and DQ?
+
+# parms mimexpr wants too
+dims,s,h,"default",,,output image dimensions
+intype,s,h,"default",,,minimum type for input operands
+outtype,s,h,"default",,,output image pixel datatype
+refim,s,h,"default",,,reference image for wcs etc
+bwidth,i,h,0,0,,boundary extension width
+btype,s,h,"nearest","constant|nearest|reflect|wrap|project",,\
+"boundary extension type"
+bpixval,r,h,0,,,boundary pixel value
+rangecheck,b,h,yes,,,perform range checking
+verbose,b,h,yes,,,print informative messages
+exprdb,s,h,"none",,,expression database
+lastout,s,h,"",,,last output image
+expr,s,h,"",,,expression
+output,f,h,,,,output image
+
+# Input image operands.
+a,s,h,,,,operand a
+b,s,h,,,,operand b
+c,s,h,,,,operand c
+d,s,h,,,,operand d
+e,s,h,,,,operand e
+f,s,h,,,,operand f
+g,s,h,,,,operand g
+h,s,h,,,,operand h
+i,s,h,,,,operand i
+j,s,h,,,,operand j
+k,s,h,,,,operand k
+l,s,h,,,,operand l
+m,s,h,,,,operand m

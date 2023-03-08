@@ -1,0 +1,166 @@
+-------------------------------------------------------------------------
+GMOS data files included in the Gemini IRAF package
+Version: April 21, 2017
+Original Author: Inger Jorgensen (April 16, 2004)
+-------------------------------------------------------------------------
+
+File                   Description
+-------------------------------------------------------------------------
+README                 This file
+
+gmos-n_bpm_EEV_11_3amp_v1_mosaic.pl  GMOS-N bad pixel map for imaging using
+                                     EEV CCDs in 3-amp mode (unbinned) 
+gmos-n_bpm_EEV_22_3amp_v1_mosaic.pl  GMOS-N bad pixel map for imaging using
+                                     EEV CCDs in 3-amp mode (binned 2x2) 
+gmos-n_bpm_e2v_11_6amp_v1.fits       GMOS-N multi-extension bad pixel map for
+                                     imaging using e2vDD CCDs in 6-amp mode
+                                     (unbinned)
+gmos-n_bpm_e2v_11_6amp_v1_mosaic.pl  GMOS-N bad pixel map for imaging using
+                                     e2vDD CCDs in 6-amp mode (unbinned)
+gmos-n_bpm_e2v_22_6amp_v1.fits       GMOS-N multi-extension bad pixel map for
+                                     imaging using e2vDD CCDs in 6-amp mode
+                                     (binned 2x2)
+gmos-n_bpm_e2v_22_6amp_v1_mosaic.pl  GMOS-N bad pixel map for imaging using
+                                     e2vDD CCDs in 6-amp mode (binned 2x2)
+gmos-n_bpm_HAM_11_12amp_v1.fits      GMOS-N mult-extension bad pixel map for
+                                     imaging mode using the new Hamamatsu CCDs
+                                     in 12-amp mode (binned 1x1)
+gmos-n_bpm_HAM_11_12amp_v1_mosaic.pl GMOS-N mosaicked bad pixel map for imaging
+                                     mode using the new Hamamatsu CCDs in
+                                     12-amp mode (binned 1x1)
+gmos-n_bpm_HAM_22_12amp_v1.fits      GMOS-N mult-extension bad pixel map for
+                                     imaging mode using the new Hamamatsu CCDs
+                                     in 12-amp mode (binned 2x2)
+gmos-n_bpm_HAM_22_12amp_v1_mosaic.pl GMOS-N mosaicked bad pixel map for imaging
+                                     mode using the new Hamamatsu CCDs in
+                                     12-amp mode (binned 2x2)
+gmos-n_bpm_HAM_44_12amp_v1.fits      GMOS-N mult-extension bad pixel map for
+                                     imaging mode using the new Hamamatsu CCDs
+                                     in 12-amp mode (binned 4x4)
+gmos-n_bpm_HAM_44_12amp_v1_mosaic.pl GMOS-N mosaicked bad pixel map for imaging
+                                     mode using the new Hamamatsu CCDs in
+                                     12-amp mode (binned 4x4)
+gmos-s_bpm_EEV_11_3amp_v1_mosaic.pl  GMOS-S bad pixel map for imaging using
+                                     the original EEV CCDs in 3-amp mode 
+                                     (unbinned)
+gmos-s_bpm_EEV_22_3amp_v1_mosaic.pl  GMOS-S bad pixel map for imaging using
+                                     the original EEV CCDs in 3-amp mode 
+                                     (binned 2x2)
+gmos-s_bpm_EEV_11_3amp_v2_mosaic.pl  GMOS-S bad pixel map for imaging using
+                                     the newer EEV CCDs in 3-amp mode 
+                                     (unbinned)
+gmos-s_bpm_EEV_11_3amp_v1_spec.fits  GMOS-S bad pixel map for spectroscopy
+                                     using the newer EEV CCDs in 3-amp mode 
+                                     (unbinned)
+gmos-s_bpm_EEV_22_3amp_v1_spec.fits  GMOS-S bad pixel map for spectroscopy
+                                     using the newer EEV CCDs in 3-amp mode 
+                                     (binned 2x2)
+gmos-s_bpm_HAM_11_12amp_v1.fits      GMOS-S mult-extension bad pixel map for
+                                     imaging mode using the new Hamamatsu CCDs
+                                     in 12-amp mode (binned 1x1)
+gmos-s_bpm_HAM_11_12amp_v1_mosaic.pl GMOS-S mosaicked bad pixel map for imaging
+                                     mode using the new Hamamatsu CCDs in 
+                                     12-amp mode (binned 1x1)
+gmos-s_bpm_HAM_22_12amp_v1.fits      GMOS-S mult-extension bad pixel map for
+                                     imaging mode using the new Hamamatsu CCDs
+                                     in 12-amp mode (binned 2x2)
+gmos-s_bpm_HAM_22_12amp_v1_mosaic.pl GMOS-S mosaicked bad pixel map for imaging
+                                     mode using the new Hamamatsu CCDs in
+                                     12-amp mode (binned 2x2)
+gmos-s_bpm_HAM_44_12amp_v1.fits      GMOS-S mult-extension bad pixel map for
+                                     imaging mode using the new Hamamatsu CCDs
+                                     in 12-amp mode (binned 4x4)
+gmos-s_bpm_HAM_44_12amp_v1_mosaic.pl GMOS-S mosaicked bad pixel map for imaging
+                                     mode using the new Hamamatsu CCDs in
+                                     12-amp mode (binned 4x4)
+
+chipgaps.dat                 Definition of gaps between the CCDs used for 
+                             interpolation across the gaps for spectroscopic 
+                             data.
+
+0.25arcsec.fits              Longslit MDF
+0.5arcsec.fits               Longslit MDF
+0.75arcsec.fits              Longslit MDF
+1.0arcsec.fits               Longslit MDF
+1.5arcsec.fits               Longslit MDF
+2.0arcsec.fits               Longslit MDF
+5.0arcsec.fits               Longslit MDF
+NS0.5arcsec.fits             N&S longslit MDF
+NS0.75arcsec.fits            N&S longslit MDF
+NS1.0arcsec.fits             N&S longslit MDF
+NS1.5arcsec.fits             N&S longslit MDF
+NS2.0arcsec.fits             N&S longslit MDF
+
+GCALcuar.dat                 Preliminary GCAL CuAr linelist
+CuAr_GMOS.dat                GCAL CuAr list for GMOS
+
+GMOSfilters.dat              GMOS filter information
+
+GMOSgratings.dat             GMOS grating information
+gratingeq.dat
+
+gmosamps.dat                 GMOS detector information
+gmosamps-20170224.dat        GMOS detector information for data taken between
+                             2015.08.27 and 2017.02.24
+gmosamps-20150826.dat        GMOS detector information for data taken between
+                             2006.08.31 and 2015.08.26
+gmosamps-20060831.dat        GMOS detector information for data taken before 
+                             2006.08.31
+
+gmosFWdepths.dat             GMOS detector full-well depth information
+
+gmosQEfactors.dat            GMOS quantum efficiency correction information
+
+gnifu_deadb.cfg              GMOS-N IFU configuration file for gfdisplay
+gnifu_deadr.cfg              GMOS-N IFU configuration file for gfdisplay
+gnifu_deads.cfg              GMOS-N IFU configuration file for gfdisplay
+gnifu_slitb.cfg              GMOS-N IFU configuration file for gfdisplay
+gnifu_slitr.cfg              GMOS-N IFU configuration file for gfdisplay
+gnifu_slits.cfg              GMOS-N IFU configuration file for gfdisplay
+
+gnifu_slitb_mdf.fits         GMOS-N IFU MDF
+gnifu_slitr_mdf.fits         GMOS-N IFU MDF
+gnifu_slits_mdf.fits         GMOS-N IFU MDF
+
+gsifu_slitb_mdf_HAM.fits     GMOS-S IFU MDF for Hamamatsu CCDs
+gsifu_slitr_mdf_HAM.fits     GMOS-S IFU MDF for Hamamatsu CCDs
+gsifu_slits_mdf_HAM.fits     GMOS-S IFU MDF for Hamamatsu CCDs
+
+gsifu_slitb_mdf.fits         GMOS-S IFU MDF
+gsifu_slitr_mdf.fits         GMOS-S IFU MDF
+gsifu_slits_mdf.fits         GMOS-S IFU MDF
+
+gsifu_slitb_mdf_2003nov.fits GMOS-S IFU MDF for November 2003
+gsifu_slitr_mdf_2003nov.fits GMOS-S IFU MDF for November 2003
+gsifu_slits_mdf_2003nov.fits GMOS-S IFU MDF for November 2003
+
+gsifu_ns_slitb_mdf.fits      GMOS-S IFU N&S MDF
+gsifu_ns_slitr_mdf.fits      GMOS-S IFU N&S MDF
+gsifu_ns_slits_mdf.fits      GMOS-S IFU N&S MDF
+
+OG515.dat                    GMOS filter info
+GG455.dat                    GMOS filter info
+RG610.dat                    GMOS filter info
+RG780.dat                    GMOS filter info
+g_G0301.dat                  GMOS filter info
+g_G0325.dat                  GMOS filter info
+i_G0302.dat                  GMOS filter info
+i_G0327.dat                  GMOS filter info
+r_G0303.dat                  GMOS filter info
+r_G0326.dat                  GMOS filter info
+u_G0308.dat                  GMOS filter info
+u_G0332.dat                  GMOS filter info
+z_G0304.dat                  GMOS filter info
+z_G0328.dat                  GMOS filter info
+CaT_G0309.dat                GMOS filter info
+CaT_G0333.dat                GMOS filter info
+DS920_G0312.dat              GMOS filter info
+HaC_G0311.dat                GMOS filter info
+HaC_G0337.dat                GMOS filter info
+Ha_G0310.dat                 GMOS filter info
+Ha_G0336.dat                 GMOS filter info
+OIIIC_G0339.dat              GMOS filter info
+OIII_G0338.dat               GMOS filter info
+SII_G0335.dat                GMOS filter info
+
+-------------------------------------------------------------------------

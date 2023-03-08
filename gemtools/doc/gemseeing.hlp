@@ -1,0 +1,502 @@
+.help gemseeing December2011 gemini.gemtools
+.ih
+NAME
+gemseeing -- Determine the image quality for imaging data
+.ih
+USAGE
+gemseeing image
+.ih
+PARAMETERS
+.ls image 
+The name of the image. The image may be simple FITS, IRAF format,
+or multi-extension FITS (MEF). If the image is MEF 
+the extension can be included in \fIimage\fR. If the extension
+is not included then GEMSEEING
+works on the extension named [SCI] or if that extension is not
+present then on extension [1].
+Image sections may be specified using the usual IRAF image section 
+format.  Extensions should be specified before image sections.
+.le
+.ls coords = "default"            
+Name of coordinate file (output, or optional input).
+Default value is \fIimage\fR_coo.
+.le
+.ls psffile = "default"
+Name of PSF output file. Default value is \fIimage\fR_see.
+STSDAS tables will be named \fIpsffile\fR.tab and 
+\fIpsffile\fR_psf.tab.
+.le
+.ls fl_inter = no
+Run task interactively with image display.
+.le
+.ls fl_useall = no
+Use all objects found with DAOFIND.
+.le
+.ls maxnobj = 100
+Approximate maximum number of objects if not using all objects
+(\fIfl_useall\fR = no).
+.le
+.ls fl_update = yes
+Update the image header with the derived image quality. If the user
+does not have write permission in the header of the image being
+processed, e.g. the permissions on raw data have been changed to 
+prevent accidental deletion, a number of warnings will be issued 
+and the header will not be updated. 
+Screen output and logfile output will still be made as requested. 
+.le
+.ls fl_keep = yes
+Keep the coordinate file and the PSF output files. If 
+\fIfl_keep\fR = no, the coordinate file and the PSF output files 
+will be deleted after the task has completed.
+.le
+.ls fl_strehl = yes
+Derive Strehl ratio if the instrument-camera-filter combination is 
+included in the file \fIstdatabase\fR.
+.le
+.ls fl_overwrite = no
+Allow overwrite of results from previous use of GEMSEEING.
+If \fIfl_overwrite\fR = yes, the coordinate file \fIcoords\fR,
+and the PSF output files \fIpsffile\fR, \fIpsffile\fR.tab and
+\fIpsffile\fR_psf.tab from previous use of GEMSEEING
+are deleted at the start of the execution.
+.le
+.ls fl_cleed = yes
+Clean measurements of EED50% and EED85% of outliers (systematically
+too large values due to crowding) if more than 15 objects are processed.
+.le
+.ls key_inst = "INSTRUME"
+Image header keyword containing the instrument name.
+.le
+.ls key_camera = "CAMERA"
+Image header keyword containing the NIRI camera name.
+.le
+.ls key_ron = "RDNOISE"
+Image header keyword containing the read noise.
+.le
+.ls key_gain = "GAIN"
+Image header keyword containing the gain.
+.le
+.ls key_filter = "FILTER"
+Image header keyword containing the filter. Only needed for the
+determination of the Strehl ratio.
+.le
+.ls instrument = ""
+Name of instrument, if not found in the header.
+.le
+.ls camera = ""
+Name of NIRI camera, if not found in the header.
+.le
+.ls ron = 1.
+Read noise in electrons, if not found in the header.
+.le
+.ls gain = 1.
+Gain in e-/ADU, if not found in the header.
+.le
+.ls filter = ""
+Filter name, if not found in the header.
+.le
+.ls fl_database = yes
+Use the database values for the parameters \fIpixscale\fR,
+\fIfwhmin\fR, \fIdatamax\fR, \fIradius\fR, \fIbuffer\fR, and \fIwidth\fR.
+.le
+.ls database = "gemtools$gemseeing.dat"
+Database of instrument dependent parameters.
+.le
+.ls stdatabase = "gemtools$gemseeing_strehl.dat"
+Database of instrument, camera and filter dependent information needed 
+for the determination of the Strehl ratio.
+.le
+.ls pixscale = 0.5
+Pixel scale in arcsec/pixel. 
+The value is taken from \fIdatabase\fR if \fIfl_database\fR = yes.
+.le
+.ls fwhmin = 1.
+Initial FWHM in arcsec of the point-spread-function (PSF) - used by DAOFIND.
+The value is taken from \fIdatabase\fR if \fIfl_database\fR = yes.
+.le
+.ls datamax = 40000.
+Maximum valid data value (saturation level).
+The value is taken from \fIdatabase\fR if \fIfl_database\fR = yes.
+.le
+.ls radius = 0.
+Radius in pixels for psf fits. 
+The value is taken from \fIdatabase\fR if \fIfl_database\fR = yes.
+If \fIradius\fR = 0, a value of 
+\fIradius\fR = 2*\fIfwhmin\fR/\fIpixscale\fR is used.
+.le
+.ls buffer = 8.
+Buffer in pixels between \fIradius\fR and the sky determination annulus.
+The value is taken from \fIdatabase\fR if \fIfl_database\fR = yes.
+.le
+.ls width = 2.
+The width in pixels of the sky determination annulus.
+The value is taken from \fIdatabase\fR if \fIfl_database\fR = yes.
+.le
+.ls fwhmnonao = 0.5
+Approximate FWHM in arcsec of the non-AO PSF.
+For AO observations this parameter is used to set the maximum size
+aperture within which the total flux is derived. A maximum aperture
+radius of 3*\fIfwhmnonao\fR is used. This in turn affects
+the determination of EED50, EED85 and the Strehl ratio. 
+It is critical that \fIfwhmnonao\fR is large enough, 
+otherwise EED50 and EED85 will be underestimated, and the Strehl
+ratio will be overestimated.
+\fIfwhmnonao\fR is not used for non-AO observations.
+.le
+.ls sigthres = 10.
+Detection threshold for DAOFIND in sigma above the sky.
+.le
+.ls threshold = INDEF
+Detection threshold for DAOFIND in ADU above the sky. Only used if
+\fIsigthres\fR is not defined.
+.le
+.ls niter = 3
+Number of iterations for PSFMEASURE.
+.le
+.ls mdaofaint = -2.0
+Faintest DAOFIND magnitude of objects to include in the determination.
+.le
+.ls fwhmmin = 0.
+Minimum acceptable FWHM in arcsec. If \fIfwhmmin\fR=0, a value of
+\fIfwhmmin\fR = 0.25*\fIfwhmin\fR is used.
+.le
+.ls fwhmmax = 0.
+Maximum acceptable FWHM in arcsec. If \fIfwhmmax\fR=0, a value of
+\fIfwhmmax\fR = 4*\fIfwhmin\fR is used.
+.le
+.ls sharplow = 0.3
+Lower limit on DAOFIND output sharpness.
+.le
+.ls sharphigh = 1.0
+Upper limit on DAOFIND output sharpness.
+.le
+.ls sharpsig = 3.
+Sigma selection on DAOFIND output sharpness.
+.le
+.ls dmagsig = 2.
+Sigma selection on the difference between magnitudes from DAOFIND
+and from PSFMEASURE.
+.le
+.ls fwhmsig = 2.5
+Sigma selection on the resulting FWHM values.
+.le
+.ls logfile = "gemseeing.log"
+Name of logfile. If \fIlogfile\fR="" the results are printed to the
+screen only. 
+.le
+.ls verbose = yes
+Print intermediate results.
+.le
+.ls status = 0
+This flag is non-zero after execution of GEMSEEING if a fatal error 
+was encountered. This includes any error causing a failure to determine
+the FWHMPSF.
+.le
+.ih
+DESCRIPTION
+.le
+GEMSEEING is used for determining the image quality of direct images.
+The task may be used on raw data, reduced data or co-added data.
+GEMSEEING derives median values of the FWHM, 50% and 85% 
+encircled energy diameters, strehl ratio (optional), ellipticity and
+position angle for a selection of objects in the image.
+
+The main idea in GEMSEEING is to locate the objects using DAOFIND,
+fit their radial profiles in a number of different ways using 
+NOAO.OBSUTIL.PSFMEASURE, and perform a reasonable selection of objects designed
+to omit extended objects, cosmic-ray-hits and objects that are too faint.
+GEMSEEING can either work on all the objects found by DAOFIND, or
+for a faster (and slightly more uncertain) determination use only
+a small subset of the objects.
+GEMSEEING may also be run interactively in which case the user
+selects the objects using the image display.
+.le
+.nf
+
+When GEMSEEING is run non-interactively, the steps in the process 
+are as follows:
+ 1) Derive the approximate background level and noise in the background
+ 2) Set \fIradius\fR=2*\fIfwhmmin\fR/\fIpixscale\fR, 
+    \fIfwhmmin\fR=\fIfwhmin\fR/4, \fIfwhmmax\fR=4*\fIfwhmin\fR if the input 
+    parameters were zero
+ 3) Find objects using DAOFIND
+ 4) If \fIfl_useall\fR=no, then select a subset not larger than approximately
+    \fImaxnobj\fR.
+ 5) Using PSFMEASURE derive direct measurement of the FWHM and the FWHM
+    from fitting a Moffat profile 
+       I = Ic (1 + (r / alpha)**2)**(-beta)    
+    (see also NOAO.OBSUTIL.PSFMEASURE)
+ 6) Select objects - attempt to get bright unsaturated stars
+    Selection criteria:
+     1) unsaturated && m_dao < mdaofaint && fwhm>=fwhmmin && fwhm<fwhmmax
+     2) derive median_dmag (dmag=m_dao-m_psf)
+     3) m_psf < mdaofaint + median_dmag
+     4) sharplow<= sharp <= sharphigh   (default 0.3-1.0)
+     5) derive median_sharp and stddev_sharp
+     6) sharp within median_sharp +- sharpsig*stddev_sharp
+     7) derive median_dmag and stddev_dmag
+     8) dmag within median_dmag +- dmagsig*stddev_dmag
+     9) derive median_fwhm and stddev_fwhm
+    10) fwhm within median_fwhm +- fwhmsig*stddev_fwhm
+ 7) Flag the objects in \fIpsffile\fR.tab that were selected
+ 8) Rerun PSFMEASURE for the selected objects, deriving the 50% and 85% 
+    encircled energy diameters: EED50 and EED85 
+ 9) If \fIfl_strehl\fR=yes and the required information is found in 
+    \fIstdatabase\fR an approximate determination of the Strehl ratio is 
+    derived from flux(EED50)*2, the peak value from the central pixel, and the 
+    normalized peak value in the diffraction limited case as listed in 
+    \fIstdatabase\fR.
+10) Update image header keywords if \fIfl_update=\fRyes  (default)
+11) Update table header keywords if \fIfl_keep\fR=yes
+
+.fi
+.le
+If run interactively, steps 1-4 are replaced with 
+.nf
+  1) Display the image
+  2) The user chooses the objects using the image cursor
+.fi
+Further, step 6 is omitted and all selected objects are used, except
+if the fit with PSFMEASURE fails.
+In the interactive mode, the objects are marked on the display and
+labelled with the derived FWHM in arcsec.
+
+In non-interactive mode GEMSEEING stops on errors if there are less 
+than three unsaturated objects. If less than five objects are 
+remaining after passing one of the selection criteria the rest of 
+the selection criteria are omitted.
+
+.le 
+GEMSEEING produces four output files.
+
+.nf
+File             Explanation
+--------------------------------------------------------------------------
+\fIcoords\fR           The coordinate file. Default name is \fIimage\fR_coo
+\fIpsffile\fR          ASCII output file from PSFMEASURE. 
+                 Default name is \fIimage\fR_see
+
+\fIpsffile\fR.tab      An STSDAS table containing the information from 
+                       \fIcoords\fR and \fIpsffile\fR. Default name is 
+                       \fIimage\fR_see.tab
+
+\fIpsffile\fR_psf.tab  An STSDAS table containing information for the objects 
+                 selected for use. Default name is \fIimage\fR_see_psf.tab
+
+.fi
+
+The STSDAS tables contain one row for each object.
+The columns in the STSDAS tables are as follows.
+
+.nf
+Column           Description
+--------------------------------------------------------------------------
+MFWHM            FWHM from fit with Moffat profile [pixels]
+BETA             beta from fit with Moffat profile 
+X_PSF            X coordinate from PSFMEASURE
+Y_PSF            Y coordinate from PSFMEASURE
+M_PSF            magnitude from PSFMEASURE
+FWHM             FWHM from PSFMEASURE [pixels]
+EPS              ellipticity from PSFMEASURE
+POS              position angle from PSFMEASURE
+SAT              flag for saturation (Y/N)
+X_DAO            X coordinate from DAOFIND or given interactively
+Y_DAO            Y coordinate from DAOFIND or given interactively
+M_DAO            magnitude from DAOFIND, column not present if fl_inter=yes
+SHARPNESS        sharpness from DAOFIND, column not present if fl_inter=yes
+SROUND           round from DAOFIND, column not present if fl_inter=yes
+GROUND           round from DAOFIND, column not present if fl_inter=yes
+ID               id number, column not present if fl_inter=yes
+DMAG             M_PSF-M_DAO, column not present if fl_inter=yes
+FLAG             FLAG=1 object used for determination
+                 FLAG=0 object not used for determination
+.fi
+
+\fIpsffile\fR_psf.tab contains only the objects used for the final 
+determination of the parameters. The columns are the same, but MFWHM and
+FWHM are in arcsec. In addition \fIpsffile\fR_psf.tab contains the 
+following columns.
+
+.nf
+Column           Description
+--------------------------------------------------------------------------
+EED50            50% encircled energy diameter
+EED85            85% encircled energy diameter
+FLUX             Half the total flux in ADU
+MAG              magnitude within the median EED50, from PHOT
+MERR             uncertainty on MAG
+MSKY             sky level in ADU/pixel
+PEAK             Peak value including sky level [ADU]
+NPEAK            Normalized peak value
+STREHL           Strehl ratio
+.fi
+
+The STSDAS tables are especially useful if the results for the individual 
+objects need to be inspected. The tables can be printed to the screen 
+with TPRINT.
+See the help pages for the tasks in the package TTOOLS for further 
+information on STSDAS tables.
+
+.le
+GEMSEEING can be rerun from the coordinate file, from the first
+PSFMEASURE output file \fIpsffile\fR, or from the first STSDAS table 
+\fIpsffile\fR.tab.
+In the last case only the selection of the objects and the second
+PSFMEASURE are rerun.
+
+.le
+\fIfl_overwrite\fR=yes can be used to rerun all steps, overwriting
+any existing output file.
+
+.le
+The default values in \fIdatabase\fR (gemtools$gemseeing.dat) reflects 
+expected seeing with various instruments. If the instrument is defined
+in \fIdatabase\fR, default values can be used for the parameters 
+\fIpixscale\fR, \fIfwhmin\fR, \fIdatamax\fR, \fIradius\fR, \fIbuffer\fR,
+and \fIwidth\fR.
+
+.le
+The determination of the Strehl ratio relies on the information in
+\fIstdatabase\fR (gemtools$gemseeing_strehl.dat). This information
+includes instrument, pixel scale, filter and the normalized peak
+counts for a diffraction limited image.
+The current version of gemtools$gemseeing_strehl.dat 
+contains information for Hokupaa+QUIRC, NIRI-F/32, NIRI-F/14, and
+GMOS used on the Gemini Telescopes. Only broad band filters are
+included in the table. GEMSEEING will currently not automatically
+derive Strehl ratios for images obtained with narrow-band images,
+but the user can work around this limitation by manually setting
+the filter header keyword to the closest broad-band filter,
+run GEMSEEING, and setting the filter header keyword back to the
+original value.
+.le
+
+The output parameters from GEMSEEING are
+
+.nf
+   NPSF        Number of objects used for the determination
+   FWHM        Direct determination of FWHM of the PSF
+   MFWHM       FWHM derived by fitting a Moffat profile to the PSF
+   EED50%      50% encircled energy diameter
+   EED85%      85% encircled energy diameter
+   STREHL      Strehl ratio
+   EPS         Ellipticity of the PSF 
+   POS         Position angle of the PSF (CCW from the X-axis)
+.fi
+
+The values are derived as the median values of the selected individual 
+measurements.
+Below the median value of each parameter is given the standard 
+deviation of the individual measurements included in the median value.
+If \fIfl_cleed\fR=yes and there are more than 15 objects, then the
+determinations of EED50 and EED85 are cleaned for objects giving 
+systematically too high values. The systematically too high values are 
+typically caused by crowding of objects in the field. The cleaning
+improves the determination of EED50 and EED85 as well as the Strehl
+ratio.
+
+The Strehl ratio is derived as
+
+.nf
+   STREHL =  1.08 * maximum pixel intensity /(flux(EED50)*2)/npeak
+.fi
+
+where flux(EED50) is the flux within the 50% encircled energy 
+diameter, and npeak is the normalized peak counts given in the 
+database file \fIstdatabase\fR.
+The factor 1.08 is a statistical correction for the objects not 
+being centered on the pixels. The factor is valid for FWHM = 3-6 pixels,
+which is typical for Hokupa'a/QUIRC.
+
+.le
+If GEMSEEING is used for images obtained with adaptive optics (AO),
+then an estimate of the FWHM for non-AO images obtained under the same
+observing conditions is needed in order to derive reliable estimates 
+of EED50, EED85 and the Strehl ratio.
+.le
+If \fIfl_update\fR=yes the header of the input image is updated with
+the following keywords:
+
+.nf
+  Keyword  Explanation
+  ------------------------------------------------------------------
+  GEMSEE   Current date and time
+  SEEPRG   gemseeing:  psfmeasure  direct/eed50/eed85/moffat/strehl
+       or  gemseeing:  psfmeasure  direct/eed50/eed85/moffat
+  FWHMPSF  Direct measurement of FWHM in arcsec
+  NPSF     Number of stars used for the measurement
+  MFWHM    FWHM in arcsec from Moffat fit
+  EED50    50% encircled energy diameter in arcsec
+  EED85    85% encircled energy diameter in arcsec
+  EPSPSF   Ellipticity of PSF
+  POSPSF   Position angle of PSF (CCW from the X-axis)
+  STREHLRA Strehl ratio (if derived)
+.fi
+.le
+
+.ih
+EXAMPLES
+
+1. Determine the image quality of a sky subtracted image niriskysub
+from NIRI-F/32, including determination of the Strehl ratio:
+
+.nf
+      cl> gemseeing niriskysub
+
+.fi
+.nf
+The output from this will with \fIverbose\fR=yes look like this
+
+----------------------------------------------------------------------------
+GEMSEEING -- Tue May 23 16:00:30 HST 2000
+
+Image  niriskysub[SCI]   Sigma threshold   10.0
+                         Sky level [ADU]  557.0
+Image  niriskysub[SCI]   Total Nobj          16
+                         Fitting Nobj        16
+                         Radius [pixels]  34.09
+Image  niriskysub[SCI]   FWHM [arcsec]   0.2545
+
+Image            NPSF    FWHM   MFWHM  EED50%  EED85%  STREHL    EPS   POS
+niriskysub[SCI]     5  0.2545  0.2436  0.2846  0.5287  0.0446  0.060  36.0
+[stddev]               0.0148  0.0057  0.1192  0.9348  0.0041  0.067  10.2
+
+          Pixel scale =   0.0220 arcsec/pixel
+
+.fi
+2. Determine the image quality of an image from NIRI, deleting the
+output files afterwards, and not listing the intermediate results:
+
+.nf
+      cl> gemseeing niriskysub fl_keep- verbose-
+
+.fi
+.nf
+The output from this is
+
+Image            NPSF    FWHM   MFWHM  EED50%  EED85%  STREHL    EPS   POS
+niriskysub[SCI]     5  0.2545  0.2436  0.2846  0.5287  0.0446  0.060  36.0
+[stddev]               0.0148  0.0057  0.1192  0.9348  0.0041  0.067  10.2
+
+          Pixel scale =   0.0220 arcsec/pixel
+.fi
+
+.ih
+BUGS
+The algorithm may fail for very crowded fields. In such cases it
+is recommended either to run gemseeing on a subimage that is less 
+crowded, supply gemseeing with a coordinate file 
+of objects that are not affected by the crowding, or run gemseeing 
+interactively. The coordinate file can either be in DAOFIND format
+or a two-column list giving (x,y) of the objects.
+
+The algorithm may also fail if the parameters critical for DAOFIND
+are not set correctly and noise peaks and/or cosmic-ray hits are
+found by DAOFIND.
+
+The absolute values of the Strehl ratios depend critically
+on \fIfwhmnonao\fR.
+.ih
+SEE ALSO
+noao.obsutil.psfmeasure
+.endhelp

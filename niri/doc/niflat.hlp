@@ -1,0 +1,377 @@
+.help niflat December2011 gemini.niri
+.ih
+NAME
+niflat -- Derive flat field and bad pixel mask for NIRI imaging data 
+.ih
+USAGE
+niflat lampson
+.ih
+PARAMETERS
+.ls lampson = ""
+List of input NIRI GCAL imaging flat taken with the IR lamp on (shutter open)
+or sky flats.
+All images must be in multi-extension FITS format previously run through
+NPREPARE.
+.le
+.ls flatfile = ""
+Output normalized flat field image. The data quality extension 
+is the bad pixel map, with bad pixels having a value of 1.  Pixels
+in the input \fIlampson\fR images that exceed the non-linear limit
+in the header will be flagged with the value 2, and saturated pixels
+flagged with 4.  The values are combined with a logical OR, meaning
+that a bad pixel that was saturated will have a value of 5 in the
+output DQ plane.  If not specified, the output image will be named
+after the first input image with "_flat" appended.
+.le
+.ls lampsoff = ""
+List of input NIRI GCAL images taken with the shutter closed to
+allow for subtraction of the thermal component of the flat field.
+These images are combined and subtracted from the combined  
+\fIlampson\fR images.  If skyflats are being constructed, \fIlampsoff\fR
+should be darks of the same exposure time as the sky flats.
+.le
+.ls darks = ""
+List of input short dark images.  Short darks are used to identify bad pixels
+only.
+.le
+.ls flattitle = "default"
+Image title for \fIflatfile\fR.
+.le
+.ls bpmtitle = "default"
+Image title for \fIbpmfile\fR.
+.le
+.ls bpmfile = "default"
+Image name for output PL \fIbpmfile\fR.  If set to "default", the output
+bad pixel mask will be the first input file name with "_bpm.pl" appended.
+.le
+.ls logfile = ""
+Name of logfile.  If empty, then the package logfile (niri.logfile) is used.
+.le
+.ls thresh_flo = 0.80
+Lower threshold for computing flat field normalization and identifying
+bad pixels, as a fraction of the median value in the frame (with
+bad pixels ignored).  The median is only used for computing the limits;
+\fInormstat\fR is used to compute the normalization constant.  
+.le
+.ls thresh_fup = 1.25
+Upper threshold for computing flat field normalization and identifying
+bad pixels, as a fraction of the median.
+.le
+.ls thresh_dlo = -20.
+Lower threshold for identifying bad pixels in the short dark exposures,
+in ADU.
+.le
+.ls thresh_dup = 100.
+Upper threshold for identifying bad pixels in the short dark exposures,
+in ADU.
+.le
+.ls fl_inter = no
+If \fIfl_inter\fR = yes, NIFLAT will display a histogram of pixel values
+in the flat and dark images so the user can interactively decide on 
+appropriate cut values for identifying bad pixels and computing the
+normalization of the flat field image.
+.le
+.ls fl_fixbad = yes
+If \fIfl_fixbad\fR = yes, NIFLAT will replace bad pixels in the output
+flat field image with the constant value defined by \fIfixvalue\fR.
+This prevents bad pixels with values close to 0 from causing problems
+in images subsequently divided by the flat.  If \fifl_vardq\fR is set
+to "no", bad pixels cannot be fixed and \fIfl_fixbad\fR will be reset
+to no.
+.le
+.ls fixvalue = 1.0
+If \fIfl_fixbad\fR = yes, NIFLAT will use this value to fix bad
+pixels in the output flat.  If \fIfixvalue\fR = 0, make sure that
+later divisions by the flat handle divide-by-zero errors properly.
+.le
+.ls normstat = "mean" (mean|midpt)
+Statistic to use when determining the normalization factor for the flat
+field image. 
+.le
+.ls combtype = "default" (default|average|median)
+Type of combining operation performed on the input \fIlampson\fR, 
+\fIlampsoff\fR, and \fIdark\fR images.  Combining is disabled if
+only a single input image is specified.
+.le
+.ls rejtype = "avsigclip" (none|minmax|ccdclip|crreject|sigclip|avsigclip|pclip)
+Type of rejection operation performed when combining the input images.
+The algorithms are described in the help for 
+IMCOMBINE. The rejection choices are:
+.nf
+      none - No rejection
+    minmax - Reject the nlow and nhigh pixels
+   ccdclip - Reject pixels using CCD noise parameters
+  crreject - Reject only positive pixels using CCD noise parameters
+   sigclip - Reject pixels using a sigma clipping algorithm
+ avsigclip - Reject pixels using an averaged sigma clipping algorithm
+     pclip - Reject pixels using sigma based on percentiles
+.fi
+.le
+.ls scale = "none" (none|mode|median|mean|exposure|@<file>|!<keyword>)
+Multiplicative image scaling to be applied when combining the input
+images. The choices are none, multiply
+by the reciprocal of the mode, median, or mean of the specified statistics
+section, multiply by the reciprocal of the exposure time in the image header,
+multiply by the values in a specified file, or multiply by a specified
+image header keyword. When specified in a file the scales must be one per
+line in the order of the input images.
+.le
+.ls zero = "none" (none|mode|median|mean|@<file>|!<keyword>)
+Additive zero level image shifts to be applied when combining the
+input images. The choices are none, add
+the negative of the mode, median, or mean of the specified statistics
+section, add the values given in a file, or add the values given by an
+image header keyword. When specified in a file the zero values must be one
+per line in the order of the input images. File or keyword zero offset
+values do not allow a correction to the weights.
+.le
+.ls weight = "none" (none|mode|median|mean|exposure|@<file>|!<keyword>)
+Weights to be applied during the final averaging. The choices are none,
+the mode, median, or mean of the specified statistics section, the exposure
+time, values given in a file, or values given by an image header keyword.
+When specified in a file the weights must be one per line in the order of
+the input images and the only adjustment made by the task is for the number of
+images previously combined. In this case the weights should be those
+appropriate for the scaled images which would normally be the inverse
+of the variance in the scaled image.
+.le
+.ls statsec = "[100:924,100:924]"
+Section of images to use in computing image statistics for scaling,
+weighting, and normalizing. If no section is given then the entire region 
+of the input is sampled.
+.le
+.ls key_exptime = "EXPTIME"
+Image header keyword for the exposure time.
+.le
+
+.ce
+Rejection Algorithm Parameters
+.ls lthreshold = INDEF, hthreshold = INDEF
+Low and high thresholds to be applied to the input pixels. This is done
+before any scaling, rejection, and combining. If INDEF the thresholds
+are not used.
+.le
+.ls nlow = 1,  nhigh = 1 (minmax)
+The number of low and high pixels to be rejected by the "minmax" algorithm.
+These numbers are converted to fractions of the total number of input images
+so that if no rejections have taken place the specified number of pixels
+are rejected while if pixels have been rejected by masking, thresholding,
+or nonoverlap, then the fraction of the remaining pixels, truncated
+to an integer, is used.
+.le
+.ls nkeep = 0
+The minimum number of pixels to retain or the maximum number to reject
+when using the clipping algorithms (ccdclip, crreject, sigclip,
+avsigclip, or pclip). When given as a positive value this is the minimum
+number to keep. When given as a negative value the absolute value is
+the maximum number to reject. The latter is in addition to pixels
+missing due to non-overlapping offsets, bad pixel masks, or thresholds.
+.le
+.ls mclip = yes (ccdclip, crreject, sigclip, avsigclip)
+Use the median as the estimate for the true intensity rather than the
+average with high and low values excluded in the "ccdclip", "crreject",
+"sigclip", and "avsigclip" algorithms? The median is a better estimator
+in the presence of data which one wants to reject than the average.
+However, computing the median is slower than the average.
+.le
+.ls lsigma = 3., hsigma = 3. (ccdclip, crreject, sigclip, avsigclip, pclip)
+Low and high sigma clipping factors for the "ccdclip", "crreject", "sigclip",
+"avsigclip", and "pclip" algorithms. They multiply a "sigma" factor
+produced by the algorithm to select a point below and above the average or
+median value for rejecting pixels.  See help pages for IMCOMBINE for details.
+.le
+.ls snoise = "0.0" (ccdclip, crreject)
+Sensitivity noise as a fraction.  See help pages for IMCOMBINE for details.
+.le
+.ls sigscale = 0.1 (ccdclip, crreject, sigclip, avsigclip)
+This parameter determines when poisson corrections are made to the
+computation of a sigma for images with different scale factors.
+See help pages for IMCOMBINE for details.
+.le
+.ls pclip = -0.5 (pclip)
+Percentile clipping algorithm parameter.  See help pages for IMCOMBINE 
+for details.
+.le
+.ls grow = 0.0
+Radius in pixels from a rejected pixel for additional pixels to be rejected 
+in an image. This applies only to
+pixels rejected by one of the rejection algorithms and not the masked or
+threshold rejected pixels.  See help pages for IMCOMBINE for details.
+.le
+
+.ce
+Additional NIFLAT Parameters
+.le
+.ls key_ron = "RDNOISE"
+Header keyword for read noise (in electrons) in the input images.
+The read noise in the output flat image is the read noise of the first
+input image multiplied by the square root of the number of input images.
+If the number of \fIlampson\fR and \fIlampsoff\fR are different, the
+scaled read noise values are added in quadrature.  The read noise
+is then divided by the normalization factor.  This output read
+noise value is an estimate only; the variance plane should be consulted
+for the total noise in each pixel.
+The equation for the output header read noise is:
+.nf
+     read noise (e) = sqrt[ RON^2*N_on + RON^2*N_off ] / norm
+.fi
+where RON is the read noise from the first input image header, N_on and
+N_off are the number of input \fIlampson\fR and \fIlampsoff\fR files.
+.le
+.ls key_gain = "GAIN"
+Header keyword for gain (in electrons per ADU) in the input images.
+In the output flat field image, the gain in the header is just that
+of the first input image multiplied by the number of \fIlampson\fR
+images and by the normalization factor.
+.le
+.ls key_sat = "SATURATI"
+Header keyword for saturation level in ADU in the input images.
+The saturation level in the output flat field image is estimated by
+taking the saturation level in the first input image, subtracting
+the median sky value, and dividing by the normalization constant.
+.le
+.ls key_nonlinea = "NONLINEA"
+Header keyword for non-linear level in ADU in the input images.
+The non-linear level in the output flat field image is estimated by
+taking the non-linear level in the first input image, subtracting
+the median sky value, and dividing by the normalization constant.
+Pixels higher than the non-linear level have a value of 2 in the 
+output DQ frame.
+.le
+.ls sci_ext = "SCI"
+Name or number of science extension.
+.le
+.ls var_ext = "VAR"
+Name or number of variance extension.
+.le
+.ls dq_ext = "DQ"
+Name or number of data quality extension.
+.le
+
+.ce
+NISKY Parameters (for sky flats)
+.le
+.ls fl_rmstars = no
+This parameter should be set to "yes" for sky flats, so that stars
+will be removed using NISKY before combining to make the sky flat.
+This option cannot be used if only one input file is specified.
+.le
+.ls fl_keepmasks = no
+If set to "yes", the object masks generated by NISKY will be preserved
+so the user can check to make sure all objects have been masked from the
+input sky flat images.
+.le
+.ls ngrow = 3
+Number of iterations used by OBJMASKS (in NISKY) to extend identified objects 
+to surrounding regions of lower surface brightness, to remove the wings.
+.le
+.ls agrow = 3.
+This  parameter sets the maximum area objects can be extended into the 
+wings by OBJMASKS.
+.le
+.ls minpix = 6
+Candidate objects identified by OBJMASKS must have this number of contiguous 
+pixels above a threshold of 3 sigma to be considered an object.
+.le
+
+.ce Other Parameters
+.le
+.ls fl_vardq = yes
+Generate variance and data quality (bad pixel map) planes in the 
+final output image?  The input images need not have VAR and DQ planes
+already.
+.le
+.ls verbose = yes
+Print actions to screen?
+.le
+.ls status = 0
+This flag is non-zero after execution of NIFLAT if a fatal
+error was encountered.
+
+.ih 
+DESCRIPTION 
+NIFLAT produces a normalized NIRI flat field image and a
+bad pixel mask.
+The input images must be previously processed using NPREPARE.  For
+sky flats (when \fIfl_rmstars\fR = "yes"), NIFLAT calls NISKY to
+remove stars and combine the sky images.  Sky flats should have the
+dark current subtracted, using equal-exposure darks specified using the
+\fIlampsoff\fR parameter (Short darks specified with \fIdarks\fR
+are only used for bad pixel identification, and are not
+subtracted from the flats).  
+For lamp flats taken with the Gemini calibration unit GCAL,
+one set of flats, \fIlampson\fR, should be taken with the calibration
+lamp on (shutter open), while a second set, \fIlampsoff\fR, 
+should be taken with the shutter closed in order to measure the 
+dark current and thermal background of the optics in front of NIRI. 
+The two sets of exposures are combined by NIFLAT separately using
+IMCOMBINE. The combined thermal background image is subtracted
+from the combined lamp image before normalization. The normalization
+is the value of the statistic \fInormstat\fR of the pixels in 
+\fIstatsec\fR, ignoring pixels outside the ranges defined by 
+\fIthresh_flo\fR and \fIthresh_fup\fR.  These values are set
+interactively, or as a fraction of the median value in the frame.
+
+NIFLAT will work with a single input image.  If the input image has 
+variance and data quality planes, the output image can as well.  If they
+do not exist, though, NIFLAT will set \fIfl_vardq\fR and \fIfl_fixbad\fR
+to "no."  If these are desired, NPREPARE can be used to generate the
+variance and data quality plane prior to running NIFLAT.
+
+Both the un-normalized flat and a set of short dark images can be used
+to make the bad pixel mask.
+Pixels in the flat are considered to be bad if 
+their values are less than the median value times \fIthresh_flo\fR or 
+greater than the median value times \fIthresh_fup\fR.  
+Likewise, pixels in the combined dark with values of less than 
+\fIthresh_dlo\fR or greater 
+than \fIthresh_dup\fR ADU are classified as bad.  If \fIfl_inter\fR=yes,
+then these levels are set interactively using histograms of pixel values.
+ 
+If \fIfl_vardq\fR = "yes", the output flatfield 
+is a multi-extension FITS file with the normalized
+flat is the first extension, the variance image in the second
+extension, and the bad pixel mask in the third
+extension. The variance image is the sum of the variances of the
+combined lampson and lampsoff images.
+
+A sample bad pixel mask for NIRI is supplied in niri$data/niri_bpm.pl
+This mask may be used for comparison purposes, or in place of a bad pixel
+mask derived using NIFLAT.
+
+If full-frame flats are to be used with data taken in a subarray
+readout mode, you must extract the appropriate central region.
+
+.ih
+EXAMPLES
+1. To make a bad pixel mask and flat from three lists of nprepared 
+images with default parameters:
+
+.nf
+        cl> niflat @nflat_lampson niriflat \
+        >>> lampsoff=@nflat_lampsoff darks=@darks
+.fi
+
+2.  To make a sky flat:
+.nf
+        cl> niflat nirisky* niriflat fl_rmstars+
+.fi
+
+3.  To extract the 768x768 central region of a flat for use with data
+taken using this subarray:
+.nf
+    cl> imcopy nN20040805S0170_flat[0] flath
+    cl> imcopy nN20040805S0170_flat[1][129:896,129:896] flath[1,append]
+    cl> imcopy nN20040805S0170_flat[2][129:896,129:896] flath[2,append]
+    cl> imcopy nN20040805S0170_flat[3][129:896,129:896] flath[3,append]
+    cl> imcopy flath[3] bpmh.pl
+.fi 
+
+
+.ih
+BUGS
+.ih
+SEE ALSO
+imcombine, nisky, nprepare, objmasks
+.endhelp
+

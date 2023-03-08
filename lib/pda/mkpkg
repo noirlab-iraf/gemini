@@ -1,0 +1,23 @@
+# Make the Starlink PDA subroutines
+
+$checkout libpdainterp.a ../
+$update   libpdainterp.a
+$checkin  libpdainterp.a ../
+$exit
+
+libpdainterp.a:
+        pda_dsqf.f
+	pda_idbvip.f
+	pda_jdbvip.f
+	pda_idcldp.f
+	pda_idlctn.f
+	pda_idpdrv.f
+	pda_idptip.f
+	pda_jdptip.f
+	pda_idtang.f
+	pda_idxchg.f
+	pda_side2.f
+	pda_side.f
+	pda_spdt.f
+	;
+

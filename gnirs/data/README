@@ -1,0 +1,88 @@
+
+                 File list gnirs$data
+
+
+                           Used by many tasks
+apertures.fits                  Aperture settings used by nsextract,
+                                nsflat, nscalibrate, nswavelength,
+                                nssdist to automatically extract
+                                cross-dispersed data.
+
+                           Line lists (nswavelength files)
+argon.dat                       Argon lamp lines
+Ar_Xe.dat                       Argon and Xenon lamp lines
+sky.dat                         Sky lines
+nearIRsky.dat                   IR Sky lines (0.88-2.25 microns) R=1700
+lowresargon.dat                 Argon lamp lines for R=1700
+skyLband.dat                    L band sky lines
+skyMband.dat                    M band sky lines
+
+                           nsprepare files
+array.fits                      Detector description
+config.fits                     Index to MDF files
+
+                           nsheader files
+f2.dat                          FLAMINGOS-2 headers
+gnirs.dat                       GNIRS headers
+michelle.dat                    Michelle headers
+nifs.dat                        NIFS headers
+niri.dat                        NIRI headers
+trecs.dat                       T-RECS headers
+
+                           nssdist files
+pinholes-short.lis             Pinhole positions for cut, LS data
+                               with short camera, old GNIRS South
+pinholes-short-dense.lis       Pinhole positions at small spacing
+                               across wide range - useful for XD
+                               data with short camera, old GNIRS South
+pinholes-short-north.lis       Pinhole positions for cut, LS data
+                               with short camera, new GNIRS North
+pinholes-short-dense-north.lis Pinhole positions at small spacing
+                               across wide range - useful for XD
+                               data with short camera, new GNIRS North
+pinholes-long-north.lis        Pinhole positions for cut LS data
+                               with long camera, new GNIRS North
+pinholes-long-dense-north.lis  Pinhole positions at small spacing
+                               across wide range - useful for XD
+                               data with long camera, new GNIRS North
+
+                           GNIRS BPM files
+gnirs_2005sep24_bpm.fits       BPM file to use with old GNIRS South data
+gnirsn_2010oct12_bpm.fits      BPM file to use with new GNIRS North data
+gnirsn_2011apr07_bpm.fits      BPM file to use with new GNIRS North data
+gnirsn_2012dec05_bpm.fits      BPM file to use with new GNIRS North data
+
+                           Old GNIRS South MDF files
+gnirs-ifu-short-111-mdf2.fits
+gnirs-ifu-short-32-mdf.fits
+gnirs-ifu-short-32-mdf2.fits
+gnirs-ls-long-111-mdf.fits
+gnirs-ls-long-32-mdf.fits
+gnirs-ls-short-111-mdf.fits
+gnirs-ls-short-32-mdf.fits
+gnirs-xd-short-111-mdf.fits
+gnirs-xd-short-32-mdf-20040310.fits
+gnirs-xd-short-32-mdf.fits
+
+                           New GNIRS North MDF files
+gnirsn-ls-long-10-mdf.fits
+gnirsn-ls-long-32-mdf.fits
+gnirsn-ls-long-111-mdf.fits
+gnirsn-ls-short-32-mdf.fits
+gnirsn-ls-short-111-mdf.fits
+gnirsn-lxd-long-10-mdf.fits
+gnirsn-lxd-long-32-mdf.fits
+gnirsn-lxd-long-111-mdf.fits
+gnirsn-sxd-long-10-mdf.fits
+gnirsn-sxd-long-32-mdf.fits
+gnirsn-sxd-long-111-mdf.fits
+gnirsn-sxd-short-32-mdf.fits
+gnirsn-sxd-short-111-mdf.fits
+
+                           nfquick files
+ifu-map.fits                   Mapping from IFU detector to sky
+
+                           nsappwave files
+nsappwave2002A.fits            Old wavelength estimates for NIRI
+nsappwave2002B.fits            Old wavelength estimates for NIRI
+nsappwave.fits                 Wavelength estimates for GNIRS, NIFS, NIRI

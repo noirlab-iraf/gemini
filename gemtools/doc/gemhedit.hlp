@@ -1,0 +1,63 @@
+.help gemhedit December2012 gemini.gemtools
+.ih
+NAME
+gemhedit -- Add header keywords and comments to images
+.ih
+USAGE
+gemhedit image field value comment
+.ih
+PARAMETERS
+.ls image
+Image to be edited. For MEF files the extension should be included
+in the image name. Only one image at the time can be edited.
+.le
+.ls field
+The header keyword to add, edit or delete.
+Only one field at the time can be edited.
+.le
+.ls value
+The value of the keyword. It can be either a number or a string.
+If the string contains spaces it should be put in quotes.
+.le
+.ls comment
+Comment to add for keyword. If the comment contains spaces it should 
+be put in quotes.
+.le
+.ls delete = no
+Delete the header keyword specified by \fIfield\fR.
+.le
+.ls upfile = ""
+File containing NHEDIT commands. This is the same as the comfile parameter in
+NHEDIT. The \fIupfile\fR is passed directly to NHEDIT with no checks
+being performed on it.
+.le
+.ls status = 0
+This flag is non-zero after execution of GEMHEDIT if a fatal
+error was encountered.
+.le
+.ih
+DESCRIPTION
+
+GEMHEDIT is used to add, edit or delete header keywords and comments in images.
+The keyword is specified by \fIfield\fR. If the keyword already
+exists in the header, the value of the keyword is edited but the 
+\fIcomment\fR is ignored.
+
+GEMHEDIT is used by many of the tasks in the GEMINI package.
+.ih
+EXAMPLES
+
+1. To add a keyword with a value and a comment to an image header.
+.sp
+.nf
+    cl> gemhedit r00aug02_100 REDUC "S. Astronomer" \
+    >>> "Person who reduced the data"
+.fi
+.ih
+BUGS AND LIMITATIONS
+.ih
+SEE ALSO
+
+nhedit, imhead
+
+.endhelp

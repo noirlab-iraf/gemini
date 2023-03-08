@@ -1,0 +1,27 @@
+#Copyright(c) 2002-2009 Association of Universities for Research in Astronomy, Inc.
+#
+# Database for fprepare.cl
+# 
+# Version  July 23, 2002  ML
+#
+# Array characteristics 
+readnoiseimg             42    # electrons (1 read pair,1 digital av. - 1V Bias)
+readnoisespec            37    # electrons (1 read pair,1 digital av. - 0.75V Bias)
+gainimg                 4.8    # electrons/ADU (1V Bias)
+gainspec                5.8    # electrons/ADU (0.75V Bias) 
+fullwell             225000.   # electrons full-well
+shallowbias            0.75    # detector bias (V)
+deepbias                1.0    # detector bias (V)
+linearlimit             0.7    # non-linear regime (fraction of saturation ~1% departure)
+#
+#Filter+Grism+Slit         SPECSEC1                SPECSEC2              
+#
+HK+HK+3pix             [5:1024,420:1920]    [1030:2043,420:1920]
+HK+HK+6pix             [5:1024,45:1920]     [1030:2043,45:1920]
+HK+HK+9pix             [5:1024,514:1970]    [1030:2043,514:1970]
+JH+HK+3pix             [5:1024,420:1920]    [1030:2043,420:1920]
+JH+HK+6pix             [5:1024,45:1920]     [1030:2043,45:1920]
+JH+HK+9pix             [5:1024,514:1970]    [1030:2043,514:1970]
+JH+JH+3pix             [5:1024,420:1920]    [1030:2043,420:1920]
+JH+JH+6pix             [5:1024,45:1920]     [1030:2043,45:1920]
+JH+JH+9pix             [5:1024,514:1970]    [1030:2043,514:1920]

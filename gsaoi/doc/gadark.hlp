@@ -1,0 +1,294 @@
+.help gadark December2012 gemini.gsaoi
+.ih
+NAME
+gadark -- Create master dark frame(s) from input GSAOI dark frames
+.ih
+USAGE
+gadark inimages
+.ih
+PARAMETERS
+.ls inimages
+List of raw or prepared GSAOI dark images to combine to form master dark
+frame(s). Can be a list of image names or numbers (comma separated or @ lists),
+or a range of images numbers - wild cards are supported. The image names may
+include the directory path. The images must be in multi-extension FITS (MEF)
+format and not be mosaiced. The file extension ".fits" may or may not be
+included. (See help for GAIMCHK for examples of all syntax allowed.)
+.le
+.ls rawpath = ""
+Path to the directory where the images are located. One may
+set this parameter if the raw data are not located in the current
+working directory, or specify a path in the input image file names.
+If \fIrawpath\fR is supplied it will be prefixed to any path given as part of
+the input image names.
+.le
+.ls outsufx = "dark"
+Output suffix for master dark frame(s). The output dark frame(s) name(s) will
+take that of the first image the sorted list for the unique meta-configuration,
+with the suffix "_"\fIoutsufx\fR inserted before the file extension, e.g.,
+gS20120101S0001_dark.fits".
+.le
+.ls rootname = ""
+Root name of image(s) if supplying image number(s); blank for today's UT. For
+example, rootname="S20120101S".
+.le
+.ls mindark = 5
+The minimum number of dark frames required to combine to form a master dark.
+.le
+.ls maxtime = 3600.
+Maximum time interval, in seconds, from first image in the sorted unique
+meta-configuration list for a frame to be included in the combination step.
+.le
+.ls datename = "DATE-OBS"
+Header keyword for the date stamp.
+.le
+.ls timename = "UT"
+Header keyword for the UT time stamp.
+.le
+.ls fl_vardq = no
+Create variance and data quality frames for the output image? If
+\fIfl_vardq=yes\fR, variance and data quality planes are required to be present
+in all prepared input frames.
+.le
+.ls badpix = "gsaoi$data/gsaoibpm_high_full.fits"
+Static MEF bad pixel mask.
+.le
+
+GAPREPARE PARAMETERS:
+.ls gaprep_pref = "g"
+Prefix for output images from GAPREPARE. The names of output images will be the
+names of the input images (without any paths included) with the prefix
+attached. If \fIgaprep_pref\fR does not contain a directory path,
+the prepared images are written in the current working
+directory. \fIgaprep_pref\fR may contain a directory path, in which case this
+defines where the prepared images are written relative to the current
+directory.
+.le
+.ls fl_trim = yes
+Trim the images? This will remove the non-illuminated regions of the
+arrays. The non-illuminated regions are a boarder of 4 pixels around the
+outside of each physical array. For some observing modes no physical trimming
+will take place.
+.le
+.ls fl_nlc = yes
+Apply non-linearity correction to each array?
+.le
+.ls fl_sat = yes
+Flag non-linear and saturated pixels in data quality frames?
+.le
+.ls arraysdb = "gsaoi$data/gsaoiAMPS.dat"
+Database file containing characteristic information about the individual
+arrays. This file contains the readnoise, gain, saturation values and
+percentages of saturation where the counts depart >5% and >2% from linearity,
+before and after non-linearity correction, respectively.
+.le
+.ls non_lcdb = "gsaoi$data/gsaoiNLC.dat"
+Database file containing the coefficients for the 2nd order non-linearity
+correction.
+.le
+
+GEMCOMBINE PARAMETERS:
+.ls combine = "default" (default|average|median)
+Type of combining operation performed on the final set of pixels (after
+offsetting, masking, thresholding, and rejection). The choices are
+"average" or "median". The median uses the average of the two central
+values when the number of pixels is even. When \fIcombine\fR="default", then
+both \fIcombine\fR and \fIreject\fR parameters passed to GEMCOMBINE are set
+internally by GADARK. The default setting for \fIcombine\fR is
+"average". However, if the number of files to be combined is less than 5,
+\fIreject\fR will set to "minmax" and \fInlow\fR and \fInhigh\fR will both be
+set to 1. Whereas, if the the number of files to be combined is 5 or more,
+\fIreject\fR will be set to "avsigclip".
+.le
+.ls reject = "avsigclip" (none|minmax|ccdclip|crreject|sigclip|avsigclip|pclip)
+Type of rejection operation performed on the pixels remaining after offsetting,
+masking and thresholding. The algorithms are described in the help for
+IMCOMBINE.
+.le
+.ls masktype = "goodvalue" (none|goodvalue)
+Type of pixel masking to use. Note that not all IMCOMBINE options are
+currently available. See the IMCOMBINE help page for more details.
+.le
+.ls maskvalue = 0.
+Mask value to use with the \fImasktype\fR parameter. See the IMCOMBINE help
+page for a complete description.
+.le
+.ls scale = "none" (none|mode|median|mean|exposure|@<file>|!<keyword>)
+Multiplicative image scaling to be applied. In the case of an @<file> that file
+can contain a list of files (the same number as input extensions) containing
+the multiplicative scaling for each input image (for that extension).
+.le
+.ls zero = "none" (none|mode|median|mean|@<file>|!<keyword>)
+Additive zero level image shifts to be applied.
+.le
+.ls weight = "none" (none|mode|median|mean|exposure|@<file>|!<keyword>)
+Weights to be applied during the final averaging.
+.le
+.ls statsec = "[*,*]"
+Section of images to use in computing image statistics for scaling,
+weighting, and normalizing. If no section is given then the entire region of
+the input is sampled (for efficiency the images are sampled if they are big
+enough).
+.le
+.ls expname = "EXPTIME"
+Image header keyword to be used with the exposure scaling and weighting
+options.
+.le
+.ls lthreshold = INDEF, hthreshold = INDEF
+Low and high thresholds to be applied to the input pixels. This is done
+before any scaling, rejection, and combining. If INDEF the thresholds
+are not used.
+.le
+.ls nlow = 1, nhigh = 1
+The number of low and high pixels to be rejected by the "minmax" algorithm.
+.le
+.ls nkeep = 1
+The minimum number of pixels to retain or the maximum number to reject
+when using the clipping algorithms (ccdclip, crreject, sigclip,
+avsigclip, or pclip).
+.le
+.ls mclip = yes
+Use the median as the estimate for the true intensity rather than the
+average with high and low values excluded in the "ccdclip", "crreject",
+"sigclip", and "avsigclip" algorithms?
+.le
+.ls lsigma = 3., hsigma = 3.
+Low and high sigma clipping factors for the "ccdclip", "crreject", "sigclip",
+"avsigclip", and "pclip" algorithms.
+.le
+.ls key_ron = "RDNOISE", key_gain = "GAIN", ron = 0.0, gain = 1.0
+CCD readout noise in electrons and gain in electrons/DN.
+These parameters are used with the "ccdclip" and "crreject"
+algorithms. \fIron\fR and \fIgain\fR are only used if the keywords
+\fIkey_ron\fR and \fIkey_gain\fR are set to "".
+.le
+.ls snoise = "0.0"
+Sensitivity noise as a fraction.
+.le
+.ls sigscale = 0.1
+This parameter determines when poisson corrections are made to the
+computation of a sigma for images with different scale factors.
+.le
+.ls pclip = -0.5
+Percentile clipping algorithm parameter.
+.le
+.ls grow = 0.0
+Radius in pixels for additional pixel to be rejected in an image with a
+rejected pixel from one of the rejection algorithms.
+.le
+.ls fl_dqprop = no
+Propagate data quality values to the combined frame data quality extensions? If
+\fImasktype\fR="none" all input data quality values will be propagated. If
+\fImasktype\fR="goodvalue" only the data quality values for those output pixels
+that have no data in will be propagated.
+.le
+
+GENERAL PARAMETERS:
+.ls sci_ext = "SCI"
+Name of the MEF extension containing the science data.
+.le
+.ls var_ext = "VAR"
+Name of the MEF extensions containing the calculated variance planes.
+.le
+.ls dq_ext = "DQ"
+Name of the MEF extensions containing the data quality information.
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes use of the logfile
+defined by gsaoi.logfile.
+.le
+.ls verbose = yes
+Print actions to screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted
+with an error. This parameter is set by the task and should not be
+modified by the user.
+.le
+.ih
+DESCRIPTION
+
+This task, GADARK, takes raw or prepared GSAOI dark data (4-extensions), sorts
+them by unique METACONF keyword values and combines them to form master darks.
+
+If the input files are raw, GADARK will check for previously prepared versions
+looking for files with the same name but prefixed with the \fIgaprep_prep\fR
+value. If a prepared version doesn't already exist, GADARK will then call
+GAPREPARE (with the parameters specified above) to prepare the data and add the
+METACONF keyword. If it does exist that prepared file will be used instead.
+
+Once all input files are prepared, all of their METACONF keyword values are
+read and the unique values determined. The prepared dark files are then grouped
+by unique METACONF keyword values. These grouped darks are then sorted by
+file name to form the lists that are to be combined to form the master darks.
+
+If \fImaxtime\fR is not set to INDEF and the number of darks that have the
+same METACONF keyword value is greater than \fImindark\fR, further
+grouping will occur. Those files that were observed within \fImaxtime\fR from
+the first file within the sorted unique METACONF list will be combined,
+assuming that there are \fIminflat\fR that match this criteria. If there are
+files in that list that do not match the time criteria then a second pass is
+made using the either the next file in the unique METACONF list or the first
+file in the list containing those files that didn't match the time criteria for
+this unique METACONF list as the reference file for sorting by time. This is
+repeated until the list of files for this unique METACONF value is exhausted.
+
+If \fIfl_vardq\fR=yes, the variance and data quality extensions created by
+GEMCOMBINE will be included in the output image. The variance is the square of
+the output sigma plane from IMCOMBINE divided by the number of contributing
+pixels for a given pixel. If \fIfl_dqprop\fR=yes depending on the "masktype"
+setting the input data quality values will be propagated (see parameter
+description for more information).
+
+Finally, the output METACONF keyword is updated. The output METACONF keyword
+takes the value of the first image to be combined (all images being combined
+together have the same METACONF value). However, the word "DARK" is inserted
+before the <ROI> description. For example, input value:
+
+.in 4
+6._1_1+FF+TRIM+NLC
+.in -4
+
+Output value:
+
+.in 4
+6._1_1+DARK+FF+TRIM+NLC
+.in -4
+.ih
+EXAMPLES
+
+.nf
+   cl> gadark *.fits fl_vardq+ fl_sat+ maxtime=INDEF mindark=2
+.fi
+
+This will select all of the dark frames (prepared or not) in the current
+directory (excluding any master darks). Those files that are not prepared and
+do not have existing prepared versions will be sent to GAPREPARE to be
+prepared. Those files that are to be prepared will have variance and data
+quality extensions included. The data quality planes will have non-linear and
+saturated pixels flagged in them. Depending on the number of inputs and on
+their METACONF values, none, one or more master darks will be created. For the
+purposes of this example their are 5 prepared darks with 2 unique METACONF
+values between them (3 with one and 2 with the other). This means that two
+master darks will be created.
+
+.nf
+   cl> gadark @darks.lis mindark=4 maxtime=1800 gaprep_pref="ga"
+.fi
+
+For the purposes of this example "dark.lis" contains the names of 11 raw dark
+files. These files have already been prepared by GAPREPARE using the prefix
+"ga". All have the same exposure time, low-noise reads and coadds, where
+observed with the same ROI and have been prepared in the same way. Hence, they
+have the same METACONF keyword value. In addition 5 of the files were observed
+together, then 1 hour later 4 more more were observed together and finally
+another hour later 2 more darks were taken. As the \fImaxtime\fR parameter is
+set to 1800s, this means the first group of 5 darks observed together will be
+combined together, the second group of 4 darks will be combined together,
+however, due to \fImindark\fR=4 the final 2 darks will not be combined. Thus
+only 2 master darks will be created.
+.ih
+SEE ALSO
+
+GAPREPARE, GADIMSCHK, GAIMCHK and GEMCOMBINE
+.endhelp

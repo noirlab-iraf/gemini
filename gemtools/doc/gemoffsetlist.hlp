@@ -1,0 +1,178 @@
+.help gemoffsetlist December2011 gemini.gemtools
+.ih
+NAME
+gemoffsetlist -- groups images with same offset as reference file in lists
+.ih
+USAGE
+gemoffsetlist infiles reffile distance age targetlist offsetlist
+.ih
+PARAMETERS
+.ls infiles
+Files to group.  The positions and times of observations in these files 
+are compared against \fIreffile\fR.
+.le
+.ls reffile
+Reference MEF file.  Times and positions in \fIinfiles\fR are compared
+against the information in this file.
+.le
+.ls distance = INDEF
+Spatial offset (arcsec) used to compare \fIreffile\fR with the files in
+\fIinfiles\fR.  If INDEF then no distance comparison is made.
+.le
+.ls fl_nearer = yes
+If yes, files from \fIinfiles\fR are selected (sent to
+\fItargetlist\fR) if they are less than \fIdistance\fR arcsec from
+\fIreffile\fR.  If no, the selected files are more than \fIdistance\fR
+arcsec distant.
+.le
+.ls direction = 3
+The direction along which spatial separation is measured for comparison
+with \fIdistance\fR.  If 1, the distance is RA (for the WCS) or the X header
+offset.  If 2, the distance is DEC (for the WCS) or the Y header offset.
+If 3, the distance is arcsec on the sky or sqrt(x**2+y**2) from the header
+offsets.
+.le
+.ls age = INDEF
+Time difference (seconds) used to compare \fIreffile\fR with the files in
+\fIinfiles\fR.  If INDEF then no time comparison is made.
+.le
+.ls fl_younger = yes
+If yes, files from \fIinfiles\fR are selected (sent to
+\fItargetlist\fR) if they were observed within \fIage\fR seconds of
+\fIreffile\fR.  If no, the absolute time difference must be greater
+than \fIage\fR.
+.le
+.ls fl_noref = no
+If yes, and \fIreffile\fR appears in \fIinfiles\fR, then it will be removed
+from the output lists.
+.le
+.ls wcs_source = "phu" (none|phu|direct|inherit)
+The source of WCS information for spatial positions.  If "none" then the
+PHU fields defined by \fIkey_xoff\fR and \fIkey_yoff\fR are used.  
+
+If "phu" then the WCS in the PHU is used.  If "direct" then the WCS in
+the first image extension is used (an extension may be specified in
+the input).  If "inherit" then the WCS in the first image extension is
+used (an extension may be specified in the input), with inheritance to
+use missing values from the PHU.
+
+If no WCS is found then the task will print a warning and continue as if
+"none" was selected.
+.le
+.ls targetlist
+Output list of files from \fIinfiles\fR that meet both the \fRdistance\fR 
+and \fIage\fR conditions.
+.le
+.ls offsetlist
+Output list of files from \fIinfiles\fR that do not meet both the 
+\fRdistance\fR and \fIage\fR conditions.
+.le
+.ls key_xoff = "XOFFSET"
+Header keyword for the x offset, in arcsec.  Can be in instrument
+coordinates or RA, dec coordinates.
+.le
+.ls key_yoff = "YOFFSET"
+Header keyword for the y offset, in arcsec.  Can be in instrument
+coordinates or RA, dec coordinates.
+.le
+.ls key_date = "DATE-OBS"
+Header keyword for the date stamp.
+.le
+.ls key_time = "UT"
+Header keyword for the time stamp. 
+.le
+.ls logfile = ""
+Name of logfile.
+.le
+.ls verbose = no
+Verbose output?
+.le
+.ls force = no
+This task may not work on versions of IRAF before 2.12.2a.
+Setting this flag ignores a test for those versions when that task is
+called.
+.le
+.ls status = 0
+Exit status.  Equal to 0 for proper completion, greater  than  0
+if an error occurred.
+.le 
+.ls count = 0
+Output.  If \fIstatus\fR==0 this contains the number of files copies to
+\fItargetlist\fR.
+.le
+
+.ih
+DESCRIPTION
+
+GEMOFFSETLIST takes a list of files \fIinfiles\fR and figures out
+which frames have a position "consistent with" the reference frame
+\fIreffile\fR.  It puts these in the output list file
+\fItargetlist\fR.  All other frames in \fIinfiles\fR are placed in the
+output list \fIoffsetlist\fR.
+
+To decide which frames are consistent, GEMOFFSETLIST can compare
+spatial offset and observation time.
+
+Spatial offsets are compared to \fIdistance\fR, if defined (if
+undefined, no spatial test is made).  If the separation between
+reference and target is less than \fIdistance\fR and
+\fIfl_nearer\fR=yes then the two files are consistent.  Similarly, if
+the distance is larger than \fIdistance\fR and \fIfl_nearer\fR=no,
+then the two files are consistent.  So GEMOFFSETLIST can select files
+that are either closer or more distance than some threshold value.
+
+Distance can be direct (\fIdirection\fR=3), or resolved along RA/X
+(\fIdirection\fR=1) or DEC/Y (\fIdirection\fR=2).
+
+The distances are measured using either WCS information or the PHU
+values defined by \fIkey_xoff\fR and \fIkey_yoff\fR, depending on the
+value of \fIwcs_select\fR.
+
+Times are defined using the PHU values for \fIkey_date\fR and \fIkey_time\fR.
+The selected targets are the ones that are closer (\fIfl_younger\fR=yes) 
+or more distant (\fIfl_younger\fR=no) in time than the threshold value 
+\fIage\fR.  If \fIage\fR is undefined then time is not tested.
+
+The offsets in arcsec are written to the PHU of each input image using
+the \fIkey_xoff\fR and \fIkey_yoff\fR keywords.  This lets other tasks
+use the values (e.g., for calculating shifts).  The name of the reference
+file is written to the PHU under GOFFREF.
+
+GEMOFFSETLIST is designed to determine which files can be used to 
+create sky images or spectra for near-IR reductions.  It can be used
+to easily determine which spectra were taken at a given nod position,
+and should be combined.  It can also be used to find which files were
+taken away from the reference image, but within a certain period of 
+time, and therefore can be used to construct a sky image or spectrum.
+
+.ih
+EXAMPLES
+1. Split file input.lst into two files (close.lst and far.lst) 
+that are within 10 arcsec of the image nN20020313S0031:
+
+.nf
+  ge> gemoffsetlist @input.lst nN20020313S0031 10 INDEF close.lst far.lst
+.fi
+
+2. Split file far.lst into two files (sky.lst other.lst) that were observed
+within 200 seconds of file nN20020313S0031:
+
+.nf
+  ge> gemoffsetlist @far.lst nN20020313S0031 INDEF 200 sky.lst other.lst
+.fi
+
+3. Generate the sky list from the two examples above in a single pass:
+
+.nf
+  ge> gemoffsetlist @input.lst nN20020313S0031 10 200 sky.lst dev$null \
+      fl_nearer- fl_younger+
+.fi
+
+.ih
+TIME REQUIREMENTS
+.ih
+BUGS AND LIMITATIONS
+.ih
+SEE ALSO
+nsreduce, nsstack
+.endhelp

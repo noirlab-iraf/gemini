@@ -1,0 +1,8 @@
+# Global environment definitions for the Gemini package
+# (needed for building binaries with mkpkg)
+
+set     pkglibs         = "gemini$bin(arch)/,gemini$lib/,tables$lib/,fitsutil$lib/,noao$lib/"
+set     gembin          = "gemini$bin(arch)/"
+set     gemlib          = "gemini$lib/"
+
+keep

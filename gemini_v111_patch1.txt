@@ -1,0 +1,202 @@
+Gemini IRAF Package v1.11 Patch 1
+
+Gemini - March 28, 2012
+
+This patch should be unpacked on top of an already existing installation of
+the Gemini IRAF package v1.11.
+
+This patch contains the following files:
+
+COPYRIGHT
+gemini.par
+gemini_readme.txt
+gemini_v1111_rev.txt
+gemini_v111_patch1.txt (this file)
+install_check.cl
+gemtools/ckcal.cl
+gemtools/gemcombine.cl
+gemtools/gemtools.par
+gemtools/gimverify.cl
+gemtools/imcoadd.cl
+gemtools/doc/ckcal.hlp
+gemtools/doc/imcoadd.hlp
+gmos/gbias.cl
+gmos/gdisplay.cl
+gmos/gfextract.cl
+gmos/gfquick.cl
+gmos/gfresponse.cl
+gmos/gftransform.cl
+gmos/ggain.cl
+gmos/ggdbhelper.cl
+gmos/giflat.cl
+gmos/gireduce.cl
+gmos/girmfringe.cl
+gmos/gmos.par
+gmos/gmosaic.cl
+gmos/gmosexamples.cl
+gmos/gnscombine.cl
+gmos/gnsskysub.cl
+gmos/gprepare.cl
+gmos/gsat.cl
+gmos/gscrmask.cl
+gmos/gscrrej.cl
+gmos/gsextract.cl
+gmos/gsflat.cl
+gmos/gsreduce.cl
+gmos/gsskysub.cl
+gmos/gstransform.cl
+gmos/gtile.cl
+gmos/data/README
+gmos/data/gmos-n_bpm_EEV_11_3amp_v1_mosaic.pl
+gmos/data/gmos-n_bpm_EEV_22_3amp_v1_mosaic.pl
+gmos/data/gmos-n_bpm_e2v_11_6amp_v1_mosaic.pl
+gmos/data/gmos-n_bpm_e2v_22_6amp_v1_mosaic.pl
+gmos/data/gmos-s_bpm_EEV_11_3amp_v1_mosaic.pl
+gmos/data/gmos-s_bpm_EEV_11_3amp_v2_mosaic.pl
+gmos/data/gmos-s_bpm_EEV_22_3amp_v1_mosaic.pl
+gmos/data/gmos-s_bpm_EEV_22_3amp_v2_mosaic.pl
+gmos/data/gmosamps.dat
+gmos/doc/gbias.hlp
+gmos/doc/gbpm.hlp
+gmos/doc/gdisplay.hlp
+gmos/doc/gfextract.hlp
+gmos/doc/gfquick.hlp
+gmos/doc/gfreduce.hlp
+gmos/doc/ggdbhelper.hlp
+gmos/doc/giflat.hlp
+gmos/doc/gireduce.hlp
+gmos/doc/girmfringe.hlp
+gmos/doc/gmosaic.hlp
+gmos/doc/gmosexamples.hlp
+gmos/doc/gnscombine.hlp
+gmos/doc/gnsdark.hlp
+gmos/doc/gnsskysub.hlp
+gmos/doc/gsat.hlp
+gmos/doc/gscut.hlp
+gmos/doc/gsflat.hlp
+gmos/doc/gsreduce.hlp
+gmos/doc/gstransform.hlp
+gmos/doc/gtile.hlp
+gmos/mostools/mdfplot.cl
+gmos/mostools/data/graphcap
+gnirs/gnirs.par
+gnirs/gnirsexamples.cl
+gnirs/nsappwave.cl
+gnirs/nsextract.cl
+gnirs/nsfitcoords.cl
+gnirs/nsflat.cl
+gnirs/nsprepare.cl
+gnirs/nsreduce.cl
+gnirs/nssdist.cl
+gnirs/nstelluric.cl
+gnirs/nstransform.cl
+gnirs/nswhelper.cl
+gnirs/data/gnirsn_2011apr07_bpm.fits
+gnirs/doc/gnirs_xd_example.cl
+gnirs/doc/nsappwave.hlp
+gnirs/doc/nsextract.hlp
+gnirs/doc/nsflat.hlp
+gnirs/doc/nsprepare.hlp
+gnirs/doc/nsreduce.hlp
+gnirs/doc/nswavelength.hlp
+niri/nifastsky.cl
+niri/niri.par
+niri/niriexamples.cl
+niri/nisky.cl
+niri/nresidual.cl
+niri/doc/nifastsky.hlp
+niri/doc/nisky.hlp
+
+REVISIONS:
+
+This patch enables support for the new GMOS North e2v Deep Depletion CCDs. The
+gmos package has undergone many changes to ensure compatibility with 6-amp data
+from the new CCDs, including improved gain values and the addition of new BPMs,
+while maintaining complete backward compatibility with all data taken using the
+old GMOS CCDs. Please note that for the new CCDs, only data taken in slow read,
+low gain mode is supported. For other modes, please contact the GMOS team. Full
+support for the other modes will be included in a future release.
+
+In addition, this patch includes a number of minor bug fixes recently found in
+the GEMTOOLS, GMOS, GNIRS and NIRI packages. The most notable fixes are
+included below:
+
+  - Improved variance and data quality propagation in gmos.gftransform
+
+  - Addition of variance and data quality propagation gmos.gnsskysub and
+    gmos.gnscombine 
+
+  - Improved log message in gmos.gstransform to describe how to proceed when
+    using arcs with a different ROI to the science spectrum
+
+  - Upgrades to a number of tasks in the GEMTOOLS and GNIRS packages that allow
+    the database parameter to be defined with a trailing slash
+
+  - Corrected gnirs.nsreduce so that nsappwave actually gets called if the data
+    had been previously cut
+
+  - Inclusion of an improved BPM for GNIRS North
+
+  - Fixed typos in gmos.gmosexamples, gnirs.gnirsexamples and niri.niriexamples
+
+Please see the appropriate help file for more information about the specific
+parameter changes listed below.
+
+    gemtools.ckcal:
+      - New default value:  database = "" (from "database/")
+
+    gmos.ggdbhelper:
+      - New parameter:      logfile
+
+    gmos.gnscombine:
+      - New parameter:      sci_ext
+                            var_ext
+                            dq_ext
+                            mdf_ext
+                            fl_vardq
+                            status
+
+    gmos.gnsskysub:
+      - New parameters:     sci_ext
+                            var_ext
+                            dq_ext
+                            mdf_ext
+                            fl_vardq
+
+    gmos.gtile:
+      - New parameters:     fl_pad
+                            padvalue
+                            chipgap
+
+    gnirs.nsprepare:
+      - New default value:  bpm = "gnirs$data/gnirsn_2011apr07_bpm.fits"
+
+INSTALLATION:
+
+[1] Unzip the file gemini_v111_patch1.tar.gz
+
+        % gunzip gemini_v111_patch1.tar.gz
+
+[2] Log into IRAF as the IRAF user and unpack the archive file. Change
+    directories to the Gemini root directory and use "rtar"
+
+        cl> cd gemini
+        cl> softools
+        so> rtar -xrf <path>/gemini_v111_patch1.tar
+
+    where <path> is the relative path from the Gemini root directory to the
+    downloaded file.
+
+    It is possible to also unpack the file gemini_v111_patch1.tar from UNIX
+
+        % cd /iraf/extern/gemini
+        % tar xvf <path>/gemini_v111_patch1.tar
+
+[3] It is recommended that users initialize their uparm directories
+
+        cl> cd uparm$
+        cl> delete g*.par
+
+[4] Please use the Gemini HelpDesk for submitting questions
+
+        http://www.gemini.edu/sciops/helpdesk/helpdeskIndex.html

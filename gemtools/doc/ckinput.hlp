@@ -1,0 +1,125 @@
+.help ckinput October2013 gemini.gemtools
+.ih
+NAME
+ckinput -- Check input and output lists and return a list
+.ih
+USAGE
+ckinput 
+.ih
+PARAMETERS
+.ls input = ""   
+Image name or list of input image names. The list may be given as a comma
+separated  list, an @filelist or using wildcards. Names may contain image
+templates.
+.le
+.ls output = ""
+List of output files to be checked for their absence. The number of output
+files must match the number of input files or be a null string.
+.le
+.ls prefix = ""
+Prefix for output files to be checked for their absence. When \fIoutput\fR=""
+the names of output files will be the names of the input files with the
+\fIprefix\fR attached.
+.le
+.ls outlist = ""
+Name of output list from this task, which contains the names of the input files
+(and associated output files if \fIoutput\fR!="" or \fIprefix\fR!="") that have
+passed all checks.
+.le
+.ls name = "CKINPUT"
+Name of task calling CKINPUT for use in the logfile.
+.le
+.ls dependflag = "*PREPAR*"
+CKINPUT will include in \fIoutlist\fR, input images that contain in their PHU,
+the keyword specified by \fIdependflag\fR. The default value,
+\fIdependflag\fR="*PREPAR*" ensures data have been prepared before any further
+processing.
+.le
+.ls procflag = ""
+CKINPUT will check the PHU of each input image for the record of previous
+processing by the task defined by \fIprocflag\fR. This will usually be the same
+as \fIname\fR. This check is performed such that data are not processed by
+the same task twice.
+.le
+.ls sci_ext = "SCI"
+Name of the MEF extension containing the science data.
+.le
+.ls logfile = "STDOUT"
+Name of the logfile containing error and warning messages. 
+.le
+.ls verbose = yes
+Print actions to the screen and logfile.
+.le
+.ls vverbose = no
+Print every action to the screen.
+.le
+
+RETURN VALUES
+.ls nfiles (output)
+Number of files from input list that passed all the checks.
+.le
+.ls nver (output)
+Number of extensions in the input images that passed all the tests. There is a
+check to ensure that all input files have the same number of \fIsci_ext\fR
+extensions.
+.le
+.ls status = 0
+Exit status will be non-zero if CKINPUT halted with an error. This 
+parameter is always set by the task and should not be modified by the user.
+.le
+.ih
+DESCRIPTION
+CKINPUT verifies that the input files exist, are MEFs, contain the same number
+of science extensions and those extensions are two dimensional. If
+\fIdependflag\fR!="", only input files with the keyword specified by
+\fIdependflag\fR present in their PHU will be included in \fIoutlist\fR. In
+addition, if \fIprocflag\fR!="", input images that contain the keyword
+specified by \fIprocflag\fR in their PHU, i.e., processed by that task, will be
+excluded from \fIoutlist\fR. 
+
+If \fIoutput\fR!="" or \fIprefix\fR!="", CKINPUT will check for the absence of
+the files specified by \fIoutput\fR and for the absence of files with names the
+same as those given by \fIinput\fR prefixed with \fIprefix\fI. \fIoutput\fR!=""
+has precedence over \fIprefix\fI. If \fIoutput\fR!="" or \fIprefix\fI!=""
+\fIoutlist\fR will contain two columns (input and output names) that passed all
+of the tests. If both \fIoutput\fR=="" and \fIprefix\fI=="", then \fIoutlist\fR
+will contain only one column of input file names that passed all of the tests.
+
+CKINPUT is not meant to be a stand-alone task used from a command line prompt, 
+it is called by several tasks within the GNIRS and NIFS packages.
+.ih
+EXAMPLES
+1. Verify input images to NFCUBE (as called from with NFCUBE) exist 
+.in 3
+as MEFs, have science extensions and have been run through NSFITCOORDS. Create
+a list of input MEF files that match the criteria.
+.in -3
+.sp
+.in 3
+ni> ckinput (input=l_inimages, output="", prefix="", \
+.in 7
+outlist=tmpin, name="NIFCUBE",dependflag="NSFITCOO", \
+procflag="", sci_ext=l_sci_ext, logfile=l_logfile, \
+verbose=l_verbose, vverbose=intdbg)
+.in -7
+.in -3
+.fi
+.sp
+2. Create a list as input to NSTRANSFORM to ensure images are not
+.in 3
+transformed twice.
+.sp
+ni> ckinput (input=l_inimages, output=l_outspectra, \
+.in 7
+prefix=l_outprefix, outlist=tmpin, name="NSTRANSFORM", \
+dependflag="NSFITCOO", procflag="NSTRANSF", \
+sci_ext=l_sci_ext, logfile=l_logfile, verbose=l_verbose, \
+vverbose=intdbg)
+.in -7
+.in -3
+.ih
+BUGS AND LIMITATIONS
+.ih
+SEE ALSO
+
+.endhelp

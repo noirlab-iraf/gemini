@@ -1,0 +1,253 @@
+.help nssky October2013 gemini.gnirs
+.ih
+NAME
+.nf
+nssky -- Identify data for sky-subtraction
+.fi
+.ih
+USAGE
+nssky inimages
+
+(This task is not intended for normal use from the command line.  It
+should be called indirectly via NSREDUCE).
+.ih
+PARAMETERS
+.ls inimages
+Files containing object observations.  \fIinimages\fR may be given as
+a comma separated list, a @filelist, or using wildcards.
+.sp
+If \fIskyimages\fR is undefined then these files are also used for
+sky data (different nod positions are selected using the \fIdistance\fR
+and \fIage\fR parameters).
+.le
+.ls skyimages = ""
+Files containing sky observations.  \fIskyimages\fR may be given as
+a comma separated list, a @filelist, or using wildcards.
+.sp
+This parameter is normally only used for longslit observations where
+separate sky data with no object are taken.  For observations that
+always include the object (e.g., ABBA nodding), all files should be
+listed via \fIinimages\fR.
+.sp
+If the parameter \fIdistance\fR is defined, then
+it is used to select suitable sky images for each input file from this 
+list.  Otherwise, either a single sky image must be given (used for all 
+input images), or a list with the same number of entries as in 
+\fIinimages\fR must be given (successive sky images are paired with 
+successive input images).
+.le
+.ls distance = 3.
+The minimum separation (arcsec) required between the pointing for object
+and sky data.  This excludes observations at the same slit position when
+nodding and is only used when sky frames are taken from \fIinimages\fR
+(ie. when \fIskyimages\fR="")
+.le
+.ls age = INDEF
+The maximum difference in observation time acceptable between object
+and sky data (seconds).  This allows only the closest timed
+observations to be used for sky subtraction.
+.sp
+If this is defined then it is used to select sky images from either 
+\fIinimages\fR or, if provided, \fIskyimages\fR.  For each observation,
+a sky frame is only selected if it was observed within \fIskyrange\fR seconds
+of the object.  Note that \fIdistance\fR is also used if the sky frame is
+selected from \fIinimages\fR (to avoid using frames in which the object
+is at the same position on the slit).
+.sp
+If \fIage\fR is not defined (the default), then the behaviour depends
+on the source of the sky frames.  If separate sky frames are provided via
+\fIskyimages\fR then they are used in turn for the observations (ie "paired
+off" with \fIinimages\fR) unless only a single sky frame is provided, in
+which case it is used for all observations.  This allows external logic
+to specify the sky/object relationship directly.
+.sp
+If \fIage\fR is not defined and no sky frames are provided via 
+\fIskyimages\fR then the NSSKY task will attempt to find a suitable value for
+\fIage\fR that includes only nearest neighbour exposures from
+\fIinimages\fR.  If this is impossible (when the times at which exposures 
+are made vary sufficiently for a single value of \fIage\fR to
+be inappropriate for all observations) then the task will fail.
+.le
+.ls combtype = "median"  (average|median)
+Type of combination performed using GEMCOMBINE. It can be either average or
+median. 
+.le
+.ls rejtype = "avsigclip"  (none|minmax|ccdclip|crreject|sigclip|avsigclip|pclip)
+Rejection algorithm used when combining the frames. It can be either
+none, minmax, ccdclip, crreject, sigclip, avsigclip, or pclip. See
+GEMCOMBINE for more information.
+.le
+.ls masktype = "goodvalue"  (none|goodvalue)
+Type of pixel masking to use.  See GEMCOMBINE.
+.le
+.ls maskvalue = 0.
+Mask value used with the \fImasktype\fR parameters. See GEMCOMBINE.
+.le
+.ls scale = "none" (none|mode|median|mean|exposure|!<keyword>)
+Input frames can be scaled before combining. See gemcombine.
+.le
+.ls zero = "median" (none|mode|median|mean|!<keyword>)
+Input frames can be shifted in intensity before combining. See gemcombine.
+.le
+.ls weight = "none" (none|mode|median|mean|exposure|!<keyword>)
+Weights to be applied during the final combination. See gemcombine.
+.le
+.ls statsec = "[*,*]"
+Section in frames from where the statistics for scaling, weighting,
+and normalizing are computed. If no section is given, the statistics
+in the entire image are computed.
+.le
+.ls lthreshold = INDEF, hthreshold = INDEF
+Low  and  high  thresholds  to  be  applied to the input pixels.
+This is done before scaling, rejecting, and  combining.   If
+INDEF the thresholds are not used. See gemcombine.
+.le
+.ls  nlow = 1,  nhigh = 1 (minmax)
+The  number  of  low  and  high  pixels  to  be  rejected by the
+"minmax" algorithm. See gemcombine.
+.le
+.ls nkeep = 0
+The minimum number of pixels to retain or the maximum number  to
+reject  when  using  the clipping algorithms (ccdclip, crreject,
+sigclip, avsigclip, or pclip). See gemcombine.
+.le
+.ls mclip = yes (ccdclip, crreject, sigclip, avsigclip)
+Use the median as the estimate for  the  true  intensity  rather
+than  the  average  with  high  and  low  values excluded in the
+"ccdclip", "crreject", "sigclip", and "avsigclip" algorithms? See gemcombine.
+.le
+.ls lsigma = 3., hsigma = 3. (ccdclip, crreject, sigclip, avsigclip, pclip)
+Low  and  high  sigma  clipping  factors  for   the   "ccdclip", 
+"crreject", "sigclip", "avsigclip", and "pclip" algorithms. See gemcombine.
+.le
+.ls snoise = "0.0" (ccdclip, crreject)
+Sensitivity noise as a fraction. See gemcombine.
+.le
+.ls sigscale = 0.1 (ccdclip, crreject, sigclip, avsigclip)
+This parameter determines when poisson corrections are  made  to
+the  computation  of  a  sigma  for  images with different scale
+factors. See gemcombine.
+.le
+.ls pclip = -0.5 (pclip)
+Percentile clipping algorithm parameter. See gemcombine.
+.le
+.ls grow = 0.0
+Radius in pixels for additional  pixel  to  be  rejected  in  an
+image   with   a  rejected  pixel  from  one  of  the  rejection 
+algorithms. See gemcombine.
+.le
+.ls fl_vardq = yes
+Should variance and data quality extensions be generated?  Other tasks
+in the gemini packages attempt to maintain these values.  They appear
+as fits extensions with names VAR and DQ.
+.le
+.ls index = ""
+This is the file to which the information about sky data is written.  If it
+is not specified then a value will be generated (which can be read by the
+calling code or at the command line as \fInssky.index\fR).
+.sp
+The file contains five columns:
+.sp
+.nf
+  - a file from inimages (one per row, for all values supplied)
+  - the corresponding sky file (or "none")
+  - the corresponding bpm file (may not exist if not requested)
+  - the name of the file containing a list of all files used 
+  to make the sky
+  - a flag that is true if this sky is repeated from earlier in 
+  the list
+.fi
+.sp
+The sky file may be a file that was not present in either \fIinimages\fR
+or \fIskyimages\fR (if, for example, several images were combined).
+.le
+.ls logfile = ""
+Name of logfile.  The GNIRS package logfile "gnirs.log" is used by default.
+.le
+.ls verbose = yes
+Print actions to the screen.
+.le
+.ls debug = no
+Print detailed actions to the screen.
+.le
+.ls force = no
+The GEMOFFSETLIST task may not work on versions of IRAF before 2.12.2a.
+Setting this flag ignores a test for those versions when that task is
+called.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error.
+This parameter is always set by the task, and should not be modified
+by the user.
+.le
+
+.ce
+Parameters from NSHEADERS
+.sp
+The following values are read from GNIRS.NSHEADERS
+.ls sci_ext
+Name of science extension
+.le
+.ls var_ext
+Name of variance extension
+.le
+.ls dq_ext
+Name of data quality extension
+.le
+.ls key_ron
+Header keyword for read noise (e-)
+.le
+.ls key_gain
+Header keyword for gain (e-/ADU)
+.le
+.ls key_dispaxis
+Header keyword for dispersion axis.
+.le
+.ls key_xoff
+Header keyword for storing gemoffsetlist x offset (in arcsec)
+.le
+.ls key_yoff
+Header keyword for storing gemoffsetlist y offset (in arcsec)
+.le
+.ls key_date
+Header keyword for date of observation
+.le
+.ls key_time
+Header keyword for time of observation
+.le
+.ls key_exptime 
+Header keyword for exposure time
+.le
+.ih
+DESCRIPTION
+NSSKY provides sky data for each object file provided in
+\fIinimages\fR, provided that data are available consistent with the
+\fIdistance\fR and \fIage\fR constraints.
+.sp
+The algorithm used to identify sky is simple, but appears to be
+sufficiently flexible to provide correct data for a wide range of
+nodding patterns.  No knowledge of nodding patterns is included in the
+task.
+.sp
+If \fIskyimages\fR identifies some files then those files are used as
+candidate sky frames.  Otherwise, the files in \fIinimages\fR are
+used.
+.sp
+For each object file in \fIinimages\fR the task GEMOFFSETLIST is used
+to identify which candidate sky frames are more distant (in arcsec on
+the sky) than \fIdistance\fR and closer (in seconds of time) than
+\fIage\fR.  If more than one frame is consistent with these conditions
+then the frames are combined using GEMCOMBINE.
+.sp
+See \fIgnirsinfo\fR for a more detailed discussion of sky selection
+when reducing data.
+.ih
+EXAMPLES
+This task should not be called directly from the command line by the
+user.  See NSREDUCE instead.
+.ih
+BUGS AND LIMITATIONS
+.ih
+SEE ALSO
+nsreduce, gemtools.gemoffsetlist, gemtools.gemcombine, gnirsinfo
+.endhelp

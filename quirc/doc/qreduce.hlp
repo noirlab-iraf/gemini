@@ -1,0 +1,165 @@
+.help qreduce November2011 gemini.quirc
+.ih
+NAME
+qreduce -- Reduce images from QUIRC
+.ih
+USAGE
+qreduce inimages
+.ih
+PARAMETERS
+.ls inimages
+Images to reduce. \fIinimages\fR can be a comma-separated 
+list of image names or defined by using the * wild card.  QREDUCE also 
+accepts @filename to point to a file containing the names of the 
+input images.
+.le
+.ls outimages = ""
+Output images. \fIoutimages\fR can be a comma-separated list of image
+names. QREDUCE also accepts @filename to point to a file containing 
+the names of the output images.
+\fIoutimages\fR has preference over \fIoutprefix\fR.
+.le
+.ls outprefix = "r"
+Prefix for output images. Names of output images are the
+names of the input images with a prefix attached.
+\fIoutprefix\fR is used if \fIoutimages\fR="".
+.le
+.ls skyimage = ""
+Sky image to subtract.
+.le
+.ls skylevel = 0.0
+Constant to add after reduction (in ADU).
+.le
+.ls fl_autosky = yes
+If \fIfl_autosky\fR=yes, QREDUCE will determine the constant sky level
+to add back on by computing the median of the sky image (with bad pixels
+ignored).
+If this flag is set and \fIskylevel\fR is not set to 0.0, 
+QREDUCE will halt since it cannot know which sky level the user 
+intended to add. 
+\fIfl_sky\fR must be set and the sky image present for \fIfl_autosky\fR
+to work.   
+.le
+.ls logfile = ""
+Name of logfile. If empty, then the package logfile (\fIquirc.logfile\fR) is 
+used. If neither is defined, then \fIlogfile\fR=quirc.log is used.
+.le
+.ls fl_sky = yes
+Perform sky subtraction using \fIskyimage\fR.
+.le
+.ls fl_flat = yes
+Perform flat field correction using \fIflatimageN\fR (N=1,6).
+.le
+.ls key_filter = "FILTER"
+Image header keyword for filter id.
+.le
+.ls flatimage1 = "flatJ", flatimage2 = "flatH", flatimage3 = "flatK",
+flatimage4 = "", flatimage5 = "", flatimage6 = ""
+
+Normalized flat field images to use with the filters
+\fIfilter1\fR, \fIfilter2\fR, \fIfilter3\fR, \fIfilter4\fR,
+\fIfilter5\fR and \fIfilter6\fR, respectively.
+.le
+.ls filter1 = "J", filter2 = "H", filter3 = "K", filter4 = "", filter5 = "", 
+filter6 = ""
+
+Filter identifications for the flat field images
+\fIflatimage1\fR, \fIflatimage2\fR, \fIflatimage3\fR, \fIflatimage4\fR,
+\fIflatimage5\fR and \fIflatimage6\fR, respectively.
+.le
+.ls verbose = no
+Print actions to the screen.
+.le
+.ls status = 0
+This flag is non-zero after execution of QREDUCE if a fatal error was
+encountered.
+.le
+.ih
+DESCRIPTION
+QREDUCE is used for reductions of images from QUIRC.
+The reduction steps are defined by the flags
+(\fIfl_sky\fR, \fIfl_flat\fR).
+The flat field images are assumed to be normalized flat fields.
+The correct flat field as found by comparing the content of the
+image header keyword \fIkey_filter\fR with the parameters 
+\fIfilterN\fR (N=1,6).
+
+If \fIskylevel\fR!=0, then this level is added to the output
+image. This feature can be used to restore the sky level to the
+original level and thereby maintain the noise characteristics
+of the image.  If the \fIfl_autosky\fR=yes, \fIfl_sky\fR=yes, and
+\fIskylevel\fR=0, the median of the sky image will be added on as
+the constant sky level.  Pixels deviating by more than 4 sigma are
+ignored in computing the median sky value.  Ambiguous combinations of
+these parameters will cause QREDUCE to halt.
+
+QREDUCE is not suitable for performing at 
+once a complete reduction of a set of images taken with different 
+filters, even though \fIfilterN\fR (N=1,6) and \fIflatimageN\fR (N=1,6)
+allows this. This is due to the fact that only one \fIskyimage\fR can
+be given as input.
+If the images have previously been sky-subtracted, then QREDUCE may
+be used to perform the flat field correction for a set of images
+taken with up to six different filters.
+
+After processing the header of the output image is updated with
+information about the processing. The following keywords are added
+or updated.
+
+.nf
+Keyword   Explanation
+--------  ------------
+GEM-TLM   Time of the last modification done with the GEMINI package
+QREDUCE   Time of processing with QREDUCE
+SKYIMAGE  Name of sky image (if \fIfl_sky\fR=yes)
+FLATIMAG  Name of flat field (if \fIfl_flat\fR=yes)
+SKYCONST  Value of sky level if different from zero
+.fi
+
+.ih
+EXAMPLES
+
+1. To reduce one input image, assuming that the available flat field
+images have the default names (flatJ, flatH, flatK) or that the
+parameter file has been edited to provide the appropriate names
+
+.nf
+     cl> qreduce inimage1 outim=outimage1 skyimage=skyJan14
+.fi
+
+2. To reduce a list of images, assuming that the available flat field
+images have the default names (flatJ, flatH, flatK) or that the
+parameter file has been edited to provide the appropriate names,
+and add a constant back on
+
+.nf
+    cl> qreduce inimage1,inimage2,inimage3 \
+        outim=outimage1,outimage2,outimage3 \
+        skyimage=skyJan14 skylevel=10000.
+.fi
+
+3. To reduce a list of images, constructing the output image names
+by attaching a prefix "r" to the input image names, assuming that 
+the available flat field
+images have the default names (flatJ, flatH, flatK) or that the
+parameter file has been edited to provide the appropriate names,
+and automatically determine the sky level to add on
+.nf
+    cl> qreduce q*fits outprefix="r" skyimage=skyJan14 skylevel=0. \
+        fl_autosky+
+.fi
+
+4. To reduce one input image, with a flat field that is not
+defined in the parameter file
+
+.nf
+    cl> qreduce inimage1 outim=outimage1 skyimage=skyJan14 \
+        filter1=Ks flatimage1=flatKs
+.fi
+
+.ih
+BUGS
+.ih
+SEE ALSO
+quircinfo, qflat, qsky, qfastsky
+.endhelp

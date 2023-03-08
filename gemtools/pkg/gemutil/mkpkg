@@ -1,0 +1,11 @@
+# Make the GEMUTIL tasks
+
+$checkout libpkg.a ../../
+$update libpkg.a
+$checkin libpkg.a ../../
+$exit
+
+libpkg.a:
+	t_cnvtsec.x     <time.h>
+    t_gisnumber.x
+	;

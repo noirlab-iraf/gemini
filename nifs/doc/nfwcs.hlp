@@ -1,0 +1,72 @@
+.help nfwcs December2011 gemini.nifs
+.ih
+NAME
+nfwcs -- Set 3D WCS
+.ih
+USAGE
+nfwcs images
+.ih
+PARAMETERS
+.ls images
+List of NIFS science slice extensions.
+.le
+.ls mdf = "!mdf_file"
+MDF table or keyword in the image whose value is the name of the table
+describing the NIFS slices.  A keyword reference is preceded by "!".
+.le
+.ls xmdfname = "DEC"
+Column name in the MDF for the position of a slice along the long
+dimension of the slice in arc seconds.
+.le
+.ls ymdfname = "RA"
+Column name in the MDF for the position along the narrow dimension
+of the slice in arc seconds.
+.le
+.ls dymdfname = "slitsize_x"
+Column name in the MDF for width (the narrow dimension) of a slice in
+arc seconds.
+.le
+.ls pixscale = "!pixscale"
+Pixel scale or keyword in the image whose value is the pixel scale along
+the slit in arc seconds.  A keyword reference is preceded by "!".
+.le
+.ls xoffset = "0."
+Offset or keyword in the image whose value is the offset along the length
+of the slice.
+.le
+.ls yoffset = "0."
+Offset or keyword in the image whose value is the offset along the width
+of the slice.
+.le
+.ls keepwcs = no
+Keep the existing 2D WCS?
+.le
+.ih
+DESCRIPTION
+NFWCS defines a three-dimensional world coordinate system (WCS) for each
+two-dimensional NIFS image slice.  The purpose of this is to provide
+either a mapping to the sky or a relative mapping between the slices to
+be used in relating the IFU slices to each other and to the sky.  It is
+called as a hidden task by NSFITCOORDS to create the WCS.  The WCS is
+used by NIFCUBE to create rectified long slit images and a data cube.
+
+The information defining the WCS consists of task parameters, keywords from
+the primary extension headers, and an MDF table.  The task parameters are
+defined such that they allow the flexibility to provide explicit values
+or refer to header keywords whose values are to be used.  The keywords
+may be either in the primary header or the slice extension, with those
+in the slice extension having precedence.  Some parameters also refer
+to column names in the MDF table whose rows are indexed by the slice
+extension version number.
+
+This NIFS specific script task is intended to evolve with time to support
+an absolute mapping to the sky and use of dithering offsets.  Currently it
+only provides relative mappings between the slices.
+.ih
+EXAMPLES
+.ih
+BUGS AND LIMITATIONS
+.ih
+SEE ALSO
+nsfitcoords, nstransform, nifcube.
+.endhelp

@@ -1,0 +1,556 @@
+.help gfreduce October2015 gemini.gmos
+.ih
+NAME
+gfreduce -- Apply processing steps to GMOS IFU data
+.ih
+USAGE   
+gfreduce inimages
+.ih
+PARAMETERS
+
+Other tasks within the Gemini IRAF package which are affected 
+by a given parameter are given in ().
+
+.le
+.ls inimages
+List of raw GMOS IFU images to process. Can be a list of images.
+Wild cards are supported. The image names may include the
+directory path. The images must be in multi-extension FITS
+(MEF) format.
+.le
+.ls outimages = ""
+Output MEF images. The parameter can be one single image name,
+a list of images or a list file; as long as the number of
+output images matches the number of input images. \fIoutimages\fR has
+precedence over \fIoutpref\fR.
+.le
+.ls outpref = "default"
+Prefix added to \fIinimages\fR to make output image name if \fIoutimages\fR 
+not given. Setting this to "default" will cause each processing (task) step 
+to use its default output prefix (see individual tasks for their default 
+prefixes).
+.le
+.ls slits = "header" (red|blue|both|header)
+The IFU slit(s) used during the observations. This is used for selecting 
+the proper MDF file if \fImdffile\fR="default". If slits="header", the
+MDF file is selected automatically based on the IFU configuration
+indicated in newer headers. For older data with MASKNAME="IFU" in the
+header, the slit must still be specified explicitly.
+.le
+.ls exslits = "*" (red|blue|*)
+Slit(s) to extract (* for the slit(s) defined in the MDF). For 2-slit mode,
+this option allows each slit to be extracted separately over its full, clean
+spectral range, instead of just the range common to both slits. This splits
+the IFU field in two, but allows for non-standard grating and filter
+configurations. Any overlap between slits is still removed unless
+\fIfl_novlap\fR=no. This parameter should only be used when center of filter
+does not match desired central wavelength. This only occurs in extreme cases.
+.le
+.ls fl_nodshuffle = no
+Set to yes if using one of the nod&shuffle output slit masks.  Help
+helps determine the proper MDF to use if \fImdffile\fR="default".
+.le
+.ls fl_inter = yes
+Flag for interactive use.
+.le
+.ls fl_vardq = no
+Create or propagate the variance and  data  quality  planes?  If
+\fIfl_vardq\fR=no, no variance and data quality planes
+will be created or propagated. If the images are raw, these planes will  
+be created first with GIREDUCE only if bias subtracting.
+.le
+.ls fl_addmdf = yes
+Add  mask definition file. Required for further processing with
+the GMOS IFU tasks. (GPREPARE)
+.le
+.ls fl_over = yes
+Apply overscan correction (GIREDUCE).
+.le
+.ls fl_trim = yes
+Trim the overscan region (GIREDUCE).
+.le
+.ls fl_bias = yes
+Subtract bias image (GIREDUCE).
+.le
+.ls fl_scatsub = no
+Model and subtract the scattered light background with GFSCATSUB? The task
+GFFINDBLOCKS will also be run beforehand if the appropriate "gaps file" does
+not exist already (see DESCRIPTION). To use this option, a \fIreference\fR
+file produced by GFEXTRACT must be supplied; when subtracting scattered
+light from flat-field spectra, this implies running GFREDUCE (or the
+equivalent steps) more than once, first to obtain a trace for the spectra
+and then again to repeat extraction after removal of scattered light.
+GFSCATSUB is still considered experimental but has been observed to improve
+flat fielding and uniformity across the 2-slit IFU field considerably.
+.le
+.ls fl_qecorr = no
+Quantum efficiency (QE) correct your input data? If "yes" and the input data
+are spectroscopic, a wavelength reference image (\fIqe_refim\fR) or QE
+correction image (\fIqe_corrimages\fR) must be supplied. For imaging data no
+reference or correction images are required. Images must have been or about
+to be BIAS or DARK subtracted for them to be QE corrected. For more detailed
+information please read the imaging and MOS examples (type 'gmosexamples' at
+the IRAF or PyRAF prompt).
+.le
+.ls fl_gscrrej = yes
+Clean the images for cosmic rays by calling GSCRREJ? This is the original
+method for GMOS. For better results on faint targets, the user should instead
+consider enabling \fIfl_crspec\fR (below).
+.le
+.ls fl_crspec = no
+Clean cosmic rays from the images by calling LACosmic
+(http://www.astro.yale.edu/dokkum/lacosmic) via the GEMCRSPEC wrapper script
+in GEMTOOLS? This is the newer method for GMOS, which is recommended in most
+cases, but see the GEMCRSPEC help for some caveats.
+.le
+.ls fl_gnsskysub = no
+Subtract sky from nod&shuffle images using GNSSKYSUB.
+.le
+.ls fl_extract = yes
+Extract the spectra by calling GFEXTRACT.
+.le
+.ls fl_gsappwave = yes
+Run GSAPPWAVE after the extraction (GFEXTRACT).  
+.le
+.ls fl_wavtran = yes
+Apply a wavelength calibration solution by calling GFTRANSFORM.
+.le
+.ls fl_skysub = yes
+Compute and subtract a mean sky spectrum by calling GFSKYSUB.  Do not
+set this if subtracting sky with fl_gnsskysub.
+.le
+.ls fl_fluxcal = yes
+Apply a flux calibration by calling GSCALIBRATE.
+.le
+.ls fl_fulldq = no
+Passed to GMOSAIC, via GFEXTRACT, if data are not mosaiced already. Setting
+\fIfl_fulldq\fR=yes will decompose the \fIdq_ext\fR extensions into their
+constituent bits before transforming them. The pixels in the individually
+transformed bit planes are then checked against the multiple of \fIdqthresh\fR
+times the bit value. Pixel values in the individual bit planes greater than
+this value are then set to the current bit value, less than this value the
+pixel values are set to 0, i.e., good. Once this is done for all bit values in
+the original \fIdq_ext\fR extension, the newly transformed and thresholded bit
+planes are combined by a bitwiseOR to form the output \fIdq_ext\fR
+extension. This is only done for CCDs 1 and 3. In addition, pixels that are
+created during the transformation, i.e, output pixels that lie outside of the
+dimensions of the input plane are flagged with a bit value of 16. It is
+recommended to set \fIfl_fulldq\fR=yes as this will retain \fIdq_ext\fR
+information correctly.
+.le
+.ls dqthresh = 0.1 (min=0.0, max=0.5)
+Fractional threshold to apply and flag pixels as contaminated with the current
+bit value when decomposing \fIdq_ext\fR extensions (\fIfl_fulldq\fR=yes).
+.le
+.ls rawpath = ""
+Path for the directory containing the raw GMOS images (GPREPARE).
+.le
+.ls key_mdf = ""
+Header keyword containing the name of the MDF file. If \fIkey_mdf\fR="" 
+and \fIfl_addmdf\fR=yes, then the MDF file given by \fImdffile\fR will be 
+written to the keyword MASKNAME (GPREPARE).
+.le
+.ls mdffile = "default"
+The name of the MDF to add to the MEF.  If "default", then GFREDUCE
+uses \fIslits\fR to pick the standard MDF file for that configuration (stored 
+in \fImdfdir\fR).  
+Using the default is highly recommended unless the observations use
+nod&shuffle (GPREPARE).
+.le
+.ls mdfdir = "gmos$data/"
+Directory containing \fImdffile\fR (GPREPARE).
+.le
+.ls key_biassec = "BIASSEC"
+Header keyword for the overscan section (GIREDUCE).
+.le
+.ls key_datasec = "DATASEC"
+Header keyword for the usable, data section (GIREDUCE).
+.le
+.ls bpmfile = "gmos$data/chipgaps.dat"
+Bad pixel mask used by GMOSAIC to interpolate across the chip 
+gaps (GFEXTRACT).
+.le
+.ls grow = 1.0
+Number of pixels by which to grow the chip gaps when re-interpolating them
+(GFEXTRACT, \fIfl_fixgaps\fR=yes).
+.le
+.ls bias = ""
+Bias image to be subtracted (GIREDUCE).  
+The  bias image bias should be created using the GBIAS task.
+.le
+.ls reference = ""
+Name of the reference file to use for defining apertures and traces (GFEXTRACT).
+.le
+.ls sc_xorder = "1"
+Order of surface fit to the scattered light background in x (GFSCATSUB).
+.le
+.ls sc_xorder = "3"
+Order of surface fit to the scattered light background in y (GFSCATSUB).
+.le
+.ls sc_cross = no
+Include cross terms in surface fit (GFSCATSUB)?
+.le
+.ls qe_refim = ""
+Wavelength reference image used as template to create the QE correction image.
+This file must have an associated wavelength database solution (from
+gswavelength), so will be mosaicked and extracted (see the gmos examples).
+This parameter accepts a list of files. However, if a list is supplied there
+must be one reference image for each input image. In either case the reference
+image must have been observed with the same observing set up as the
+corresponding input image(s).
+.le
+.ls fl_keep_qeim = no
+Keep the image that is created to QE correct the input data?
+.le
+.ls qe_corrpref = "qecorr"
+Prefix added to \fIqe_refim\fR to name the output QE correction image.
+.le
+.ls qe_corrimages = ""
+Either output name for the QE correction image when creating the QE correction
+image for the first time, or a previously created QE correction image to be 
+used to QE correct the input data instead of creating one from 
+scratch. This parameter accepts a list. If using this parameter to supply
+the output name for a new created QE correction image, the list must contain 
+the same number of entries as \fIqe_refim\fR. Or if supplying the names of 
+previously created QE correction images, the number of supplied names must be 
+the same as the number of input images or just one that will be applied to all.
+Previously created QE correction images must have the same observing set up 
+as the input images.
+.le
+.ls qe_data = "gmosQEfactors.dat"
+Database file that contains the QE fit coefficients and factors to be used
+when creating the QE correction image (spectroscopy) or QE correcting the data
+directly (imaging only).
+.le
+.ls qe_datadir = "gmos$data/"
+Directory containing the file given in \fIqe_data\fR.
+.le
+.ls response = ""
+Name of the lenslet/fiber throughput file generated by GFRESPONSE (GFEXTRACT).
+.le
+.ls wavtraname = ""
+List of lamp image root names (do not include .fits in the name) 
+that were used to 
+establish the wavelength calibration with GSWAVELENGTH (GFTRANSFORM).
+.le
+.ls sfunction = ""
+Name of the sensitivity function (flux calibration) generated by
+GSCALIBRATE (GSCALIBRATE).
+.le
+.ls extinction = ""
+Name of the file containing the atmospheric extinction curve.  If this
+file exists and \fIfl_fluxcal\fR=yes, then it is used by GSCALIBRATE.
+.le
+.ls fl_fixnc = no
+Auto-correct for nod count mismatch in nod&shuffle observations (GNSSKYSUB).
+.le
+.ls fl_fixgaps = no
+Re-interpolate the chip gaps after extraction, before flat fielding with
+\fIresponse\fR, where applicable (GFEXTRACT)? For optimal results, the
+\fIresponse\fR file itself should have been extracted with the same value
+of this option.
+.le
+.ls fl_novlap = yes
+In two-slit mode, extract only non-overlapping sections of spectra
+from each slit (no overlap).  If \fIfl_novlap\fR=no then the entire
+length of each slit allowed by the filter is extracted, regardless of
+overlap (GFEXTRACT).
+.le
+.ls perovlap = 10.
+If \fIfl_novlap\fR=yes, then the calculated lengths of the spectra are
+shortened by this percentage to minimize any remaining overlap (GFEXTRACT).
+.le
+.ls nbiascontam = "default"
+Number of columns removed from the overscan region before subtracting.
+The default value of \fInbiascontam\fR for the EEV CCDs is 4. Whereas, a
+default value of 5 is used for the GMOS-N e2vDD CCDs. \fInbiascontam\fR is
+used when \fIfl_over\fR=yes. The overscan regions of GMOS CCDs have some
+photon bleeding from the science frame. \fInbiascontam\fR is the number of
+columns next to the data section that are not used when calculating the
+overscan to subtract.
+.le
+.ls biasrows = "default"
+Rows to use in bias region. If \fIbiasrows\fR = "default", the entire
+length of overscan region is used. Value must be of the form "x1:x2" where 
+x1 is the starting pixel row and x2 is the final pixel row. e.g. "3:64".
+.le
+.ls order = "default"
+Order of the overscan fitting function (GIREDUCE). Where "default" is used,
+\fIgireduce\fR selects a default value appropriate for the relevant GMOS
+detectors.
+.le
+.ls low_reject = 3., high_reject = 3.
+Low and high sigma rejection factor in overscan fitting. 
+.le
+.ls niterate = 2
+Maximum number of rejection iterations in overscan fitting. 
+.le
+.ls cr_xorder = 9
+Order of object fit along the dispersion axis, used to subtract object
+continuum before performing cosmic ray detection (GEMCRSPEC). If a value of 0
+is given, no object fit is performed.
+.le
+.ls cr_sigclip = 4.5
+Detection threshold for cosmic rays, in standard deviations (GEMCRSPEC).
+.le
+.ls cr_sigfrac = 0.5
+Fractional detection limit for neighbouring pixels (GEMCRSPEC).
+.le
+.ls cr_objlim = 1.0
+Contrast limit between cosmic rays and the underlying object flux (GEMCRSPEC).
+.le
+.ls cr_niter = 4
+Maximum number of detection and cleaning iterations for each input image
+extension (GEMCRSPEC).
+.le
+.ls line = INDEF
+Column used for finding apertures.  If INDEF then the center of the 
+spectrum is used (GFEXTRACT).
+.le
+.ls nsum = 10
+The number of columns summed for finding apertures (GFEXTRACT).
+.le
+.ls trace = yes
+Trace spectra (GFEXTRACT).
+.le
+.ls recenter = yes
+Recenter apertures (GFEXTRACT).
+.le
+.ls thresh = 200.
+Detection threshold for profile centering (GFEXTRACT).
+.le
+.ls function = "chebyshev" (chebyshev|spline1|spline3|legendre)
+Function to be used for fitting the trace (GFEXTRACT).
+.le 
+.ls t_order = 5
+Order for the trace fit (GFEXTRACT).
+.le
+.ls t_nsum = 10
+The number of dispersion lines to sum for the trace (GFEXTRACT).
+.le
+.ls weights = "variance" (variance|none)
+Weighting used during extraction (GFEXTRACT). It is recommended
+to use \fIweights\fR="variance" for science and flat fields, and 
+\fIweights\fR="none" for arcs.
+.le
+.ls gratingdb = "gmos$data/GMOSgratings.dat"
+Database file with GMOS grating information (GFEXTRACT).
+.le
+.ls filterdb = "gmos$data/GMOSfilters.dat"
+Database file with GMOS filter information (GFEXTRACT).
+.le
+.ls xoffset = INDEF
+The offset in the X (wavelength) direction between the theoretically 
+predicted position of the spectra and the actual position.  The units are 
+nanometers.  This overrides the offset value in \fIgratingdb\fR if it
+is not equal to INDEF.
+.le
+.ls expr = "default"
+Logical TSELECT expression for selecting sky lenslets.  The default
+values assume that the entire small IFU field is used for determining
+sky: 'XINST > 10' for GMOS-N and 'XINST < 10' for GMOS-S (GFSKYSUB).
+.le
+.ls sepslits = no
+Subtract the sky from each IFU slit (each half of the field) separately
+(GFSKYSUB)?
+.le
+.ls w1 = INDEF, w2 = INDEF, dw = INDEF, nw = INDEF
+Optional starting wavelength, ending wavelength, wavelength interval per
+pixel and number of spectral pixels, respectively, to be used in the output
+spectra (GFTRANSFORM). If these are not specified, defaults are calculated.
+.le
+.ls observatory = "default"
+The name of the Gemini telescope used for the observations based on the
+INSTRUME header keyword (GSCALIBRATE).
+.le
+.ls sci_ext = "SCI"
+Name of the MEF extension containing the science data.
+.le
+.ls var_ext = "VAR"
+Name of the MEF extensions containing the variance frame.
+.le
+.ls dq_ext = "DQ"
+Name of the MEF extensions containing the data quality array.
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes the task use the
+logfile defined by gmos.logfile.
+.le
+.ls verbose = yes
+Print actions to the screen or run quietly.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an
+error. This parameter is always set by the task, and should
+not be modified by the user.
+.le
+
+.ih 
+DESCRIPTION 
+
+GFREDUCE is a meta script for applying basic reduction steps to GMOS
+IFU data. Depending on the flags set, GFREDUCE will call the following
+scripts in sequence: GPREPARE, GIREDUCE, GSCRREJ, GNSSKYSUB, GFEXTRACT,
+GFTRANSFORM, GFSKYSUB, and GSCALIBRATE.  The most important of the
+parameters of these tasks, especially the names of calibration files,
+are provided as inputs to GFREDUCE.  If a parameter for one of the
+called tasks is not in the GFREDUCE parameter list and does not
+involve file names, then in general it can be set directly before
+GFREDUCE is run (see the examples).  The intermediate results are
+named using the default \fIoutpref\fR where possible.  Output from
+GSCRREJ/GEMCRSPEC is given an "x" prefix.  While it is best to use the
+standard prefixes for the output file names, the final result can be renamed
+according to the list given in \fIoutimages\fR or a specific prefix
+given by \fIoutpref\fR.  
+
+Intermediate steps are not deleted - the output images may therefore
+take up significant disk space. The intermediate steps
+can only be reused if the flags that were set to "yes" to create them
+are set to "no" and the names of the output image(s) from the
+intermediate step is given as the input image(s).
+For example to start at the cosmic ray rejection step, set 
+\fIfl_addmdf\fR=no and all the flats for GIREDUCE to "no". Then
+give the output image from those steps as the input image.
+This image is named "rg*" if the default naming was used.
+This behavior of GFREDUCE will be improved in a future release.
+
+GFREDUCE does provide some functionality in addition to that of the
+scripts that it links together.  If \fIslits\fR is set to the correct
+slit(s), \fIfl_nodshuffle\fR reflects whether a nod&shuffle slit mask
+was used, and \fImdffile\fR="default" (or if \fIslits\fR="header" for
+newer data), the proper MDF file for that configuration is determined
+automatically.  In this case, \fImdfdir\fR should be set to the default
+value of "gmos$data/". Also, GFREDUCE puts loops around GSCRREJ and
+GFEXTRACT, allowing those tasks to be used on lists of images.  Finally, it
+makes sure that database files are renamed and updated properly if the
+output images do not use the standard prefixes.
+
+The field-to-slit mapping of the GMOS-S IFU allows the use of the
+nod&shuffle (N&S) observing mode for improved sky subtraction,
+especially in the red. One difference when using this mode is the loss
+of the small IFU field normally used for a sky measurement.  Sky
+subtraction for N&S data can be done in two ways.  GNSSKYSUB can be
+called by setting \fIfl_gnsskysub\fR="yes" (\fIfl_skysub\fR is set to
+"no" automatically if a N&S output mask was used).  If data were taken
+at multiple DTA X positions but the same spatial position then images
+can be combined and the sky can be subtracted using GNSCOMBINE.  In
+this case the spectra should be gprepared, bias-subtracted, and
+processed by GNSCOMBINE before running GFREDUCE to do the extraction.
+
+Use of \fIfl_scatsub\fR requires supplying a \fIreference\fR file from
+a previous GFEXTRACT run (which in the case of flat fields usually
+implies running GFREDUCE twice on the same input file, with different
+flags). The task GFFINDBLOCKS will be run only if a suitable "gaps file"
+(named after \fIreference\fR, with "_gaps" appended) does not already
+exist, allowing the user to tweak that text file before re-running
+GFSCATSUB, if needed.
+
+After processing with GFREDUCE the data format will have changed
+according to the processing steps chosen. The tables below give the
+processing flags and the output data format in terms of the number of
+science extensions (SCI) and the MDF extension. The MDF extension
+contains the binary MDF. The flags are listed in the order the
+reflects the reduction steps. The output format of one step is the
+input format to the next step. The first table is for data taken with
+the IFU in 1-slit mode, while the second table is for data taken with
+the IFU in 2-slit mode.  For N&S reductions there is no SKY extension
+since the sky is subtracted using GNSSKYSUB or GNSCOMBINE before the
+extraction step and no mean sky spectrum is produced.
+
+.nf
+    IFU 1-slit data
+    --------------------------------------------------
+    Processing flag       Output format
+    --------------------------------------------------
+    none                  Raw data: 3 image extensions
+    fl_addmdf+            3 SCI 1 MDF 
+    fl_over+              3 SCI 1 MDF 
+    fl_bias+              3 SCI 1 MDF 
+    fl_crrej+             3 SCI 1 MDF 
+    fl_extract+           1 SCI 1 MDF
+    fl_gsappwave+         1 SCI 1 MDF
+    fl_wavtran+           1 SCI 1 MDF
+    fl_skysub+            1 SCI 1 MDF 1 SKY
+    fl_fluxcal+           1 SCI 1 MDF 1 SKY
+    --------------------------------------------------
+
+    IFU 2-slit data
+    --------------------------------------------------
+    Processing flag       Output format
+    --------------------------------------------------
+    none                  Raw data: 3 image extensions
+    fl_addmdf+            3 SCI 1 MDF 
+    fl_over+              3 SCI 1 MDF 
+    fl_bias+              3 SCI 1 MDF 
+    fl_crrej+             3 SCI 1 MDF 
+    fl_extract+           2 SCI 1 MDF
+    fl_gsappwave+         2 SCI 1 MDF
+    fl_wavtran+           1 SCI 1 MDF
+    fl_skysub+            1 SCI 1 MDF 1 SKY
+    fl_fluxcal+           1 SCI 1 MDF 1 SKY
+    --------------------------------------------------
+.fi    
+
+After processing with GFREDUCE, science images may be reconstructed
+using GFDISPLAY, or resampled onto a 3-D datacube using GFCUBE.
+
+.ih
+EXAMPLES
+
+1. Do all steps through extraction for a GCAL flat.
+
+.nf
+        cl> set rdata=/net/mapu/staging/gmos/
+        cl> set gcalib=/net/mapu/staging/dataproc/gmos/CommCalib/
+        cl> gfreduce.rawpath="rdata$2001sep09/"
+        cl> gfreduce.bias="gcalib$rgN20010825S129_bias.fits"
+        cl> gfreduce N20010908S092 verb+ fl_over+ fl_bias+ fl_trim+ \
+        >>> fl_extract+ fl_wavtran- fl_skysub- fl_flux- fl_inter- 
+.fi
+
+2. Apply all reduction steps except flux calibration to a standard
+star while setting some of the GFSKYSUB parameters beforehand.
+
+.nf
+        cl> gfskysub.combine="median"
+        cl> gfskysub.reject="minmax"
+        cl> gfskysub.nlow=0
+        cl> gfskysub.nkeep=1
+        cl> gfreduce N20010908S091 verb+ fl_over+ fl_bias+ fl_trim+ \
+        >>> fl_extract+ fl_wavtran+ fl_skysub+ fl_flux- fl_inter- \
+        >>> refer=exrgN20010908S092 trace- \
+        >>> response=exrgN20010908S092_resp112 wavtran=ergN20010908S093
+
+3. After determining the flux calibration using GFAPSUM and
+   GSSTANDARD, apply the flux calibration to the standard star to
+   check the results.
+
+        cl> gfreduce astexrgN20010908S091 rawpath="" verb+ \
+        >>> fl_addmdf- fl_over+ fl_bias- fl_trim- fl_gscrrej- \
+        >>> fl_extract- fl_wavtran- fl_skysub- fl_flux+  fl_inter- \
+        >>> sfunction=sens.fits extinct=extinct.dat
+
+4. Sky-subtract and extract a N&S observation using a reference flat
+   to define the apertures.
+        cl> gfreduce.bias="gcalib$gS20040228S0001_bias.fits"
+        cl> gfreduce.fl_gscrrej=no
+        cl> gfreduce.fl_wavtran=no
+        cl> gfreduce.fl_fluxcal=no
+        cl> gfreduce S20040229S0050.fits fl_gnsskysub+ fl_skysub-
+        >>> fl_extract+ fl_gsappwave+ mdffile="gsifu_ns_slits_mdf.fits" \
+        >>> trace- recenter- reference=ergS20040229S0049
+.fi
+
+.ih
+BUGS AND LIMITATIONS
+Improvements to the (previously semi-functional) variance and
+data quality propagation in the GMOS package have undergone limited
+testing; the accuracy of the results should still be verified at
+each step by the scientist, particularly for spectroscopic data
+reduction tasks.
+.ih
+SEE ALSO
+gmosinfo, gmosinfoifu, gprepare, gireduce, gffindblocks, gfscatsub, gqecorr,
+gscrrej, gemcrspec, gnsskysub, gfextract, gftransform, gfskysub, gscalibrate,
+gfdisplay, gfcube
+.endhelp

@@ -1,0 +1,85 @@
+# Standard header keywords for NIRI
+print "setting header keywords"
+nsheaders.sci_ext =		"SCI"
+nsheaders.var_ext =		"VAR"
+nsheaders.dq_ext =		"DQ"
+nsheaders.key_instrument =      "INSTRUME"
+nsheaders.key_bias =		"DETBIAS"
+nsheaders.key_ron =		"RDNOISE"
+nsheaders.key_gain =		"GAIN"
+nsheaders.key_sat =		"SATURATI"
+nsheaders.key_nonlinear =	"NONLINEA"
+nsheaders.key_arrayid = 	"(unused)"
+nsheaders.key_filter =		"FILTER"
+nsheaders.key_decker =		"(unused)"
+nsheaders.key_slit =		"SLIT"
+nsheaders.key_prism =		"(unused)"
+nsheaders.key_order =		"NSCUTSPC"
+nsheaders.key_ndavgs =		"NDAVGS"
+nsheaders.key_coadds =		"COADDS"
+nsheaders.key_lnrs =		"LNRS"
+nsheaders.key_camera =		"CAMERA"
+nsheaders.key_grating =		"(unused)"
+nsheaders.key_fpmask =		"FPMASK"
+nsheaders.key_dispaxis =	"DISPAXIS"
+nsheaders.key_wave =		"(unused)"
+nsheaders.key_delta =		"(unused)"
+nsheaders.key_waveorder =	"(unused)"
+nsheaders.key_cradius =		"CRADIUS"
+nsheaders.key_exptime =		"EXPTIME"
+nsheaders.key_section =		"SPECSEC"
+nsheaders.key_cut_section =	"NSCUTSEC"
+nsheaders.key_pixscale =	"PIXSCALE"
+nsheaders.key_wavevar =		"(unused)"
+nsheaders.key_dark =		"OBSTYPE"
+nsheaders.val_dark =		"DARK"
+nsheaders.key_xoff =		"GXOFF"
+nsheaders.key_yoff =		"GYOFF"
+nsheaders.key_date =            "DATE-OBS"
+nsheaders.key_time =		"UT"
+nsheaders.key_airmass =		"AIRMASS"
+nsheaders.key_mode =            "(unused)"
+nsheaders.key_obstype =         "(unused)"
+
+# NIRI doesn't currently use MDF
+print "setting nscut.section"
+nscut.section =			nsheaders.key_section
+print "setting nsreduce.section"
+nsreduce.section =		nsheaders.key_section
+print "setting nsflat.statsec and fitsec"
+nsflat.statsec = "[*,*]"
+nsflat.fitsec = "[*,*]"
+
+# Clear possible changes from GNIRS config
+print "resetting nswavelength.dispaxis"
+nswavelength.dispaxis = 1
+print "setting nswavelength.coordlist, nswavelength.threshold, and"
+print "   nswavelength.fl_median."
+nswavelength.coordlist = "gnirs$data/lowresargon.dat"
+nswavelength.threshold = 0.
+nswavelength.fl_median = no
+
+# Clear possible changes from FLAMINGOS-2 config
+print "setting niflat.thresh_flo, niflat.thresh_fup, niflat.thresh_dlo,"
+print "   and niflat.thresh_dup."
+niflat.thresh_flo = 0.8
+niflat.thresh_fup = 1.25
+niflat.thresh_dlo = -20.
+niflat.thresh_dup = 100.
+print "setting niflat.statsec"
+niflat.statsec="[100:924,100:924]"
+print "setting nifasksky.statsec"
+nifastsky.statsec="[100:924,100:924]"
+print "setting nisky.statsec"
+nisky.statsec="[100:924,100:924]"
+print "setting nireduce.statsec"
+nireduce.statsec="[100:924,100:924]"
+
+# Set the logfile name
+cache ("gnirs")
+print "setting the default logfile"
+gnirs.logfile=")niri.logfile"
+if (gnirs.logfile == "") {
+    gnirs.logfile = "niri.log"
+}
+;

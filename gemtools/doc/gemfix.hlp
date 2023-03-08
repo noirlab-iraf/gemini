@@ -1,0 +1,159 @@
+.help gemfix September2014 gemini.gemtools
+.ih
+NAME
+gemfix -- Replace pixel values by interpolation where flagged in DQ
+.ih
+USAGE
+gemfix inimages outimages
+.ih
+PARAMETERS
+.ls inimages
+Input multi-extension FITS image, or list of images, to process. Each input
+image must already contain a DQ extension matching every SCI extension,
+identifying the bad pixels to be replaced.
+.le
+.ls outimages
+Cleaned output image or list of images, matching \fIinimages\fR.
+.le
+.ls method = "fixpix"  ("fit1d|fixpix")
+Method to use for interpolating good data to generate replacement
+values. The default value of "fixpix" calls the IRAF PROTO.FIXPIX task on
+each science extension with parameters linterp=INDEF and cinterp=INDEF (to
+interpolate along the narrowest dimension); this is a good option to avoid
+removing more local structure than necessary in replacement regions,
+eg. where cosmic rays may fall on compact features of scientific interest.
+The alternative "fit1d" option replaces bad values with a FIT1D Chebyshev
+model of the overall continuum/background of each image row or column,
+which is a good method to avoid bias from values immediately bordering
+the replacement regions, eg. for low-noise interpolation of GMOS chip gaps
+without undue sensitivity to the values on either side of the gap.
+.le
+.ls grow = 1.5
+Radius in pixels by which to expand regions matching the DQ \fIbitmask\fR
+when generating replacement values. A radius of 1.0 will extend each bad
+pixel identification to an extra pixel in each of the 4 cardinal directions
+(if not already affected), while 1.5 will also affect each of the 4
+diagonally-nearest points (and so on). This option does NOT cause
+additional pixels to be replaced, it merely avoids basing replacement
+values on the immediately-surrounding pixels, in case those also contain
+some lower-level contamination. To expand the actual replacement regions,
+use the task GROWDQ to modify the DQ itself in the input files before
+running GEMFIX.
+.le
+.ls bitmask = 65535
+The bitwise OR of DQ bits used to trigger pixel replacement. The default
+value of 65535 causes all pixels with DQ>0 in the input to be replaced in
+the output, while \fIbitmask\fR=0 would copy the input unchanged. Specific
+bits or combinations thereof can be used to exclude certain defects,
+eg. 9 to interpolate over cosmic rays (DQ=8) and detector defects (DQ=1),
+without affecting others such as missing data at chip gaps (DQ=16).
+.le
+.ls axis = 1  (1|2)
+The image axis along which to fit 1D Chebyshev models when using
+\fImethod\fR="fit1d" (1 fits rows, 2 fits columns). For spectroscopy, this
+would typically be the wavelength direction.
+.le
+.ls order = 0
+Order of Chebyshev fit when using \fImethod\fR="fit1d". The default of 0
+selects an automatically-calculated intermediate order (currently 1/128 of
+the axis length, which is often suitable for GMOS chip gaps).
+.le
+.ls low_reject = 3.
+Low sigma rejection threshold (for nominally-good pixels that don't match
+the \fIbitmask\fR) when using \fImethod\fR="fit1d".
+.le
+.ls high_reject = 2.3
+High sigma rejection threshold (for nominally-good pixels that don't match
+the \fIbitmask\fR) when using \fImethod\fR="fit1d".
+.le
+.ls niterate = 5
+Number of rejection iterations to perform when using \fImethod\fR="fit1d".
+.le
+.ls fl_inter = no
+Perform fitting interactively when using \fImethod\fR="fit1d"?
+.le
+.ls logfile = ""
+Name of the output logfile. When this is blank (as by default), the value of
+\fIgemtools.log\fR is used. If the package log parameter is also blank, the
+name will be "gemtools.log".
+.le
+.ls verbose = yes
+Print messages to the screen as well as the log? Errors will be printed
+regardless.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error. This
+parameter is set by the task and should not be modified by the user.
+.le
+
+.ih
+DESCRIPTION
+
+GEMFIX copies each input image to its output, cleaning any science (SCI)
+pixel values whose corresponding data quality (DQ) values match the
+specified \fIbitmask\fR. The bad pixel identification itself and generation
+of data quality arrays is done at one or more previous steps by other
+tasks, depending on the instrument. One of two interpolation methods is
+available, as described above for the parameter \fImethod\fR. A \fIgrow\fR
+parameter can be used to help avoid contamination of substitution values by
+any immediately-surrounding marginal pixels.
+
+It is usually recommendable to clean bad pixels early in the data reduction
+process, before operations such as image interpolation or sky subtraction
+can spread the contamination to additional pixels -- even where the DQ will be
+used to eliminate bad pixels at a later stage such as image co-addition,
+resampling onto a datacube or analysis.
+
+This task can sometimes be used to improve on cleaning by the Gemini LACosmic
+(http:/www.astro.yale.edu/dokkum/lacosmic) wrapper script GEMCRSPEC.
+Simply re-cleaning the same pixels identified by LACosmic can produce
+better results than the original median method, partly due to an apparent
+bug when dealing with negative values.
+
+GEMFIX has been developed and tested for use with GMOS data but should also
+work for other instruments.
+
+.ih
+DATA QUALITY
+
+The official Gemini IRAF DQ convention is as follows (though this is not
+respected everywhere in the package, with many tasks propagating only 0 or 1):
+
+.nf
+  0    Good pixel
+  1    Detector defect causing a bad pixel (hot or dead)
+  2    Non-linear regime (may not be used for all instruments)
+  4    Saturated
+  8    Cosmic-ray-hit
+ 16    No data
+.fi
+
+The user should check their input files to see which values are available for
+distinguishing different types of defects.
+
+.ih
+EXAMPLES
+1. Re-clean cosmic rays identified by GEMCRSPEC:
+
+.nf
+  cl> gemfix xrgN20060822S0125 pxrgN20060822S0125 method=fixpix bitmask=8
+.fi
+
+2. Re-interpolate chip gaps & bad columns for a list of images with
+extracted GMOS IFU spectra:
+
+.nf
+  cl> gemfix epxbprg@sci.lis pepxbprg@sci.lis method=fit1d bitmask=17
+.fi
+
+.ih
+BUGS AND LIMITATIONS
+There is no option to generate the output filename using a prefix.
+This task has undergone limited testing after inclusion from the
+experimental gmosifudr version on the Gemini Data Reduction User Forum;
+it may crash under relatively obscure error conditions, such as when the
+input files are malformed in some way.
+.ih
+SEE ALSO
+addbpm, fit1d, fixpix, gmosaic, growdq, gscrrej, gemcrspec
+.endhelp

@@ -1,0 +1,176 @@
+GEMINI (July2017)     Gemini IRAF package v1.14     GEMINI (July2017)
+
+Release date: July 20, 2017
+
+This document describes the revisions relative to the Gemini IRAF package
+v1.13.1.
+
+All users are encouraged to use Anaconda (https://www.continuum.io/downloads)
+and AstroConda (https://astroconda.readthedocs.io/) to install IRAF and the 
+Gemini IRAF package.  Full installation instructions for AstroConda on the 
+AstroConda website.  For those in a hurry, quick instructions can also be
+found on the Gemini website at: http://www.gemini.edu/node/12665
+
+A tarball is also available from the Gemini website.  Manual installation
+instructions for the Gemini IRAF package are included in the 
+gemini_readme.txt file.  The tarball, gemini_v114.tar.gz, can be obtained from
+http://www.gemini.edu/sciops/data-and-results/processing-software then clicking
+on the Download link. 
+
+Ureka users are strongly encouraged to switch to AstroConda.  However, this
+release is expected to work on Ureka systems.  Users will have to install the
+package manually from the tarball.  Installation instructions are provided in the 
+gemini_readme.txt file distributed with the package.
+
+The Gemini IRAF package v1.14 has been fully tested and vetted *only* in the 
+PyRAF environment.  Most of the package works under IRAF CL, however we have
+experienced irregularities here and there.  Therefore, we encourage people to
+use PyRAF to avoid problems.
+
+WARNING!! The Gemini IRAF package v1.14 does NOT work reliably with any of the
+version of IRAF v2.16 as distributed by NOAO.  AstroConda (and Ureka) contains 
+a version of IRAF v2.16 modified for compatibility with Gemini IRAF and modern
+operating systems.
+
+If updating an older installation of the Gemini IRAF package, it is 
+recommended that users initialize their uparm directories by typing 
+"rm uparm/*" in their iraf home directory (ie., where mkiraf was executed /
+where the login.cl file is located).  NOTE: if you wish to make a note of any
+stored parameters, please do so before running this command.
+
+The binaries distributed with the package were built on CentOS 5 and 
+Mac OS X 10.6.  See gemini_readme.txt for more information. 
+
+
+PRIMARY REVISIONS
+=================
+1) GMOS:  a) Support for new GMOS-N Hamamatsu CCDs.
+
+          b) Updates to GMOS-S Hamamatsu fast and low gains.
+          
+          c) Others
+          
+2) MOSTOOLS a) Updates for GMOS, new support for F2.
+          
+3) F2:    a) Support for new filters and configurations
+
+4) GNIRS: a) Fix to WCS issue that prevented proper stacking.
+
+5) GSAOI: a) Dome flat processing improved.
+
+
+DETAILS OF THE REVISIONS
+========================
+
+Only the most notable changes or those more likely to be of interest to 
+the users are highlighted, minor bug fixes are not.
+
+1) GMOS 
+-------------------
+Instruments: GMOS North and South
+
+    a) Support for new GMOS-N Hamamatsu CCDs.
+
+       New Hamamatsu CCDs have been installed in GMOS North.  The GMOS package
+       and other utilities are have been made compatible with the new detectors.
+       Note that like GMOS-S Hamamatsu, the GMOS-N Hamamatsu data has 12 science
+       extensions (12 amps) not 6 like for the previous CCD set.
+       
+       Gains, readnoise, full well, quantum efficiency have been characterized
+       and are included in this release.  New bad pixel masks are available. 
+       Typical data reductions have been tested for all main mode.  The 
+       reduction steps are the same as with previous CCDs.  However, please
+       note that quantum efficiency correction is essential as the CCDs are
+       not identical in their response.
+
+       The quantum efficiency solution is known to be less accurate in blue.  
+       This is due to scattered light, red light being scattered in the blue.
+       Because of this no one solution will work for all type of target.  We
+       have provided the solution that seems to work best to most cases.
+
+    b) Updates to GMOS-S Hamamatsu fast and low gains.
+    
+       Low and fast gain values have been recalculated and adjusted for 
+       GMOS-S Hamamatsu CCDs.  The specific data affected are from before
+       the video boards were replaced (August 2015).
+       
+    c) Others
+    
+       Very basic support of order 2 spectroscopic observations was added.
+       Note that the resolution obtained in order 2 is much lower than 
+       expected.  In most case, using a high resolution grating in order 1
+       will yield better results.  
+       
+       The scattered light removal task gfscatsub.cl now can be run 
+       interactively to allow visual inspection of the 2D surface fit.
+    
+    
+       
+2) MOSTOOLS
+-------------------
+Instruments: GMOS and F2
+
+    a) Updates for GMOS, new support for F2.
+    
+    Support for F2 MOS has been added to the MOSTOOLS package.  Updates and
+    improvements to the GMOS support were also done, in particular there 
+    were improvements to the pseudo-image transformations.
+
+
+3) F2
+-------------------
+Instrument: F2
+
+    a) Support for new filters and configurations
+    
+    New filters were added to look-up tables: K-long, K-red, and K-blue. Also,
+    the configuration R3K+K-long was added to look-up tables.
+    
+
+4) GNIRS
+-------------------
+Instrument: GNIRS
+
+    a) Fix to WCS issue that prevented proper stacking.
+    
+    A serious problem with GNIRS data WCS was causing nscombine to fail to
+    stack the dithered spectra correctly.  This affected only data taken at
+    certain position angles.  Also, there was a date dependencies to the 
+    problem.  The tasks "nsprepare" was modified to handle all the situations
+    and fix the headers such that the spectra are stacked correctly down
+    the line.
+    
+
+5) GSAOI
+-------------------
+Instrument: GSAOI
+
+    a) Dome flat processing improved.
+    
+    The "gaflat" parameter "use_offs" can now be set to "default" for any
+    GSAOI filter.  In default mode, the software will require OFF flats for
+    the filters that need them, and ignore them for the filters that do not
+    need them.  The previous implementation was incomplete.
+
+
+
+SUMMARY OF ALL CHANGED PARAMETERS
+=================================
+
+If a task listed below is causing problems, it is very likely that the task is
+accessing an old parameter file that does not contain the updated parameters
+and/or values.  To resolve the problem, the old parameter files for the 
+Gemini IRAF package must be removed from the uparm directory.  To do this, 
+initialize the uparm directory by typing "rm uparm/*" in your iraf home 
+directory (ie., where you ran mkiraf / where your login.cl file is located).
+NOTE: if you wish to make a note of any stored parameters, please do so before
+running this command.  If it is not desirable to remove all the old parameter
+files for the Gemini IRAF tasks, it is possible to "unlearn" the individual
+task.
+
+Please see the appropriate help file for more information about the specific
+parameter changes listed below.
+
+    gmos.gfscatsub:
+      - New parameters:     fl_inter
+    

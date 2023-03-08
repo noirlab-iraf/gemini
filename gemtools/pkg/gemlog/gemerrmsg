@@ -1,0 +1,20 @@
+# Copyright(c) 2004-2006 Association of Universities for Research in Astronomy, Inc.
+
+# GEMLOG set of error messages
+
+99  Internal error
+
+# Files I/0
+100 Error opening file
+101 Unable to access file
+102 File already exist
+
+# User inputs
+120 Using default value
+121 Input error
+122 Unrecognized option
+123 Wrong image format
+
+# Keywords/Header
+131 Keyword not found
+132 Error in header content

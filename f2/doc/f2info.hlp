@@ -1,0 +1,103 @@
+.help f2info August2012 gemini.f2
+.ih
+NAME
+f2info -- Generic information on FLAMINGOS-2 data and reduction
+.ih
+USAGE
+f2info
+.ih
+DESCRIPTION
+
+The F2 package contains tasks for processing FLAMINGOS-2 imaging, longslit 
+and multi-object spectroscopy (MOS) data. Many routines for the proper 
+reduction of infrared imaging and spectroscopic data already exist within the 
+Gemini IRAF package. Therefore, imaging, longslit and MOS reduction will also
+make use of the tasks in the NIRI and GNIRS packages, respectively. The
+specifics of the individual tasks can be found in their help files.
+
+This document describes the general use tasks specific to the F2 package and
+gives a description of the FLAMINGOS-2 data format. For information on the NIRI
+and GNIRS packages, see \fIniriinfo\fR and \fIgnirsinfo\fR, respectively. More
+details on data processing for each configuration are available in
+\fIf2infoimaging\fR (imaging), \fIf2infols\fR (longslit) and \fIf2infomos\fR
+(MOS). In addition, the \fIf2examples\fR task provides sample processing
+scripts for all configurations.
+
+The F2PREPARE task is used to prepare the FLAMINGOS-2 raw data from Gemini 
+South. The output imaging, longslit and MOS data from F2PREPARE are similar to
+the native format for NIRI imaging, GNIRS longslit and GNIRS cross-dispersed
+data, respectively. This allows for subsequent processing with the NIRI and
+GNIRS packages. 
+
+The tasks are designed to provide a fairly complete and flexible reduction for 
+the purpose of assessing data quality at the time of observation. Real-time 
+reductions may not be optimal for a particular science application. The F2, 
+NIRI and GNIRS package scripts can be optimised for a particular application
+using the hidden parameters to achieve the best possible results.
+
+The tasks produce logfiles for the performed processing steps. The name of the 
+logfile may be set in each individual task or at the package level by setting 
+\fIf2.logfile\fR.
+
+The tasks add header keywords to the output images. These header keywords 
+contain information about the performed processing steps and the values of the 
+critical parameters that were used.
+
+All FLAMINGOS-2 images are written as multi-extension FITS (MEF) files. Raw 
+data have two unnamed extensions. Most of the header information is written to 
+the primary header unit (PHU), which is extension [0]. The data read from the 
+array is in the pixel data extension, which is extension [1].
+
+It is recommended to use \fIimtype\fR="fits". This is set automatically when 
+loading the GEMINI package.
+.ih
+HEADER PARAMETERS
+
+The task NSHEADERS sets the header parameters used by the various tasks in 
+the F2, NIRI and GNIRS packages (some header values that have values fixed by
+IRAF or FITS conventions are not included, since they cannot be changed). After
+being processed with F2PREPARE, FLAMINGOS-2 data extensions will be named as
+defined by NSHEADERS. 
+
+Before beginning to reduce FLAMINGOS-2 data, NSHEADERS should always be run:
+   
+    ecl> nsheaders f2
+
+Note that not all header parameters named in NSHEADERS need appear in the raw 
+data. Some are used internally by the F2, NIRI and GNIRS packages. Others are
+used by F2PREPARE alone.
+.ih
+SHORT DESCRIPTIONS OF THE GENERAL USE TASKS IN THE F2 PACKAGE
+
+.ls F2PREPARE - Prepare raw FLAMINGOS-2 data for reduction
+
+All raw FLAMINGOS-2 data must be processed with F2PREPARE before further 
+processing. F2PREPARE adds certain essential header keywords to the PHU. By 
+default (see NSHEADERS), the extension names are SCI for science data, VAR for 
+variance and DQ for data quality (0 = good). The variance and data quality 
+extensions can be computed by setting the \fIfl_vardq\fR parameter to yes.
+F2PREPARE can also apply a linearity correction by setting the \fIfl_correct\fR
+parameter to yes (not yet implemented). Saturated and/or non-linear pixels can
+be flagged by setting the \fIfl_saturated\fR and/or \fIfl_nonlinear\fR
+parameters to yes. In addition, bad pixels will be flagged if an input bad
+pixel mask (BPM) is given for the value of the \fIbpm\fR parameter. Information
+about the array characteristics are contained in a FITS look-up table called
+f2array.fits. Finally, F2PREPARE will add an MDF file, describing which areas
+of the image contain useful information, to MOS data.
+
+.le
+.ih
+BUGS AND LIMITATIONS
+
+The tasks in the F2, NIRI and GNIRS packages are designed to operate on MEF
+images that have been processed using F2PREPARE. The task F2PREPARE will not
+run on data from instruments other than FLAMINGOS-2 and will not run on simple
+FITS files.
+.ih
+SEE ALSO
+
+f2prepare, f2examples, f2infoimaging, f2infols, f2infomos, 
+gnirs.nsheaders, niri.niriinfo, gnirs.gnirsinfo
+
+.endhelp
+

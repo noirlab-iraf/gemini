@@ -1,0 +1,7 @@
+# This file is used to fully mask out the bad pixel region in the upper right 
+# hand quadrant of FLAMINGOS-II data taken in January 2010.
+:aperture square
+:value 1.
+:radius 1.
+1026 1853 1 d
+1508 1335 1 d

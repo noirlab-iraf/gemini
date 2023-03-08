@@ -1,0 +1,209 @@
+.help gfskysub December2014 gemini.gmos
+.ih
+NAME
+gfskysub -- Sky subtract GMOS IFU spectra
+.ih
+USAGE   
+gfskysub inimages
+.ih
+PARAMETERS
+.ls inimages
+Input files of extracted GMOS IFU spectra.  Can be a list of images.
+Wild cards are supported.
+.le
+.ls outimages = ""
+Output MEF files.  The parameter can be one single image name,
+a list of images or a list file; as long as the number of output images matches
+the number of input images. \fIoutimages\fR has precedence over \fIoutpref\fR.
+.le
+.ls outpref = "s"
+Prefix fo  output images. Names of output images are the names
+of the input images with a prefix attached.  \fIoutpref\fR  is  used
+if \fIoutimages\fR="".
+.le
+.ls apertures = ""
+A list of apertures (APIDs) to use rather than selecting using \fIexpr\fR.
+.le
+.ls expr = "default"
+Expression used for selecting sky spectra.
+The default selects all spectra
+in the smaller IFU field of the given instrument.
+.le
+
+.ce
+SCOMBINE Parameters
+.ls combine = "average" (average|median)
+Type of combining operation performed on the final set of pixels (after
+offsetting, masking, thresholding, and rejection).  The choices are
+"average" or "median".  The median uses the average of the two central
+values when the number of pixels is even.
+.le
+.ls reject = "avsigclip" (none|minmax|ccdclip|crreject|sigclip|avsigclip|pclip)
+Type of rejection operation performed on the pixels remaining after offsetting,
+masking and thresholding.  The algorithms are described in the help for 
+SCOMBINE.
+.fi
+.le
+.ls scale = "none" (none|mode|median|mean|exposure|@<file>|!<keyword>)
+Multiplicative image scaling to be applied.
+.le
+.ls zero = "none" (none|mode|median|mean|@<file>|!<keyword>)
+Additive zero level image shifts to be applied.  
+.le
+.ls weight = "none" (none|mode|median|mean|exposure|@<file>|!<keyword>)
+Weights to be applied during the final averaging.  
+.le
+.ls sepslits = no
+Subtract the sky from each IFU slit (each half of the field) separately?
+This can reduce systematic errors due to minor differences between the
+slits (such as chip gap locations or wavelength solution residuals). When
+using the default of "no", a single sky spectrum is summed over all
+selected fibres from both slits in the background field and the result
+subtracted from both slits in the object field, reproducing the behaviour
+prior to v1.16. It is recommended that this option be set to "yes", in
+which case selected background fibres from the blue slit are used to
+subtract sky from blue slit object fibres and likewise for the red
+slit. This option makes no difference for single-slit data.
+.le
+.ls lthreshold = INDEF, hthreshold = INDEF
+Low and high thresholds to be applied to the input pixels.  This is done
+before any scaling, rejection, and combining.  If INDEF the thresholds
+are not used.
+.le
+.ls nlow = 1,  nhigh = 1 
+The number of low and high pixels to be rejected by the "minmax" algorithm.
+.le
+.ls nkeep = 0
+The minimum number of pixels to retain or the maximum number to reject
+when using the clipping algorithms (ccdclip, crreject, sigclip,
+avsigclip, or pclip).  
+.le
+.ls mclip = yes
+Use the median as the estimate for the true intensity rather than the
+average with high and low values excluded in the "ccdclip", "crreject",
+"sigclip", and "avsigclip" algorithms?  
+.le
+.ls lsigma = 3., hsigma = 3.
+Low and high sigma clipping factors for the "ccdclip", "crreject", "sigclip",
+"avsigclip", and "pclip" algorithms.  
+.le
+.ls key_ron="RDNOISE", key_gain="GAIN" 
+CCD readout noise in electrons and gain in electrons/DN.  
+These parameters are used with the "ccdclip" and "crreject"
+algorithms.   
+.le
+.ls snoise = "0.0"
+Sensitivity noise as a fraction. Used if the rejection algorithm is 
+"ccdclip" or "crreject".
+.le
+.ls sigscale = 0.1
+This parameter determines when poisson corrections are made to the
+computation of a sigma for images with different scale factors. 
+Used if the rejection algorithm is "ccdclip", "crreject", "sigclip",
+or "avsigclip".
+.le
+.ls pclip = -0.5 
+Percentile clipping algorithm parameter, used by the "pclip" algorithm.  
+.le
+.ls grow = 0.0
+Radius in pixels for additional pixel to be rejected in an image with a
+rejected pixel from one of the rejection algorithms.  
+.le
+.ls blank = 0.0
+Value to use if no pixels remain after rejection.
+.le
+
+.ce
+Remaining GFSKYSUB Parameters
+.ls sci_ext = "SCI", var_ext = "VAR", dq_ext = "DQ"
+Name or number of science, variance and data quality extension,
+respectively.
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes the task use the logfile
+defined by gmos.logfile.
+.le
+.ls fl_inter = yes
+Interactively edit sky spectra using SPECPLOT?
+.le
+.ls verbose = yes
+Print actions to screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error.
+This parameter is always set by the task, and should not be modified by
+the user.
+
+.ih 
+DESCRIPTION 
+
+GFSKYSUB creates and subtracts sky spectra from GMOS IFU extracted
+datacubes.  The spectra to be combined are originally selected either
+from the aperture list \fIapertures\fR or from the MDF binary table
+extension using the criteria in \fIexpr\fR.  An aperture list will
+override \fIexpr\fR. In the simplest case one would use the relative
+instrument coordinates of the lenslets (XINST, YINST) to select the
+field of the IFU that contains only sky signal.  For example, using
+the default criterion (XINST > 10 [arcsec] for GMOS-N, XINST < 10 for
+GMOS-S) will average all spectra from the smaller of the IFU fields to
+form the final sky spectrum.
+
+A schematic of the GMOS IFU instrument coordinate systems in two-slit
+mode is given below.  The coordinates are approximate relative
+coordinates and do not account for slight rotations of the fields or
+the exact field separations.  A distance of 60arcsec was assumed for
+the distance between the centers of the two fields, this is accurate
+to about 1 arcsec.
+
+.nf
+GMOS-N
+(65.0,4.9) |---|    (6.8,4.9) |-------|
+           |   |              |       |
+           |   |              |       |
+           |   |              |       |
+           |---| (61.7,0)     |-------| (0,0)
+GMOS-S
+(65.0,4.9) |-------|    (3.3,4.9) |---|       
+           |       |              |   |       
+           |       |              |   |       
+           |       |              |   |       
+           |-------| (58.3,0)     |---| (0,0)
+.fi
+
+The selection criteria may be a combination of XINST and YINST. For
+example, expr="XINST>10 && YINST>2.5" will select the top part of the
+smaller GMOS-N IFU field. The selection is done using TABLES.TTOOLS.TSELECT.
+
+If \fIfl_inter\fR=yes, then the user can visually inspect the selected
+sky spectra and throw out bad spectra using SPECPLOT. The final
+selected spectra are then combined with the \fIcombine\fR operation
+and \fIreject\fR rejection using SCOMBINE. This final sky spectrum is
+then subtracted from all the spectra in the input file and placed in
+the output file. The average sky spectrum is all appended to the output
+file as an additional extension with EXTNAME=SKY.
+
+.ih
+EXAMPLES
+
+1. Subtract a mean sky non-interactively from a GMOS IFU image
+
+.nf
+gm> gfskysub tergN20010908S091 fl_inter-
+.fi
+
+.ih
+BUGS AND LIMITATIONS
+Variance propagation does not account for any noise due to the combined sky
+spectrum, which will normally be negligible after averaging over many fibres
+(thus the output variance & data quality are simply copies of the input). 
+
+GFSKYSUB v1.15 claimed the ability to combine non-wavelength calibrated
+spectra, but this cannot result in accurate sky subtraction in the presence
+of distortions and, at least for some datasets, was not behaving as expected.
+As of v1.16, GFSKYSUB therefore requires spectra to have been processed with
+GFTRANSFORM.
+
+.ih
+SEE ALSO
+gmosinfoifu, specplot, scombine, tselect, gfapsum, gfreduce
+.endhelp

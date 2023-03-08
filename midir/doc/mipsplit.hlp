@@ -1,0 +1,212 @@
+.help mipsplit November2011 gemini.midir
+.ih
+NAME
+mipsplit -- Write the individual waveplate images of a Michelle polarimetry 
+file to a series of simple FITS files for processing in other packages
+.ih
+USAGE
+mipsplit inimages outimages
+.ih
+PARAMETERS
+.ls inimages
+The input image(s) to be processed by the task. It can be an image name, 
+a list of image names, a wild-card image name, or the "@" syntax can be 
+used to direct the task to read a list of file names.  These all must be 
+polarimetry files that have been made by the MPREPARE task.
+.le
+.ls outimages
+The output image root name(s) for the series of waveplate files.  Since 
+there are always going to be multiple output files for each of the four 
+waveplate positions, this is only a prefix name.  The output file names 
+will be formed by appending the waveplate position and image number for 
+that waveplate position to the name specified here.
+.le
+.ls rawpath = ""
+The path to the directory containing the Michelle image files.  
+If the value is "" (empty string) the current directory is used.
+.le
+.ls fl_register = no
+A boolean variable that flags whether the set of input stokes images
+should be registered (using the XREGISTER task in the images.immatch
+package) before the stacking of these images is done.  If the value is "yes"
+then the \fIregions\fR parameter must be set to whichever part of the
+images contains a bright source.  If the entire image is used for
+registration the results may be poor.  Generally it is best to define a
+small box around a bright object when doing registration.  The Stokes I
+images are registered, and then the same shifts are applied to the
+corresponding U and Q images.
+.le
+.ls regions = "[*,*]"
+This parameter specifies an image section to be used for registration of the
+Stokes I images before the averaging is carried out, provided that the
+\fIfl_register\fR parameter is set to "yes".
+.le
+.ls fl_single = no
+Flag for whether all wave-plate images are registered to the first 
+image in the file, or whether the images for each wave-plate position are
+registered separately
+.le
+.ls fl_stair = yes
+This is a flag for whether a correction should be made for the channel to
+channel offsets in the waveplate images.
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes the task use the logfile
+defined by \fImidir.logfile\fR.
+.le
+.ls verbose = yes
+Set this for logging to the screen as well as the log file.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error. 
+This parameter is always set by the task, and should not be modified by 
+the user.
+.le
+.ih
+DESCRIPTION
+.sp
+This task produces a series of simple FITS files from a Michelle polarimetry 
+file.  The original MEF file, which is produced from the raw data file with 
+the MPREPARE task, has a large number of extensions each of which has 
+dimension [320,240,3].  These are the images at different waveplate positions.
+At each nod position there are 8 such images, and as nodding is normally 
+done in an ABBA pattern the number of extensions will generally be a multiple 
+of 32.
+.sp
+For external (non-IRAF) polarimetry packages, or IRAF routines such as 
+POLCALC, these MEF files are not generally what is required as inputs.  
+Usually simple FITS files for the different waveplate positions are expected. 
+Therefore this routine produces such files by splitting out the individual 
+difference images to simple FITS files.
+.sp
+Each file has a name indicating the waveplate position, numbered 1 to 4 
+with waveplate angles of 0, 22.5, 45, and 67.5 degrees respectively, and 
+an index value for the waveplate position.  The index counts from 1 up.
+The form of the end of the output file name is "wp1im1", "wp2im1", "wp3im1", 
+"wp4im1", "wp1im2", and so on for as many images as are found.  This suffix 
+is appended to the specified output file name.  The task checks for the 
+first file name in a series, with the suffix "wp1im1", and it will skip 
+a set of output files if this file is present in the current directory.  
+This check is not carried out for the subsequent output files in a set, 
+on the assumption that all such files will be kept together.  In such a 
+case the task will exit.
+.sp
+The output files have minimal headers.  The primary header is not 
+copied into the various output files.  A small number of keywords are 
+added to the output file headers, but these may not be sufficient for 
+any given external polarimetry package, since there is no standard set 
+of keywords for such packages.  The user will have to change the headers 
+themselves to conform to whatever package is to be used.  The header 
+values that are added are:
+.sp
+.nf
+    WPLATE   : The waveplate angle in degrees; 
+    POLANGLE : The polarization vector selection angle for that 
+               waveplate angle, also in degrees;
+    ANGROT   : The polarization angle offset of the instrument in degrees;
+    T        : The waveplate transmission value;
+    E        : The waveplate efficiency.
+.fi
+.sp
+The POLANGLE value is exactly twice the WPLATE value, and can be used 
+by IRAF routines such as LINPOL (in the NOAO.NPROTO package) which needs 
+header keyword for the polarizer angle from each input image.  All the 
+other keywords are defined so that the Starlink "polpack" package should be 
+able to read the keywords it needs from the header.
+.sp
+If the \fIfl_stair\fR flag is set to "yes" then the individual images are 
+corrected for the channel to channel offsets before they are written out. 
+This only works if the object in the field of view is small.  When the 
+staircase correction is requested, the median value is found for each 20 
+columns (image sections [1:20,*], [21:40,*], and so on) and these values are
+subtracted from the section before the image is written out.
+.sp
+In addition, there is the option of registering the images from the 
+input file before these are written out.  If the \fIfl_register\fR flag 
+is set to "yes" then the \fIxregister\fR task is called to register images, 
+using that part of the image defined by the \fIregions\fR parameter for 
+the registration.  This region should be chosen to include some bright, 
+compact object in the field of view.  There are two possibilities for the 
+registration.  If the \fIfl_single\fR flag is "yes" then all the images from 
+the input file are registered to the first image.  This will mean that 
+images from different wave-plate positions are being registered, which may 
+not work properly if the polarization in the object is significant.  If the 
+\fIfl_single\fR flag is "no" then the registration is done within each 
+group of wave-plate images:  all images at wave-plate angle zero degrees are 
+registered to the first image in the set, all images at wave-plate angle 
+45 degrees are registered to the first image in that group, and so on.  There 
+will then typically be small shifts between the images at the different 
+wave-plate positions that need to be removed later.
+.ih
+EXAMPLE
+1. Copy the individual waveplate images found in a MPREPAREd Michelle MEF 
+file to a series of simple FITS files with root name 'polim'.
+.sp
+.nf
+mi> mipsplit mN20050131S0056 polim
+MIPSPLIT 
+MIPSPLIT ------------------------------------------------------------------
+MIPSPLIT Log opened at [Tue 22:38:52 06-Dec-2005]
+MIPSPLIT 
+MIPSPLIT --------------------
+MIPSPLIT Input Parameters:
+MIPSPLIT      outimages      = polim
+MIPSPLIT      rawpath        = 
+MIPSPLIT      logfile        = 
+MIPSPLIT      verbose        = yes
+MIPSPLIT --------------------
+MIPSPLIT Number of extensions is 32
+MIPSTACK   mN20050131S0056[1][*,*,3] --> polim_wp1im1
+MIPSTACK   mN20050131S0056[2][*,*,3] --> polim_wp3im1
+MIPSTACK   mN20050131S0056[3][*,*,3] --> polim_wp3im2
+MIPSTACK   mN20050131S0056[4][*,*,3] --> polim_wp1im2
+MIPSTACK   mN20050131S0056[5][*,*,3] --> polim_wp2im1
+MIPSTACK   mN20050131S0056[6][*,*,3] --> polim_wp4im1
+MIPSTACK   mN20050131S0056[7][*,*,3] --> polim_wp4im2
+MIPSTACK   mN20050131S0056[8][*,*,3] --> polim_wp2im2
+MIPSTACK   mN20050131S0056[9][*,*,3] --> polim_wp1im3
+MIPSTACK   mN20050131S0056[10][*,*,3] --> polim_wp3im3
+MIPSTACK   mN20050131S0056[11][*,*,3] --> polim_wp3im4
+MIPSTACK   mN20050131S0056[12][*,*,3] --> polim_wp1im4
+MIPSTACK   mN20050131S0056[13][*,*,3] --> polim_wp2im3
+MIPSTACK   mN20050131S0056[14][*,*,3] --> polim_wp4im3
+MIPSTACK   mN20050131S0056[15][*,*,3] --> polim_wp4im4
+MIPSTACK   mN20050131S0056[16][*,*,3] --> polim_wp2im4
+MIPSTACK   mN20050131S0056[17][*,*,3] --> polim_wp1im5
+MIPSTACK   mN20050131S0056[18][*,*,3] --> polim_wp3im5
+MIPSTACK   mN20050131S0056[19][*,*,3] --> polim_wp3im6
+MIPSTACK   mN20050131S0056[20][*,*,3] --> polim_wp1im6
+MIPSTACK   mN20050131S0056[21][*,*,3] --> polim_wp2im5
+MIPSTACK   mN20050131S0056[22][*,*,3] --> polim_wp4im5
+MIPSTACK   mN20050131S0056[23][*,*,3] --> polim_wp4im6
+MIPSTACK   mN20050131S0056[24][*,*,3] --> polim_wp2im6
+MIPSTACK   mN20050131S0056[25][*,*,3] --> polim_wp1im7
+MIPSTACK   mN20050131S0056[26][*,*,3] --> polim_wp3im7
+MIPSTACK   mN20050131S0056[27][*,*,3] --> polim_wp3im8
+MIPSTACK   mN20050131S0056[28][*,*,3] --> polim_wp1im8
+MIPSTACK   mN20050131S0056[29][*,*,3] --> polim_wp2im7
+MIPSTACK   mN20050131S0056[30][*,*,3] --> polim_wp4im7
+MIPSTACK   mN20050131S0056[31][*,*,3] --> polim_wp4im8
+MIPSTACK   mN20050131S0056[32][*,*,3] --> polim_wp2im8
+MIPSPLIT --------------------
+MIPSPLIT Exit status: SUCCESS
+MIPSPLIT Log closed at [Tue 22:38:58 06-Dec-2005]
+MIPSPLIT ------------------------------------------------------------------
+MIPSPLIT 
+mi> ls
+midir.log            polim_wp1im7.fits polim_wp2im8.fits polim_wp4im1.fits
+mN20050131S0056.fits polim_wp1im8.fits polim_wp3im1.fits polim_wp4im2.fits
+N20050131S0056.fits  polim_wp2im1.fits polim_wp3im2.fits polim_wp4im3.fits
+polim_wp1im1.fits    polim_wp2im2.fits polim_wp3im3.fits polim_wp4im4.fits
+polim_wp1im2.fits    polim_wp2im3.fits polim_wp3im4.fits polim_wp4im5.fits
+polim_wp1im3.fits    polim_wp2im4.fits polim_wp3im5.fits polim_wp4im6.fits
+polim_wp1im4.fits    polim_wp2im5.fits polim_wp3im6.fits polim_wp4im7.fits
+polim_wp1im5.fits    polim_wp2im6.fits polim_wp3im7.fits polim_wp4im8.fits
+polim_wp1im6.fits    polim_wp2im7.fits polim_wp3im8.fits
+.fi
+.ih
+BUGS AND LIMITATIONS
+.ih
+SEE ALSO
+mipstack, miptrans, mprepare, images.immatch.xregister
+.endhelp

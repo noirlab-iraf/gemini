@@ -1,0 +1,79 @@
+.help oview November2011 gemini.oscir
+.ih
+NAME
+oview -- Quick view (display) of select frames in OSCIR image
+.ih
+USAGE
+oview image
+.ih
+PARAMETERS
+.ls image = ""
+Input image.  Operates on one image at a time.
+.le
+.ls type = "sig"
+Frame type to be displayed.  Valid values are 
+"ref1|ref2|src1|src2|dif1|dif2|sig|sigall"
+.le
+.ls delay = 0
+Delay in seconds between display updates.
+.le
+.ls manual = no
+Allows interactive (imexam) mode.  Available only for type="sig".
+.le
+.ls disp_fill = no
+Option to force image to fill display.  Slows down execution.
+.le
+.ls test_mode = no
+If test mode flag is set, prints timing messages during execution.
+.le
+.ls verbose = yes
+Prints nodset, saveset values for each display.  Useful for identifying
+location of frames of interest, particularly with type="sig"; however, 
+with other types can produce a lot of output and slow down execution.
+.le
+.ih
+DESCRIPTION
+
+Displays all frames of \fItype\fR "type" for given OSCIR image.
+Frames are displayed on ximtool or similar display, which
+must already be running in the session.  Images are displayed
+sequentially, with a \fIdelay\fR of "delay" between each update.
+Depending on the size of the file, displaying "ref", "src"
+and "dif" frame types can typically display hundreds of frames.
+Number of displayed frames = n_nodset*n_saveset.  For 
+type="sig", only one frame per nodset is displayed, which
+is the combined "dif" frames of all savesets in that nodset
+(see oscirinfo for more information).  For type="sig", if
+"manual=yes", display starts interactive "imexam" session
+with each image, requiring user to enter "q" before the
+next image is displayed.  No information is logged.
+
+.ih
+EXAMPLES
+1.  Display all signal frames without interaction, with delay of 2 secs 
+between updates.
+.sp
+.nf
+    cl> oview 00dec03_018 delay=2
+.fi
+.sp
+2.  Display all reference images from Nod position A and print nodset,saveset 
+values.
+.sp
+.nf
+    cl> oview 00dec03_018 type="ref1" verbose+
+.fi
+.sp
+3.  Display all difference images from Nod position B.
+.sp
+.nf
+    cl> oview 00dec03_018 type="dif2" verbose-
+.fi
+.ih
+BUGS AND LIMITATIONS
+.ls Display program (i.e., ximtool) must already be running.
+.le
+.ih
+SEE ALSO
+oscirinfo, obackground, oreduce
+.endhelp

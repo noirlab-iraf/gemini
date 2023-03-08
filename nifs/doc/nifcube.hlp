@@ -1,0 +1,219 @@
+.help nifcube November2011 gemini.nifs
+.ih
+NAME
+nifcube -- Create data cubes from NIFS 2D format files
+.ih
+USAGE
+nifcube inimages
+.ih
+PARAMETERS
+.ls inimages
+List of input NIFS Multi Extension FITS (MEF) files containing rectified
+spectra.  The list may be specified as a comma separated list of files,
+an @filelist, or using wildcards.
+.le
+.ls outcubes = ""
+List of output NIFS data cubes.  The number of output data cubes specified
+must one, match the number of input files, or be null.  When only one
+name is specified all the input data will be combined into a single cube
+otherwise each input MEF file will produce a data cube.
+.le
+.ls outprefix = "c"
+Prefix for the output cubes when no \fIoutcubes\fR list is specified.
+The names of the output cubes will be the names of the input MEF files
+with the prefix attached.
+.le
+.ls reference = ""
+A reference cube whose WCS is matched in the output cubes.  This does not
+mean the size of the cubes will be the same, but where the output and
+reference cubes overlap in world coordinates they will have the same
+pixel sampling to allow simple combining.  Note that one may use a
+WCS image which has only a header and no data.
+.le
+.ls waxis = 3, saxis = 2, taxis = 1
+The output cube axes for wavelength, the spatial component along the slices,
+and the spatial component across the slices respectively.
+.le
+.ls wmin = INDEF, wmax = INDEF
+The minimum and maximum wavelengths, in Angstroms, for the output cubes.
+If INDEF is specified the range of the input spectra provide the limits.
+.le
+
+If no WCS reference is specified the following parameters are used to
+define the output cube sampling.
+.ls wscale = "+INDEF", sscale = "0.05"
+The output pixel sampling for the wavelength axis, in Angstroms per
+pixel, and the spatial axes, in arc seconds per pixels, respectively.
+Note that the two spatial axes will have the same output pixel size,
+that is square pixels on the sky, even though the input slice sampling is
+different along and across the slices.  If INDEF is specified the
+highest resolution sampling in the input data is used.  If +INDEF or
+-INDEF is specified then the world coordinate will increase or decrease
+with increasing pixel coordinate in the output cube.
+.le
+
+.ls drizscale = "1."
+The volume of the input pixels in world coordinates is scaled by this
+factor.  The value may be a single value that applies to all threes axes or
+three values for the two spatial axes and the wavelength axis respectively.
+.le
+.ls blank = 0.
+Output pixel value when no input data contribute to that pixel.
+.le
+.ls logfile = ""
+Name of a file to record log information. If empty, then the value in 
+\fInifs.logfile\fR is used.  If neither are defined "nifs.log" is used.
+.le
+.ls verbose = yes
+Print actions to the screen.
+.le
+.ls status = 0
+Exit status for the task.  This will be non-zero if the task exited with
+an error.  This parameter is always set by the task, and may not be
+modified by the user.
+.le
+.ih
+DESCRIPTION
+NIFCUBE is used to resample and combine spectra from the
+NIFS image slicer into three dimensional data cubes.  It is a script
+wrapper around the more general task GEMCUBE.  This wrapper handles
+details of the NIFS MEF format and various checks on the processing
+history.  Additional details about the process of creating the data
+cubes may be found in the help for GEMCUBE.
+
+The input NIFS spectra must be separate spectral images from each slice
+of the NIFS image slicer, stored as science extensions in a multiextension
+FITS (MEF) file, which have been mapped to world coordinates with the
+NSFITCOORDS task or resampled into rectified and calibrated slice
+data by the NSTRANSFORM task.  The input files are checked for previous
+processing by NSFITCOORDS and a warning is issued if this is not the case.
+It is an error if no suitable input data is found and a warning is issued
+if the output already exists.
+
+The input MEF files are generally organized as one file per exposure
+with each extension corresponding to one NIFS image slice on the sky.
+There may be science, error, and data quality extension versions.
+This task currently only utilizes and maps the science extensions.
+Each pixel in each science extension is mapped to one or more pixels in
+the output cube.  These mapped pixels are combined to produce the output
+data cube or cubes.  This process allows combining many input exposures,
+usually with some dithering or offsets, into a single data cube or creating
+a single data cube for each exposure.  Whether multiple input files are
+combined into one data cube or separate data cubes are created for each
+input is determined by the number of input and output files specified.
+A shortcut for naming the output data cubes applies a prefix to each
+input filename.  This shortcut is equivalent to specifying one output
+file name for each input filename.
+
+The mapping from an input pixel to an output pixel depends on the input
+and output having world coordinates systems (WCS).  The input WCS is set
+by the NSFITCOORDS task.  Many of the details of this WCS are described
+in help for that task.  The NSTRANSFORM task may resample the original
+sampling of the slice images into rectified slice images with a new,
+simpler, WCS.  The result of NSTRANSFORM may also be used to create data
+cubes though generally the results of NSFITCOORDS would be used directly
+to eliminate an intermediate interpolation step.
+
+The output WCS is set either using a reference data cube or using
+NIFCUBE parameters and certain default behaviors.  In the former case
+the output WCS is specified by a reference image name.  The image must
+have a three-dimensional WCS.  Generally this might be a data cube,
+possibly produced previously by NIFCUBE, that one wants to match.
+However, it could be a template WCS header in an image without pixels.
+
+Note that the reference WCS does not specify the output coverage but
+only which axes correspond to wavelength and space, their orientation,
+and the pixel scales.  The coverage is specified by the range of data in
+the input and by the \fIwmin\fR and \fIwmax\fR task parameters.
+
+If a WCS reference is not supplied then the output data cube will have a
+sampling specified by task parameters.  The orientation of the axes is set
+by the \fIwaxis\fR, \fIsaxis\fR, and \fItaxis\fR parameters.  The default
+is to place wavelength along the third or "z" axis, the spatial sampling
+of a slice along the second or "y" axis, and the sampling across the
+slices along the first or "x" axis.  The output pixel spatial scales are
+constrained to be the same; i.e.  the spatial footprint of the pixels is
+square even though the instrumental sampling is not.  The spatial size
+of the pixels may be explicitly set by the \fIsscale\fR parameter with
+a value of "INDEF" selecting the highest resolution in the input data.
+The wavelength sampling is similarly set by the \fIwscale\fR parameter
+with a default to the the highest spectral resolution in the input data.
+There is a special syntax to select the default scales but force the world
+coordinate increase with pixel coordinate, "+INDEF", or decrease pixel
+coordinate, "-INDEF".  As with the WCS reference method, the coverage is
+set by the range of the input data except that a range of wavelength may
+be specified if desired.
+
+Because the output coverage is set to include all the input data, with
+the possible exception of limiting the wavelength range of interest,
+there will be output pixels along the edges which do not correspond to any
+input pixels.  The values of these output pixels is set by the \fIblank\fR
+parameter.  One is free to use this value either to produce minimal impact
+for later applications or to provide a special value outside the range
+of the input data for later identification as out of bounds regions.
+
+The \fIlogfile\fR and \fIverbose\fR parameters provide for displaying
+and/or recording general information documenting the effects of this
+task.
+
+The \fIdrizscale\fR parameter is described further below.
+
+3D DRIZZLE
+
+This section summarizes the algorithm producing the output pixel values
+from the input pixel values.  The algorithm is an extension of the
+algorithm first developed for 2D resampling (Fruchter, A. S. & Hook,
+R. N., 2002, PASP, 114 144) which goes by the common name "drizzle".
+
+Each input pixel maps to a rectangular volume (voxel) with two spatial
+dimensions, a dispersion dimension, and some orientation.  In our case
+the wavelength axis is assumed to be orthogonal to the spatial axes.
+Though the input data is two dimensional the third dimension
+is implicit in the slice which has a pixel width defined by the the
+effective slit size.
+
+In the drizzle algorithm the value of the input voxel is apportioned
+to the output voxels that it overlaps by the volume of the overlap.
+There may be multiple input voxels that overlap the same output voxel
+either from the same exposure or from multiple exposures when combining
+data.  In either case the apportioned value from the input voxels are
+accumulated along with the volume fraction.  The accumulated fractions
+are used to normalize the final output data cube value.
+
+Note that this method preserves the input pixel values independent of
+the output pixel sampling.  This means that it is effectively preserving
+the input "surface brightness" and not the total flux.  However,
+by the nature of this method the sum of all the pixel values which map
+to the output data cube is rigorously conserved.
+
+This method is a type of linear interpolation which, like all resampling
+methods, degrades the resolution to some extent.  However, by treating
+the input pixels as if they were smaller this effect can be minimized.
+The \fIdrizscale\fR parameter allows the input voxel volume to be
+shrunk (or expanded) by specified factors.  This shrinking can be uniform
+by specifying a single scale value or can be applied separately for each
+world coordinate dimension.
+
+Because shrinking the input pixels can leave gaps in the output cube
+this only makes sense when combining multiple exposures that have been
+offset by a non-integer number of input pixels.  It is also generally
+used when the output is created with finer sampling than the input.
+The Fruchter and Hook reference provides some guidelines and discussion
+about how drizzling might be used.
+
+Note that this capability will only be useful when the input data supports
+WCS that incorporate information about offsets, relative orientations,
+and dithering used during the observations.  This is not yet developed
+for NIFS though it will be added as soon as possible.
+
+.ih
+EXAMPLES
+1. Create a default data cube.
+
+.nf
+   ni> nifcube frnN20051021S0165.fits
+.fi
+.ih
+SEE ALSO
+nsfitcoords, nstransform, nfwcs, gemcube.
+.endhelp

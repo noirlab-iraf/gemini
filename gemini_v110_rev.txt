@@ -1,0 +1,445 @@
+GEMINI (July2009)        Gemini IRAF package v1.10        GEMINI (July2009)
+
+Release date: July 28, 2009
+
+This document describes the revisions relative to Gemini IRAF package v1.9.1
+
+The Gemini IRAF package v1.10 is compatible with IRAF 2.14 and IRAF patch 
+release V2.12.2a. This release will run under PyRAF or IRAF CL environments. 
+
+The binaries distributed with the package were built on Red Hat 9, Solaris 7, 
+and Mac OS 10.4 PPC and Intel.
+
+
+PRIMARY REVISIONS:
+
+1) PyRAF compatibility
+
+2) Near-IR and mid-IR: nstransform split into nsfitcoords and nstransform
+
+3) MIDIR: a) New tasks: msslice, miclean, mipql, mistdflux
+          b) Improved msreduce wavelength calibration
+
+4) GMOS: a) Improved support for GMOS nod-and-shuffle modes
+         b) Improved GMOS variance and data quality calculations 
+         c) Added GFEXTRACT IFU single slit extraction feature 
+         d) Update overscan subtraction
+         e) No-pre-imaging GMOS MOS mask design software now fully integrated
+         f) Add B600 grating and OIII, He, Ha filters to gmos$data/ files
+         g) Other GMOS improvements - GIFLAT, GSTRANSFORM, GIFRINGE, GFCUBE
+         
+5) NIFS: a) Moved tasks NFCKCAL and NFCHECK to GEMTOOLS
+            and renamed CKCAL and CKINPUT respectively.
+         b) Critical update to NFPAD to compensate for recent H-band grating 
+            shift.
+         c) Critical bug fix for GEMTOOLS.GEMCUBE (only used in the NIFS 
+            package as of this release)
+         d) Remove tasks NFFITCOORDS and NFTRANSFORM as GNIRS.NSFITCOORDS 
+            and GNIRS.NSTRANSFORM are used for all instruments.
+
+
+
+DETAILS OF THE REVISIONS:
+
+1) PyRAF compatibility
+------------------
+Instruments: All
+
+Extensive testing and improvements ensure the Gemini IRAF package works 
+under PyRAF. 
+
+
+2) Near-IR and Mid-IR
+------------------
+Instruments: NIFS, GNIRS, NIRI, Michelle, T-ReCS
+
+The "fitcoords" step that was embedded in NSTRANSFORM has been taken out. 
+A new task, NSFITCOORDS was created for the coordinate fitting step. Now the 
+NSFITCOORDS step is run before NSTRANSFORM.
+
+    a) New tasks in the GNIRS package
+       - gnirs.nsfitcoords  -- takes arc and s-distortion calibration images,
+                               which have previously been traced, and fits 
+                               dispersion and s-distortion surface functions.
+
+    b) New parameters/functionalities in the GNIRS package
+        gnirs.nstransform:
+         - Parameters removed:
+             * The coordinate fitting parameters: lamptransf, 
+               sdisttransf, fl_inter, fl_align, function, xorder, yorder, 
+               force       
+
+        gnirs$doc/
+         - All examples are now updated with calls to both NSFITCOORDS and 
+           NSTRANSFORM
+         - All gnirsinfo (ls, xd, and ifu) are updated with NSFITCOORDS 
+           descriptions.
+           
+    c) Bug fixes
+        gnirs.nsreduce:  Output now sorted
+
+
+
+3) MIDIR
+------------------
+Instruments: Michelle, T-ReCS
+
+    a) New tasks in MIDIR
+   
+       - midir.msslice   -- Produce multiple T-ReCS or Michelle spectra 
+                            across an extended object, with or without 
+                            calibration of the slices
+       - midir.miclean   -- Remove certain types of pattern noise from 
+                            Michelle or T-ReCS images.
+       - midir.mipql     -- Produce Stokes I, U, and Q images plus four
+                            more extensions containing the unpolarized flux,
+                            the polarized flux, the % polarization, and the 
+                            polarization angle in degrees. 
+       - midir.mipsf     -- Measure FWHM and Strehl value in Michelle or 
+                            T-ReCS images
+       - midir.mistdflux -- Find the in-band flux density of a mid-IR 
+                            standard star for either Michelle or T-ReCS
+
+    b) Improved msreduce wavelength calibration
+
+       midir.msreduce:
+         - New functionality:
+             * Option to subtract bias from the sky frame before wavelength
+               calibration. Significantly improves wavelength calibration. 
+         - New parameters:
+             * fl_skybiassub: subtract bias from sky frame
+             * fl_fitcoords : replaces fl_transform, reflects split NSTRANSFORM
+         - Parameter removed:
+             * fl_transform
+
+
+4) GMOS
+------------------
+Instruments: GMOS North and South
+
+    a) Improved support for GMOS nod-and-shuffle modes.
+    
+        Please read the updated nod-and-shuffle data reduction script example
+        (gm> gmosexamples NS) and the info page (gm> gmosinfospec).
+    
+        (i) New tasks in GMOS
+        
+            - gmos.gnsdark  -- process and combine GMOS dark images
+         
+        (ii) New functionalities/parameters
+        
+            gmos.gsflat:
+               - New functionality:
+                   * Create nod-and-shuffle flats
+               - New parameters:
+                   * fl_double : make double flats for use before sky 
+                                 subtraction
+                   * nshuffle : specify number of unbinned shuffle pixels to 
+                                shift and double
+
+            gmos.gireduce:
+            gmos.gsreduce:
+               - New functionality:
+                   * Support subtraction of nod-and-shuffle darks produced by
+                     the new task gnsdark
+               - New parameters:
+                   * key_nodcount
+                   * key_nodpix
+                    
+
+    b) Improved GMOS variance and data quality calculations 
+
+       Overhaul of the GMOS package to improve variance calculations:
+       
+           number_of_photons **2 + ron/gain
+
+       The noise algorithm depends on the number of photons; therefore, 
+       it is correct to determine the variance only after the artificial 
+       bias level has been removed. All variance and data quality creation was
+       removed from the task GPREPARE and was inserted in GIREDUCE after 
+       bias subtraction. This fix applies to spectroscopic data as well as 
+       imaging as GSREDUCE and GFREDUCE rely on GIREDUCE to subtract bias 
+       frames. 
+
+       (i) Changes to parameter lists
+       
+           gmos.gprepare:
+               - Removed parameters:
+                  * fl_vardq
+                  * var_ext
+                  * dq_ext
+                  * bpm
+                  * sat
+                  * key_dsec
+                  
+           gmos.gscut:
+               - New functionality:
+                  * Added new approximation of variance if it does not already
+                    exist.
+               - New parameters:
+                  * key_gain
+                  * key_ron
+                  * ron
+                  * gain
+           
+           gmos.gireduce:
+               - New functionality:
+                  * Option to multiply by the gain to make the units of the
+                    output data be electrons rather than ADU.
+               - New parameter:
+                  * fl_mult : The default is 'yes', fl_mult is not usually
+                              modified by the user.
+       
+                             
+
+    c) GFEXTRACT IFU 2-slit mode single slit extraction feature
+    
+        For IFU 2-slit mode data, it is now possible to extract the spectral
+        information one slit at a time.  This is *not* the recommended 
+        procedure, but it can be a useful feature for some observations taken
+        with a filter not fully compatible with the central wavelength.
+    
+       (i) New functionalities/parameters
+       
+            gmos.gfextract:
+            gmos.gfreduce:
+                - New parameter:
+                    * exslits : specifies slit(s) to extract. For 2-slit 
+                                mode, this option allows each slit to be 
+                                extracted separately over its full, clean
+                                spectral range, instead of just the range 
+                                common to both slits. It allows for
+                                non-standard grating and filter 
+                                configurations. This parameter should only 
+                                be used when the center of the filter does 
+                                not match the desired central wavelength. 
+                                This only occurs in extreme cases.
+                    
+            gmos.gfreduce:
+                - New functionality:
+                    * Use information in the header to select the MDF.
+                - Modified parameter:
+                    * slits : new option, "header"
+                     
+            gmos.gsfquick: 
+                - New parameter:
+                    * sslit : to specify 'red' or 'blue' slit for single slit
+                              extraction
+
+
+    d) Update to overscan subtraction
+    
+        Because of a change in the behavior of the GMOS CCDs, it is now 
+        recommended to correct the overscan (it was not recommended before).
+        
+        gmos.gbias
+        gmos.gfreduce
+        gmos.giflat
+        gmos.gireduce
+        gmos.gsflat
+        gmos.gsreduce:
+            - New parameters:
+                * nbiascontam : Number of columns removed from the overscan 
+                                region before overscan calculation.
+                * biasrows: set rows used in overscan region 
+        gmos.gfreduce:
+            - New parameter:
+                * low_reject
+                * high_reject
+                * niterate
+
+     e) No-pre-imaging GMOS MOS mask design software now fully integrated
+     
+           (i) New tasks in gmos$mostools/
+           
+               - gmos.mostools.gmskcreate -- Produce the required inputs for 
+                                             gmmps from a non-Gemini image 
+                                             with good astrometry
+               - gmos.mostools.gmskimg    -- Produce dummy image for use with 
+                                             gmmps
+               - gmos.mostools.gmskxy     -- Generate x,y MOS mask coordinates 
+                                             from a list of RA and Dec.
+
+     f) Add B600 grating and OIII, He, Ha filters to gmos$data/ files
+     
+         gmos$data/gmosGRATINGS.dat: 
+            - add rows for B600 grating
+         
+         gmos$data/gmosFILTERS.dat: 
+            - update all starting and ending wavelengths
+            - add filters: 
+                 * GMOS-N: HeII_G0320, HeIIC_G0321, OIII_G0318, OIIIC_G0319,
+                           Ha_G0310, HaC_G0311, SII_G0317, DS920_G0312, 
+                           u_G0308
+                 * GMOS-S: u_G0332, HeII_G0340, HeIIC_G0341, OIII_G0338, 
+                           OIIIC_G0339, Ha_G0336, HaC_G0337, SII_G0335
+                           
+         gmos.data :  new transmission files
+             - CaT_G0309.dat, Ha_G0310.dat, r_G0326.dat, CaT_G0333.dat, 
+               Ha_G0336.dat, i_G0327.dat, SII_G0335.dat, u_G0308.dat,
+               OIIIC_G0339.dat, u_G0332.dat, HaC_G0311.dat, OIII_G0338.dat,
+               g_G0325.dat, HaC_G0337.dat, z_G0328.dat
+
+     g) Other GMOS improvements
+      
+         gmos.giflat:
+            - New functionality:
+                * Supports 'stamp' images
+            - New parameter:
+                * fl_stamp
+        
+         gmos.gstransform:
+            - New functionality:
+                * Allow user to specify the beginning and ending wavelength,
+                  pixel ratio, and number of pixels to transform.
+            - New parameters:
+                * lambda1
+                * lambda2
+                * dx
+                * nx
+            - Modified parameter:
+                * xlog -> lambdalog
+                
+         gmos.gifringe: 
+            - New functionalities:
+                * Much more flexible method of determining zero sky level 
+                  to optimize fringe frame 
+            - New parameters:
+                * typezero: operation to use to determine or specify zero 
+                            level values. This can be mean, midpt, skyfile, 
+                            or keyword    
+                * skysec: zero point statistics section
+                * skyfile: file with zero point values for each input image
+                * keyzero: header keyword for zero level
+                * glogpars
+            - Removed parameters:
+                * sctype     
+                * title     
+                * key_ron,
+                * key_gain     
+                * ron     
+                * gain     
+                * snoise
+                * pclip     
+                * grow     
+                * bpm     
+                * fl_dqprop
+            - Modified parameters:
+                * input --> inimages
+                * output --> outimage
+                                           
+         gmos.gfcube:
+            - New functionalities:
+                * Compensate for atmospheric dispersion
+            - New parameters:
+                * fl_atmdisp
+                * fl_dq
+                * logfile
+
+
+5) NIFS
+------------------
+Instrument: NIFS
+
+   a) Tasks renamed and relocated: 
+        * nifs.nfcheck -> gemtools.ckinput, relocated to GEMTOOLS
+        * nifs.nfckcal -> gemtools.ckcal, relocated to GEMTOOLS
+        
+   b) nifs.nfpad:
+        Pads more to account for small shifts in the slices. 
+        This is critical to H-band data taken after June 2007 as there was a 
+        shift in the slices causing slice 29 to be truncated.
+
+   c) gemtools.gemcube:
+       Critical bug fix from F. Valdes.
+       GEMCUBE is used to generate a NIFS cube.
+       The weighting was applied incorrectly causing a shift of one pixel in 
+       the dispersion features. The geometry of the drizzle weighting now 
+       knows which output axis corresponds to the non-spatial axis. 
+   
+   d) Remove tasks NFFITCOORDS and NFTRANSFORM:
+       GNIRS.NSFITCOORDS and GNIRS.NSTRANSFORM are now used for all 
+       instruments.
+       The NIFS examples and help pages are updated. Use 
+       NSTRANSFORM/NSFITCOORDS in the same way that NFTRANSFORM/NFFITCOORDS 
+       were used. 
+ 
+
+SUMMARY OF ALL CHANGED PARAMETERS 
+
+         gmos.gbias:
+           - New parameters: nbiascontam, biasrows
+
+         gmos.gfcube:
+           - New parameters: fl_atmdisp, fl_dq, logfile
+
+         gmos.gfextract: 
+           - New parameter: exslits
+
+         gmos.gfreduce:
+           - New parameters: low_reject, high_reject, niterate, exslits, 
+                              nbiascontam, biasrows
+           - New default value: slits = "header" (was slits = "both")
+
+         gmos.giflat:
+           - New parameters: fl_stamp, nbiascontam, biasrows
+
+         gmos.gifringe:
+           - New parameters: typezero, skysec, skyfile, keyzero, glogpars    
+           - Removed parameters: sctype, title, key_ron, key_gain, ron, 
+                                 gain, snoise, pclip, grow, fl_dqprop,
+                                 masktype, maskvalue, zero
+           - Changed parameters:
+               * input --> inimages
+               * output --> outimage
+
+         gmos.gireduce:
+           - New parameters: key_nodcount, key_nodpix, fl_mult, nbiascontam,  
+                             biasrows 
+         
+         gmos.gprepare:
+           - Removed parameters: fl_vardq, var_ext, dq_ext, bpm, sat, key_dsec
+
+         gmos.gscut:
+           - New parameters: key_gain, key_ron, ron, gain
+
+         gmos.gsflat: 
+           - New parameters: nbiascontam, fl_double, nshuffle, biasrows
+
+         gmos.gsreduce:
+           - New parameters:  nbiascontam, key_nodpix, key_nodcount, biasrows
+
+         gmos.gstransform:
+           - New parameters:  lambda1, lambda2, dx, nx
+           - Changed parameter: 
+               * xlog --> lambdalog
+
+         gnirs.nsprepare:
+           - New default value: fl_forcewcs=yes (was fl_forcewcs=no) 
+
+         gnirs.nstransform:
+           - Removed parameters: lamptransf, sdisttransf, fl_inter, fl_align, 
+                                 function, xorder, yorder, force
+
+         midir.mireduce:
+           - New parameter: frame
+
+         midir.msabsflux:
+           - New parameter:  fl_plots
+
+         midir msreduce:
+           - New parameter: fl_skybiassub
+           - Changed parameter: 
+                 * fl_transform --> fl_fitcoords 
+
+         nifs.nfimage:
+           - New parameter: fl_imexam
+           - Changed parameters: 
+                 * rootname -> prefix
+                 * datadir -> rawpath
+           - New default value: fl_inter=no (was fl_inter=yes)
+
+         niri.nisky:
+           - New default value: statsec="default 
+                                 (was statsec="[100:924,100:924]")
+                                   

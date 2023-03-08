@@ -1,0 +1,302 @@
+.help glogprint October2004 gemini.gemtools
+.ih
+NAME
+glogprint -- Write a log entry to a Gemini log file
+.ih
+USAGE
+glogprint logfile curtask loglevel
+.ih
+PARAMETERS
+.ls logfile
+The name of the Gemini logfile.  It should be the same as the logfile name used
+by GLOGINIT when the log file was opened and initialized.
+.le
+.ls curtask
+The name of the current task, i.e. the name of the task calling GLOGPRINT.  This
+name will be automaticaly added to the log entries.
+.le
+.ls loglevel  (engineering|science|status|task|visual|none)
+The Gemini log entry level.  The first four characters of each Gemini log entry
+is reserved for the log entry level descriptor.  The log entry levels are
+described in more detail in the \fIglogpars\fR help page.  In the end, however,
+it is up to the user of GLOGPRINT to decide which log level should be assigned
+to the log entry.
+.le
+.ls glogpars = ""
+The name of the text file containing the Gemini logging preferences parameters. 
+The parameters relating to the entry levels to be written are found here.  If
+\fIglogpars\fR is undefined when the default parameter set in the uparm 
+directory is used.
+.le
+.ls type = "string"  (error|file|fork|string|visual|warning)
+The type of log entry.  This allows the automatic formatting of certain type
+of entries.
+.sp
+The options are:
+.ls error
+The "error" log entry has a 2 or 3-line format.  Each line is tagged with the
+task name, the word "ERROR", and the error code (\fIerrno\fR).  The first line 
+is always written and it contains the time and the date.  The following line(s) 
+contain(s) the error message(s).  If \fIerrno\fR is set to a non-zero value, 
+the Gemlog error message and/or the user's error message, the latter defined in 
+\fIstr\fR, will be written.  For the Gemlog error message to be written, 
+\fIerrno\fR must correspond to a Gemlog error code. See the GEMLOG help page 
+for a comprehensive list of the Gemlog error codes.  If \fIerrno\fR is set to 
+0, only the user's error message (\fIstr\fR) will be added after the time/date
+entry.
+.sp
+A "error" type entry is always written to the screen, regardless of the user's
+verbose preference.
+.le
+.ls file
+The "file" option is used to append the content of a file to a Gemini log file,
+giving each line a Gemlog entry format.  The name of the file to append is given
+by \fIstr\fR.  The typical use case is for appending logs and outputs from IRAF 
+tasks.  The same log level (\fIloglevel\fR) will be applied to all the lines in
+the file.
+.le
+.ls fork
+The "fork" log entry provides information on a call to another task (the 
+child) and on the return to the original task (the parent).   The former is
+defined as a "forward" fork, the latter a "backward" fork.  This is set with 
+the parameter \fIfork\fR.
+.le
+.ls string
+The "string" option is used to write a string to the log file.  The string is
+defined in \fIstr\fR.  The string will be prepended with the log level tag and
+the task name.
+.le
+.ls visual
+The "visual" log entries help make the logs more human-readable.  There are
+three types of "visual" entries.  The type is set with the parameter 
+\fIvistype\fR.
+.le
+.ls warning
+The "warning" log entry has a 2 or 3-line format.  Each line is tagged with the
+task name, the word "WARNING", and the error code (\fIerrno\fR).  The first line 
+is always written and it contains the time and the date.  The following line(s) 
+contain(s) the warning message(s).  If \fIerrno\fR is set to a non-zero value, 
+the Gemlog warning message and/or the user's warning message, the latter defined 
+in \fIstr\fR, will be written.  For the Gemlog warning message to be written, 
+\fIerrno\fR must correspond to a Gemlog error code. See the GEMLOG help page 
+for a comprehensive list of the Gemlog error codes.  If \fIerrno\fR is set to 
+0, only the user's warning message (\fIstr\fR) will be added after the time/date
+entry.
+.le
+.le
+.ls str = ""   (type: error, file, string, warning)
+If \fItype\fR is "error" or "warning", \fIstr\fR is the optional user 
+error/warning message.  If \fItype\fR is "file", \fIstr\fR is the name of the 
+file to format and append to \fIlogfile\fR.  Finally, if \fItype\fR is
+"string", \fIstr\fR is simply the string to format and append to \fIlogfile\fR.
+.le
+.ls fork = "forward"  (forward|backward)  (type: fork)
+The direction of the fork.  A call to another task (the child) is defined as 
+a "forward" fork.  Returning to the original task (the parent) is defined as a 
+"backward" fork.
+.le
+.ls child = ""   (type: fork)
+The name of the child process.
+.le
+.ls vistype = "empty"  (empty|longdash|shortdash)  (type: visual)
+The type of visual/readability enhancement to write to the Gemini log file.  An
+"empty" line is an empty entry.  A "longdash" entry is a long series of '-'
+character; a "shortdash" entry is a short series of '-' character.  All three 
+types of entries are prepended by the \fIloglevel\fR tag and the name of the 
+task, as specified by \fIcurtask\fR.
+.le
+.ls errno = 0   (type: error, warning)
+The error code to assign the "error" or "warning" entry.  If a Gemlog error code
+is used, the corresponding Gemlog error message will be written to
+\fIlogfile\fR.  A comprehensive list of Gemlog error code can be found in the
+GEMLOG help page.  Any non-zero error code is prepended to the error or warning
+message.  If \fIstr\fR is defined and \fIerrno\fR is zero, \fIerrno\fR will be
+re-set to the generic error code, 1.
+.le
+.ls verbose = yes
+Print log entries to the screen as well as to the logfile.
+.le
+.ls status = 0
+Exit status will be non-zero if GLOGPRINT halted with an error.  This
+parameter is always set by the task, and should not be modified by the user.
+.le
+.ih
+DESCRIPTION
+GLOGPRINT is used to append entries to a Gemini log file.  To ensure the proper 
+formatting of the log file, log entries to a Gemini log file should always be 
+entered with GLOGPRINT.
+
+GLOGPRINT accepts 6 types of log entries, specified with the parameter
+\fItype\fR.   The most general type is a simple string.  To make the Gemini logs
+more uniform, the errors, warnings, readability improvements, and forking
+messages are given a more rigid format.  Error and warning types do, however,
+allow for some customization of the message.  An additional type, the 'file'
+type, is provided to permit the inclusion of outputs from tasks that do not
+implement GEMLOG, for example all non-Gemini tasks.
+
+Every call to GLOGPRINT must specify the log level of the entry, \fIloglevel\fR.  
+It is up to the CL script programmer to judge which log level fits the entry 
+the best. Log levels are described in the GLOGPARS help page.  The help page
+also provides some guidelines and examples for each log level.
+
+While a GEMLOG-enabled task will have numerous calls to GLOGPRINT, an entry will 
+only be written to the logfile if its log level corresponds to the user's 
+requested levels. Those are set by the user in GLOGPARS.
+.ih
+EXAMPLES
+In the examples below, the program mode syntax is used as GLOGPRINT will
+most often be used in a procedure script.  Indeed, by its very nature, 
+GLOGPRINT has a limited pratical use in command mode (CL prompt).
+.sp
+1. From the task MPREPARE, write to "midir.log" a 'status' level entry consisting 
+of a simple string.  The variable 'nimages' was set to 7.
+.sp
+.nf
+   glogprint ("midir.log", "mprepare", "status", type="string",
+       str="Processing "//nimages//" files ...")
+   
+   Will write to "midir.log":
+   
+       STAT MPREPARE Processing 7 files ...
+.fi
+.sp
+2. From the task MIREDUCE, write to "midir.log" information about an eminent 
+call (fork) to MISTACK.  Such entries are generally given a 'status' level. 
+Nothing will be written to the screen as verbose is set to 'no'.
+.sp
+.nf
+   glogprint ("midir.log", "mireduce", "status", type="fork",
+       fork="forward", child="mistack", verbose=no)
+   
+   Will write to "midir.log":
+   
+       STAT MIREDUCE FORK -- Forking to MISTACK ...
+.fi
+.sp
+3. From the task MIREDUCE, write to "midir.log" that the execution of MIREDUCE
+is resumed after the completion of the child process (MISTACK).  Such entries
+are generally given a 'status' level.  Nothing will be written to the screen as 
+\fIverbose\fR is set to 'no'.
+.sp
+.nf
+   glogprint ("midir.log", "mireduce", "status", type="fork",
+       fork="backward", child="mistack", verbose=no)
+   
+   Will write to "midir.log":
+   
+       STAT MIREDUCE FORK -- Returning to MIREDUCE ...
+.fi
+.sp
+4.  From the (fictionnal) task MYTASK, write to "mytask.log" a warning entry. 
+Warning entries should generally be given a 'status' level.
+.sp
+.nf
+   glogprint ("mytask.log", "mytask", "status", type="warning",
+       str="The image header has been modified.")
+   
+   Will write to "mytask.log":
+   
+       STAT MYTASK WARNING: 1 at [Wed 17:05:57 17-Mar-2004]
+       STAT MYTASK WARNING: 1 The image header has been modified.
+.fi
+.sp
+5.  From the task MPREPARE, write to 'l_logfile' an error message using a
+Gemlog error code and message.  No user message is specified.  Note that even
+though \fIverbose\fR is set to 'no', the error will be written to the screen.
+.sp
+.nf
+   l_logfile = "midir.log"
+   glogprint (l_logfile, "mprepare", "status", type="error", 
+       errno=102, verbose=no)
+   
+   Will write to "midir.log" AND to the screen:
+   
+       STAT MPREPARE ERROR: 102 at [Wed 18:05:57 17-Mar-2004]
+       STAT MPREPARE ERROR: 102 File already exist
+.fi
+.sp
+6.  From the task MPREPARE, write to 'l_logfile' an error message using a
+Gemlog error code and message, and additionally a more informative user message.
+Note that even though \fIverbose\fR is set to 'no', the error will be written to
+the screen.
+.sp
+.nf
+   l_logfile = "midir.log"
+   out[noutimages] = "mN20031109S0058.fits"
+   glogprint (l_logfile, "mprepare", "status", type="error", errno=102,
+       str="Output image "//out[noutimages]//" exists", verbose=no)
+   
+   Will write to "midir.log" AND to the screen:
+   
+       STAT MPREPARE ERROR: 102 at [Wed 18:05:57 17-Mar-2004]
+       STAT MPREPARE ERROR: 102 File already exist
+       STAT MPREPARE ERROR: 102 Output image mN20031109S0058.fits exists.
+.fi
+.sp
+7.  From the task MPREPARE, write to "midir.log" two entries to make the
+logfile more human-readable.  Such entries should be given a 'visual' log level.
+.sp
+.nf
+   glogprint ("midir.log", "mprepare", "visual", type="visual",
+       vistype="empty")
+   glogprint ("midir.log", "mprepare", "visual", type="visual",
+       vistype="shortdash")
+   
+   Will write to "midir.log":
+   
+       VIS  MPREPARE
+       VIS  MPREPARE --------------------
+.fi
+.sp
+8. From the task GEMCOMBINE, write to "gmos.log" the STDOUT output of the task
+IMCOMBINE, previously saved in the file "imcombine.log".
+.sp
+.nf
+   delete ( "imcombine.log", verify-, >>& "dev$null" )
+   imcombine("@"//scilist,combout,headers="",bpmasks="",rejmasks="",
+       nrejmasks=combdq,expmasks="",sigmas=combsig,logfile="STDOUT",
+       combine=l_combine,reject=l_reject,project=no,outtype="real",
+       outlimits="",offsets=l_offset,masktype="goodvalue",maskvalue=0,
+       blank=0,scale=l_scale,zero=l_zero,weight=l_weight,statsec=l_statsec,
+       expname=l_expname,lthreshold=l_lthreshold,hthreshold=l_hthreshold,
+       nlow=l_nlow,nhigh=l_nhigh,nkeep=l_nkeep,mclip=l_mclip,
+       lsigma=l_lsigma,hsigma=l_hsigma,rdnoise=l_sron,gain=l_sgain,
+       snoise=l_snoise,sigscale=l_sigscale,pclip=l_pclip,grow=l_grow,
+       >& "imcombine.log")
+   glogprint ("gmos.log", "gemcombine", "science", type="file",
+       str="imcombine.log")
+
+   Will write to "gmos.log":
+   
+       SCI  GEMCOMBINE Apr 13 11:08: IMCOMBINE
+       SCI  GEMCOMBINE   combine = average, scale = mean, zero = none
+       SCI  GEMCOMBINE   reject = avsigclip, mclip = yes, nkeep = 0
+       SCI  GEMCOMBINE   lsigma = 3., hsigma = 3.
+       SCI  GEMCOMBINE   blank = 0.
+       SCI  GEMCOMBINE                 Images     Exp    Mean  Scale
+       SCI  GEMCOMBINE   gsN20011221S139.fits[SCI,1]    3.0  18079.  1.000
+       SCI  GEMCOMBINE   gsN20011221S142.fits[SCI,1]    3.0  17650.  1.024
+       SCI  GEMCOMBINE   gsN20011221S143.fits[SCI,1]    3.0  17987.  1.005
+       SCI  GEMCOMBINE 
+       SCI  GEMCOMBINE   Output image = tmpcombout1890mzc, ncombine = 3
+.fi
+.sp
+9. From the task MPREPARE, write to 'l_logfile' a 'engineering' level entry.
+.sp
+.nf
+   l_logfile = "midir.log"
+   glogprint (l_logfile, "mprepare", "engineering", type="string", 
+       str="Rearranged image for nod "//n_j, verb=l_verbose)
+
+   Will write to "midir.log":
+   
+       ENG  MPREPARE Rearrange image for nod 1
+.fi
+.ih
+BUGS AND LIMITATIONS
+When writing the content of a file to a logfile (type="file"), a unique log
+entry level (SCI, ENG, etc.) is applied to all the lines.
+.ih
+SEE ALSO
+glogpars, gloginit, glogclose, gemlog
+.endhelp

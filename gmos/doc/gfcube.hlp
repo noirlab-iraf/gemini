@@ -1,0 +1,250 @@
+.help gfcube January2015 gemini.gmos
+.ih
+NAME
+gfcube -- Resample extracted IFU spectra onto an x-y-lambda datacube
+.ih
+USAGE
+gfcube inimage
+.ih
+PARAMETERS
+.ls inimage = ""
+Input FITS file containing a science image extension with one extracted
+GMOS-IFU spectrum per row and a matching MDF extension. The input image
+should be produced by GFTRANSFORM, which may be called from GFREDUCE.
+.le
+.ls outimage = ""
+Output FITS file, containing a 3D science image, where the first two axes
+represent spatial co-ordinates on the sky and the third axis represents
+wavelength.
+.le
+.ls outprefix = "d"
+If \fIoutimage\fR is blank, the output image will have the same name as
+the input image, but with \fIoutprefix\fR in front.
+.le
+.ls ssample = 0.1
+The spatial sampling rate or pixel size to use in the output datacube.
+The default is always adequate to preserve critical sampling by the IFU.
+.le
+.ls bitmask = 8
+The bitwise OR of DQ bits used to exclude input pixels when interpolating
+between fibres to produce the output cube. The default value of 8 excludes
+pixels flagged as contaminated by cosmic rays but includes existing values
+at chip gaps (DQ=16) and bad columns (DQ=1), which are better dealt with by
+spectral interpolation at an earlier reduction step. A value of 0 will use
+all available input pixels to create the interpolated cube.
+.le
+.ls fl_atmdisp = no
+Compensate for atmospheric dispersion (differential refraction) when
+resampling the fibre spectra onto the output datacube? This option uses
+a model to re-align the wavelength planes of the datacube spatially,
+such that a given point on the sky will correspond more closely to the
+same x,y co-ordinates at every wavelength.
+.le
+.ls fl_flux = no
+Convert units to flux per square arcsecond in the output? By default,
+GFCUBE simply resamples the flux density of the input spectra, giving
+flux or counts per area of an IFU lenslet at each pixel position. When
+working with flux-calibrated spectra, enabling this option produces more
+meaningful absolute units such as erg/cm2/s/A/arcsec2 (this is disabled by
+default only for backwards compatibility).
+.le
+.ls fl_var = no
+Propagate the input variance extension (if present) to a variance cube in
+the output file? See more information below regarding the approximation used.
+.le
+.ls fl_dq = no
+Create a data quality cube extension in the output file? If a DQ extension
+exists in the input file, it is used whether or not this flag is set,
+unless the user sets \fIbitmask\fR=0. When correcting for atmospheric
+dispersion, it is recommended to use \fIfl_dq\fR=yes, in order to identify
+which edge pixels end up blank after applying the necessary co-ordinate
+shifts as a function of wavelength.
+.le
+.ls logfile = ""
+Name of the log file. The default value makes the task use the log file
+defined by gmos.logfile. If the latter is also blank, no log is written.
+.le
+.ih
+DESCRIPTION
+
+GFCUBE reconstructs a datacube, representing the three-dimensional
+observation space of the IFU, from a set of extracted IFU spectra. The
+input spectra should first have been resampled onto a common grid in
+wavelength. In the current version of GFCUBE, the spectral WCS must also be
+linear (using standard FITS keywords). The necessary extraction and
+resampling can be performed using the task GFEXTRACT.
+
+The output sampling scale in arcseconds is set via the \fIssample\fR
+parameter, based on the co-ordinate mapping defined in the MDF. Smaller
+values are better for visualization and data integrity, but can use a lot
+of memory and increase the time taken to run analysis tasks on the
+datacube. The value of \fIssample\fR should not be larger than half the
+FWHM of the seeing. The output wavelength grid is the same as for the
+input, except that, where possible, the ends of the spectra are truncated
+to account for slight differences in wavelength coverage, due to curvature
+in the spectrograph and/or offsets between the output blocks of the IFU.
+The output dimensions are determined by the extent of useful input data in
+the 3-D space.
+
+The first and last few wavelength planes of the output datacube may contain
+badly interpolated images where the useful wavelength range of the input
+spectra begins and ends. To help avoid this, end columns missing data in
+more than 1% of the rows are excluded from the output range, but the user
+is advised to check for poorly-interpolated end planes in any case and trim
+the datacube if necessary. Once improvements to DQ propagation elsewhere in
+the package are complete, it should be possible to improve the output range
+calculation slightly.
+
+Only the larger of the two IFU fields is reconstructed. GFCUBE supports IFU
+data taken in both 2-slit and 1-slit mode.
+
+GFDISPLAY represents another method for reconstructing the IFU images.
+
+.ih
+DATA FORMAT OF OUTPUT IMAGE
+
+The output image from GFCUBE is a MEF file with one image extension.
+The image extension is 3-dimensional [x,y,lambda].
+The spatial orientation is the same as that of the GMOS imaging field.
+The wavelength scale for the wavelength axis is stored in the image
+extension header in the following standard FITS keywords. 
+
+.nf
+Keyword  Example value  Notes
+---------------------------------------------------
+DISPAXIS=         3     Dispersion axis
+CD3_3   =  1.628617     Dispersion in Angstrom/pixel
+CDELT3  =  1.628617     Dispersion in Angstrom/pixel
+CRPIX3  =         1.    Reference pixel
+CRVAL3  =  3353.274     Wavelength at the reference pixel
+.fi
+
+Individual spectra may be plotted using SPLOT. In SPLOT the "aperture"
+refers to the X-axis, and the "band" refers to the Y-axis of the data
+processed with GFCUBE.
+
+The data may also be visualized by displaying cuts in any of the
+axes. Small movies of such visualization may be made in simple IRAF
+scripts.
+
+1. Example movie that displays cuts in the spatial direction,
+the other spatial axis will be displayed as the X-axis, while
+wavelength will be be displayed as the Y-axis. The script 
+pauses 1 second between displaying each cut:
+
+.nf
+   for(i=1;i<=36;i+=1) {
+     display("ifucube[*,"//str(i)//",*]",1)
+     sleep 1
+   }
+.fi
+
+2. Example movie that displays cuts in the wavelength direction.
+The spatial axes (x,y) will be displayed as the X-axis and Y-axis
+on the display. Only a small wavelength interval is shown in
+this movie. Displays like those produced in the previous example
+may be used to select relevant wavelength intervals. The script 
+pauses 1 second between displaying each cut:
+
+.nf
+   for(i=2081;i<=2180;i+=1) {
+     display("ifucube[*,*,"//str(i)//"]",1)
+     sleep 1
+   }
+.fi
+
+.ih
+ATMOSPHERIC DISPERSION CORRECTION
+
+This option estimates the differential atmospheric refraction between
+wavelength slices using the atmospheric model from SLALIB, as distributed
+with the Gemini package (see Readme and refro.f under gemini$lib/gslalib/
+or use "help refro" to see IRAF's built-in help for a similar version). All
+of the required pointing and environmental data are obtained from the GMOS
+headers. For older data without meteorological measurements in the headers,
+reasonable values are used (and recorded in the log) for Mauna Kea or Cerro
+Pachon; in any case, the effects of temperature and pressure are normally
+at the modest level of a few hundredths of an arcsecond (similar to the
+apparent errors) whilst the dependence on humidity is negligible. Site
+information is obtained from IRAF's observatory database as indicated by
+the header keyword OBSERVAT (or gmos.observatory if that keyword is
+missing).
+
+For each wavelength slice processed, the differential refraction is
+calculated and converted to vector components along the axes of the IFU
+field. These values are then subtracted from the MDF co-ordinates of all
+the input fibre spectra, relative to the output datacube, before resampling
+spatially as usual to form the output image at the wavelength plane
+concerned. The zero point for the calculated offsets is the mean refraction
+over the wavelength range of the spectra (thus for a flat spectrum, summing
+over the cube in wavelength should produce an image with the same spatial
+alignment whether or not \fIfl_atmdisp\fR is used).
+
+Initial testing (consistent with subsequent experience) indicated that the
+correction is accurate within an error of several hundredths of an
+arcsecond, perhaps up to one tenth in some cases. Given that the atmospheric
+dispersion over the spectral range can easily be one arcsecond at low
+airmass, this is considered a substantial improvement. Using this option
+adds an overhead of just a few seconds to the GFCUBE execution time.
+Leaving the option turned off reproduces the behaviour seen in Gemini v1.9.
+
+Until v1.12beta of the Gemini package (inclusive), GFCUBE used IRAF's copy
+of the SLALIB routines (in math$slalib/) for estimating atmospheric
+dispersion. The copies now distributed with the Gemini package, as of 2013,
+include a few improvements to numeric constants or coefficients, so the
+resulting corrections are liable to differ slightly from those obtained
+using older Gemini package versions (though either should be acceptable).
+
+.ih
+VARIANCE & DATA QUALITY PROPAGATION
+
+Both variance and data quality propagation are now functional, using a
+practical approximation for the former. The addition of a \fIbitmask\fR
+parameter means it is now possible to exclude pixels affected by cosmic
+rays without resetting chip gaps (or bad columns) to zero, as long as
+separate DQ bits are used for each purpose in the input file; this is now
+the case when using GEMCRSPEC, after merging changes from the "gmosifudr"
+script versions on the Gemini Data Reduction User Forum. If necessary,
+input DQ can be ignored (as prior to gfcube v1.7) by setting bitmask=0.
+
+Output variance values are resampled from the input in the same way as the
+main science array and then upscaled to preserve the overall S/N ratio of
+the input dataset. Because input spectra normally get resampled onto a
+finer spatial grid in the output cube, their errors become heavily
+correlated between adjacent, statistically redundant spatial pixels. Formal
+error calculation thereafter would require propagating a covariance
+hypercube, a simple implementation of which would be extremely redundant
+and computationally expensive, primarily just to deal with a
+scaling factor. GFCUBE therefore overestimates the variance for each pixel
+(by a factor of sqrt(12.) with \fIssample\fR=0.1), such that the total noise
+& S/N will work out correctly when errors are combined in quadrature over
+more than a few (~3) spatial pixels. A user who would rather know accurate
+error values for a spectrum from a single spatial pixel should multiply the
+output variance by 28.8675*ssample^2 and bear in mind that results derived
+from analysis of neighbouring spectra will not be statistically
+independent.
+
+.ih
+EXAMPLES
+
+1. Wavelength calibrate extracted IFU spectra.
+
+.nf
+cl> gfcube tereecgN20010908S101 outimage="dtereecgN20010908S101"
+
+cl> gfcube tereecgN20010908S101 fl_atmdisp+ fl_flux+ fl_var+ fl_dq+
+.fi
+
+.ih
+TIME REQUIREMENTS
+Mainly CPU-limited and therefore somewhat variable; the task uses a couple
+of minutes on typical 2009 hardware.
+.ih
+BUGS AND LIMITATIONS
+Only simple, linear wavelength solutions are understood and there is no
+option to reconstruct the smaller of the 2 GMOS fields or produce an
+absolute spatial WCS.
+.ih
+SEE ALSO
+gmosinfo, gmosinfoifu, gfreduce, gftransform, gfdisplay, refro
+.endhelp

@@ -1,0 +1,112 @@
+.help gftransform January2016 gemini.gmos
+.ih
+NAME
+gftransform -- Wavelength calibrate GMOS IFU spectra
+.ih
+USAGE
+gftransform inimages
+.ih
+PARAMETERS
+.ls inimages
+Input MEF images. Can be a list of images.
+Wild cards are supported. The images must be in multi-extension FITS 
+(MEF) format.
+.le
+.ls outimages = ""
+Output MEF images. The parameter can be one single image name,
+a list of images or a list file; as long as the number of output images matches
+the number of input images. \fIoutimages\fR has precedence over \fIoutpref\fR.
+.le
+.ls outpref = "t"
+Prefix for output images. Names of output images are the names
+of the input images with a prefix attached. \fIoutprefix\fR is used
+if \fIoutimages\fR="".
+.le
+.ls wavtraname = ""
+List of lamp image root names that were used to establish the wavelength
+calibration with GSWAVELENGTH. The number of entries must either be one or
+match the number of input images.
+.le
+.ls database = "database"
+Directory for files containing calibration files (feature input data 
+and fitting output).
+.le
+.ls w1 = INDEF, w2 = INDEF, dw = INDEF, nw = INDEF
+Starting wavelength, ending wavelength, wavelength interval per pixel and
+number of spectral pixels, respectively, to be used in the output spectra
+(see also DISPCOR). Normally these parameters can be left at INDEF and the
+corresponding properties will be selected automatically to cover the range
+of the input data, with similar sampling (as prior to v1.16 of GFTRANSFORM).
+By specifying these parameters explicitly, the user can fine-tune the output
+co-ordinates, eg. to truncate the spectral range of interest or force data
+taken at different times onto the same grid. Any subset of these parameters
+may be user-specified, leaving DISPCOR to determine the remainder; if all
+four are specified, DISPCOR appears to give precedence to the first three.
+.le
+.ls dqthresh = 0.1
+Weight threshold above which pixels are considered contaminated by DQ>0
+when resampling. Any output pixels receiving a greater fractional contribution
+than this from neighbouring pixels that are flagged in the DQ plane will
+inherit their corresponding DQ bit code(s). This parameter therefore controls
+the growth of bad pixel identifications due to interpolation. A value of 0
+can be used but will typically more than double the number of pixels
+identified as bad, which may be overly conservative if the offending values
+have already been cleaned. A value of ~0.5 will preserve the number of
+pixels flagged as bad in the input.
+.le
+.ls fl_vardq = no
+Transform variance and data quality planes if they exist.
+.le
+.ls fl_flux = yes
+Conserve flux per pixel in the transform.
+.le
+.ls sci_ext = "SCI", var_ext = "VAR", dq_ext = "DQ"
+Name or number of science, variance and data quality extension,
+respectively.
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes the task use the logfile
+defined by gmos.logfile.
+.le
+.ls verbose = yes
+Print actions to screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error.
+This parameter is always set by the task, and should not be modified by
+the user.
+.le
+
+.ih
+DESCRIPTION
+
+GFTRANSFORM is used for applying wavelength calibration to GMOS IFU
+spectra.  GSWAVELENGTH must first have been used to establish the
+wavelength calibration.  The IFU spectra are wavelength calibrated
+using SPECRED.DISPCOR.  If the IFU was used in 2-slit mode, then each
+output file will have a single science extension extension and all the
+spectra in that file will have the same wavelength solution.  Also,
+the APID numbers in the MDFs are renumbered so as to match the output
+header in the science extension.  If \fIfl_vardq\fR=yes and variance
+and data quality planes exist in the input images, then each output
+image will have one variance and one data quality extension.
+
+As of v1.16 (Sept. 2014), the data quality calculation has been rewritten
+to preserve multiple DQ bit planes correctly (rather than just 0s and 1s).
+
+See GMOSINFOIFU for details about the data formats of IFU data. See
+"help onedspec.package" for more information on the interpolation used.
+
+.ih
+EXAMPLES
+1. Wavelength calibrate extracted IFU spectra.
+
+.nf
+   cl> gftransform ergN20010908S091 wavtran=ergN20010908S093
+.fi
+
+.ih
+SEE ALSO
+gmosinfoifu, gfreduce, gswavelength, dispcor, gstransform
+.endhelp
+

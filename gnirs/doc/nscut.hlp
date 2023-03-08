@@ -1,0 +1,125 @@
+.help nscut November2011 gemini.gnirs
+.ih
+NAME
+nscut -- Cut spectral regions
+.ih
+USAGE
+nscut inimages
+.ih
+PARAMETERS
+.ls inimages
+Files to cut. The files can be entered individually, using wild
+cards, as a comma separated list, or from a file using the @
+character.
+.le
+.ls outspectra = ""
+File name for output shifted and combined spectra. If \fIoutspectra\fR="",
+then the suffix \fIoutprefix\fR is used instead. 
+.le
+.ls outprefix = "s"
+Prefix used to create the name of the output spectra. 
+.le
+.ls section = ""
+Defines the region to cut.  If the value is blank, the MDF extension
+is used; if it starts with "[" then the value is assumed to be an
+image section (eg. [*,*]); otherwise the values is used as a header 
+keyword (whose value must define an image section).
+.sp
+If a header keyword is given, but no match is found in the header,
+then an integer is appended, starting at 1 and incrementing after each
+match, so that a series of sections can be specified.  For example,
+the value "SPECSEC" will generate three sections if the header
+contains "SPECSEC1", "SPECSEC2" and "SPECSEC3".  This gives backwards
+compatibility with NIRI, but should not be used for GNIRS.
+.le
+.ls fl_corner = yes
+Blank the "corners" of the science extensions for cross-dispersed data?  This
+sets the data outside the slit for the order in question to zero, removing
+overlapping orders.
+.sp
+The data will only be modified if the MDF associated with the image has 
+a non-zero value in the "corner" column.  This value defines the maximum
+number of pixels masked top left/bottom right.
+.le
+.ls logfile = ""
+Name of logfile.  The GNIRS package logfile "gnirs.log" is used by default.
+.le
+.ls verbose = yes
+Verbose output?
+.le
+.ls debug = no
+Very verbose output?
+.le
+.ls status = 0
+Exit status.  Equal to 0 for proper completion.
+.le 
+
+
+.ce
+Parameters from NSHEADERS
+.sp
+The following values are read from gnirs.nsheaders
+.ls sci_ext
+Name of science extension.
+.le
+.ls var_ext
+Name of variance extension.
+.le
+.ls dq_ext
+Name of data quality extension.
+.le
+.ls key_instrument
+Header keyword for instrument name.
+.le
+.ls key_pixscale
+Header keyword for pixel scale.
+.le
+.ls key_order
+Header keyword for storing spectral order.
+.le
+.ls key_waveorder
+Header keyword for grating wavelength order.
+.le
+.ls key_cut_section
+Header keyword used to store section cut.
+.le
+.ls key_dark
+Header keyword to identify darks.
+.le
+.ls val_dark
+Substring to match against dark header value.
+.le
+.ih
+DESCRIPTION
+.sp
+This task cuts out sections in the input frames \fIinimages\fR. The names of 
+the output spectra can be specified explicitly using
+\fIoutspectra\fR or created from the input frames \fIinimages\fR with the
+parameter \fIoutprefix\fR. If \fIoutspectra\fR is used, a one to one 
+match with \fIinimages\fR must exist. If \fIoutprefix\fR is used instead,
+the names of the output frames are created from the name of the input frames
+with a prefix (\fIoutprefix\fR) added to them.
+.sp
+Frames that have already been processed through NSCUT will not be cut
+again.
+.ih
+EXAMPLES
+1. Cut a NIRI file to its specsec section:
+.sp
+.nf
+   ni> nscut N20020313S0013 section="SPECSEC"
+.fi
+.sp
+2. Cut a number of files using MDF.
+.sp
+.nf
+   ni> nscut S20020313S*
+.fi
+.ih
+TIME REQUIREMENTS
+.ih
+BUGS AND LIMITATIONS
+.ih
+SEE ALSO
+nsprepare, nsreduce
+.endhelp

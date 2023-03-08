@@ -1,0 +1,26 @@
+# Make the GEMINI library.
+# This library contains general use functions to support compiled gemini tasks
+
+$checkout libgemini.a ../
+$update   libgemini.a
+$checkin  libgemini.a ../
+$exit
+
+zzdebug:
+        $set        LIBS = ""
+        $checkout   libgemini.a ../
+        $update     libgemini.a
+        $checkin    libgemini.a ../
+        $omake      zzdebug.x
+        $link       zzdebug.o ../libgemini.a $(LIBS) -o zzdebug.e
+        $exit
+        ;
+
+libgemini.a:
+        gwhitespace.x       <ctype.h>
+        imname.x            <gemini.h> <ctype.h>
+        text.x              <ctype.h>
+        numeric.x           <mach.h>
+        strtools.x          <ctype.h>
+        ;
+

@@ -1,0 +1,173 @@
+.help mipql December2011 gemini.midir 
+.ih
+NAME
+mipql -- Carry out a calculation of the Stokes parameters and polarization
+vectors from a stacked Michelle polarimetry file
+.ih
+USAGE
+mipql inimages
+.ih
+PARAMETERS
+.ls inimages
+The input image(s) to be processed by the task.  The files must have been
+generated with the MIPSTACK task.
+.le
+.ls rawpath = ""
+An optional path name where the input files are located.
+.le
+.ls outimages = ""
+The names of the output cleaned images.  If the names are defined, the 
+number of output images must equal the number of input images.  This 
+option supersedes the \fIoutpref\fR option.  The task tests for whether 
+the output images exist and exits with an error condition if any of them 
+do exist.
+.le
+.ls outpref = "p"
+A prefix to the input file names to generate the output file names.  Used only 
+if \fIoutimages\fR is blank.
+.le
+.ls fl_mask = yes
+Attempt to mask out pixels with values at the noise level.  If \fIfl_mask\fR 
+is "no" then all pixels have the transformation applied to them, and where the 
+pixels originally contain only noise values the polarization fraction and 
+polarization angle will have meaningless values.  If \fIfl_mask\fR is "yes" 
+then the U and Q Stokes parameter images will have all the pixels with a 
+percent polarization fraction accuracy lower than \fIthreshold\fR set to zero.
+If \fIfl_negative\fR the pixels with negative value are also reset to zero.
+All this is done before calculating the other polarization images Iu, Ip, p,
+and theta.
+.le
+.ls threshold = 0.5  (min=0.5)
+Minimum desired polarization percentage.  This value is used with 
+\fIfl_mask\fR=yes.  All positive pixels with a signal-to-noise ratio large 
+enough to allow this level of percent polarization will be retained, the other 
+pixels will be masked to zero.  The noise level is either set by the 
+\fInoise\fR parameter or estimated from the region of the total intensity image
+(I Stokes parameter image) defined by the \fIblankarea\fR parameter.
+.le
+.ls noise = 0.
+Set the noise level (in ADU) manually.  Used only if greater than 0.  If set 
+to 0. (default) or less than 0., then statistics from the region defined by
+\fIblankarea\fR is used instead.
+.le
+.ls blankarea = "[*,*]"
+This region of the I Stokes parameter image will be used to estimate the 
+noise per pixel.  This is taken to be the standard deviation of the pixels 
+in this area.  The area should be source-free.
+.le
+.ls fl_negative = yes
+Mask the pixels with negative values.  This is done only if \fIfl_mask\fR=yes.
+.le
+.ls fl_register = no
+Register the four images from the four wave-plate positions before the 
+calculation of the Stokes parameters is done.  The task XREGISTER from the 
+package images.immatch is used.  If set to 'yes', the parameter \fIregions\fR 
+must be set to an image section that contains a bright source
+.le
+.ls regions = "[*,*]"
+This parameter specifies an image section to be used for registration of the 
+individual wave-plate images before the calculation of the Stokes parameters 
+is done.  This is used only if the \fIfl_register\fR parameter is set to "yes".
+If the entire image is used for registration the results may be poor.  
+Generally it is best to define a small box around a bright object.
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes the task use the logfile
+defined by \fImidir.logfile\fR.
+.le
+.ls verbose = yes
+Print actions to the screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error. This 
+parameter is always set by the task, and should not be modified by the user.
+.le
+.ih
+DESCRIPTION
+This task takes the four Michelle polarimetry mode images and uses the standard
+equations to calculate the Stokes parameters for linear polarization, I, U and 
+Q; from these the unpolarized and polarized components of the image are derived
+as well as the polarization fraction and polarization angle.  The input file is
+assumed to be the output from the MIPSTACK task.
+.sp
+There is an option to register the images with the XREGISTER routine 
+before carrying out the transformation.  This is recommended if there is a 
+relatively bright object in the field.  If this is done, a box needs to be 
+defined around the object, with something like 10 pixels space on all sides. 
+The image section to use for registration is defined in the \fIregions\fR 
+parameter.  Generally using the entire image for registration does not produce 
+the best results, especially because of the possible presence of the negative 
+chop beam images on the detector when doing imaging polarimetry.  When the 
+registration is requested the pixel offsets are printed to the terminal.  
+These offsets should not be large.  Offsets that are significantly more than 
+1 pixel in x or in y are probably not correct.
+.sp
+The formulae used for the transformation are as follows, where the four 
+wave-plate images at 0, 22.5, 45, and 67.5 degrees are denoted by I00, I45, 
+I90, and I135 respectively:
+.sp
+.nf
+    U = I00 - I90
+
+    Q = I45 - I135
+
+    I = (I00 + I45 + I90 + I135)/2
+.fi
+.sp
+From the I, U and Q images the polarized image (Ip), unpolarized image (Iu), 
+polarization fraction (p), and polarization angle (theta) can be calculated 
+as follows:
+.sp
+.nf
+    Ip = sqrt(U^2 + Q^2)
+
+    Iu = I - Iu
+
+    p = 100 * I_u/I
+
+    theta = atan(U/Q)
+.fi
+.sp
+all of which are done on a pixel by pixel basis using the IMARITH and 
+IMFUNCTION tasks.  The p values are expressed in percent, the theta 
+values are given in degrees.
+.sp
+The output image is a MEF file with seven image extensions, each of dimension 
+[320,240].  These are I, U, Q, Iu, Ip, p, and theta respectively.  The primary
+image header is taken from the input file.
+.sp
+If the \fIfl_mask\fR flag is toggle on then before the Ip, p, and theta images 
+are generated those pixels which have too low a signal to produce a reliable 
+polarization measurement will be masked out.  This is done on the basis of 
+signal-to-noise ratio (S/N), so first the noise level needs to be defined.  
+This is done by taking the standard deviation of pixels in some blank area 
+of the field of view.  The \fIblankarea\fR parameter gives the area of the 
+image where the sigma value is calculated.  This is done with the I image, 
+and applied to the U and Q images before going on with the calculations that 
+produce the additional images.  Note, however, that the I, U, and Q images 
+that are in the first 3 extensions of the output file are not masked in any 
+way.
+.sp
+To detect any p values above a threshold p_min, given by the \fIthreshold\fR 
+parameter (which is a percentage value) the S/N of a pixel must be larger 
+than 45.5/sqrt(p_min).  That is, the S/N must be 45.5 or more to reliably 
+detect p values of 1% or more, 184 to reliably detect p values of 0.5% or 
+more, and so on.  All pixels that or have S/N too low to give a reliable 
+percent polarization of at least the \fIthreshold\fR value are set to zero.  If
+\fIfl_negative\fR=no, then the negative pixels will also be set to zero.
+.ih
+EXAMPLE
+1. Calculate the Stokes parameters. Do not use the low signal-to-noise pixels 
+nor the negative pixels.  Also, register the individual wave-plate position 
+images.
+.sp
+.nf
+    mi> mipql csmN20051218S0038 fl_mask+ fl_register+ threshold=5. \
+    >>> blankarea=[211:320,91:150] regions="[220:240,172:192]
+.fi
+.ih
+BUGS AND LIMITATIONS
+.ih
+SEE ALSO
+mipolstack, mipoltrans, images.immatch.xregister
+.endhelp

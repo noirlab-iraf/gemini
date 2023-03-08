@@ -1,0 +1,87 @@
+.help gfunexwl September2014 gemini.gmos
+.ih
+NAME
+gfunexwl -- Derive a wavelength for each useful pixel in detector-mosaicked
+GMOS IFU data, prior to fibre extraction.
+.ih
+USAGE
+gfunexwl waveref outimage
+.ih
+PARAMETERS
+.ls waveref = ""
+Name of an extracted arc spectrum to be used as a wavelength reference. This
+file is produced by GFEXTRACT (typically via GFREDUCE) and must have been
+calibrated with GSWAVELENGTH before using it here.
+.le
+.ls outimage = ""
+Output file with one image extension per IFU slit, containing the (slightly
+approximate) wavelength at each pixel, in the same units as \fIwaveref\fR
+was calibrated (usually Angstroms).
+.le
+.ls ncols = 11
+The number of columns, spaced regularly along the dispersion axis of 
+\fIwaveref\fR, at which to evaluate the apextract & identify database
+solutions, to provide samples for fitting lambda(x,y) over each block.
+This must be greater than \fIxorder\fR so there are enough points for the
+surface fitting.
+.le
+.ls xorder = 4
+The order of the lambda(x,y) surface fit along the wavelength axis for each
+block of fibres. Must be less than \fIncols\fR.
+.le
+.ls yorder = 3
+The order of the lambda(x,y) surface fit in the direction along the "slit"
+for each block of fibres. This determines the number of coefficients used
+per block, not over the entire image. The surface fitting has been observed
+to fail for y orders greater than ~10 (which is not of concern for the
+current application).
+.le
+.ls database = "database"
+Name of a directory containing IRAF database solutions, produced for
+\fIwaveref\fR by GFEXTRACT (APALL) and GSWAVELENGTH (REIDENTIFY). Those
+two database files per IFU slit must exist before running GFUNEXWL.
+.le
+.ls verbose = no
+This parameter is needed by the apextract/identify code called by this
+task; if yes, a summary is printed of how many apertures were found in the
+database for each slit.
+.le
+.ih
+DESCRIPTION
+
+GFUNEXWL takes an extracted and wavelength-calibrated (but not transformed)
+GMOS IFU arc spectrum and from it determines a wavelength for each pixel in
+the corresponding input to GFEXTRACT. The output has one FITS image extension
+per IFU slit, containing an array of wavelength values over the region of the
+GMOSAIC ouput from which the slit was cut. The results may be pasted back
+into the full detector mosaic with reference to the DETSEC keyword recorded
+in each extension.
+
+The output wavelengths are approximate at the level of about half a pixel
+because a low-order lambda(x,y) surface fit is used to interpolate between
+individual fibre centres for each block, smoothing out any small wavelength
+offsets between them (but preserving the larger differences between blocks
+of fibres). This would be insufficiently accurate in some cases for final
+scientific calibration but is easily good enough for evaluating a smooth
+function of wavelength, such as the QE corrections for which this was
+written, or to help identify features in raw data. 
+
+Any row that happens to be centred exactly in a gap between blocks at
+apall's reference column (this probably won't happen) will get zero output
+values but all illuminated rows get assigned wavelengths, including the few
+rows beyond each block's outer fibre centres.
+
+This task is intended primarily for internal use within GMOS scripts.
+.ih
+EXAMPLES
+
+1. Determine lambda(x,y) in the arc image from which IFU fibres were extracted.
+
+.nf
+cl> gfunexwl ergN20120108S0186 mrgN20120108S0186_wav
+.fi
+
+.ih
+SEE ALSO
+gqecorr, gfextract, gswavelength
+.endhelp

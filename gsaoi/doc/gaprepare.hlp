@@ -1,0 +1,292 @@
+.help gaprepare May2013 gemini.gsaoi
+.ih
+NAME
+gaprepare -- Prepare raw GSAOI data for reduction
+.ih
+USAGE
+gaprepare inimages
+.ih
+PARAMETERS
+.ls inimages
+List of raw GSAOI images to prepare. Can be a list of image names or numbers
+(comma separated or @ lists) , or a range of images numbers - wild cards are
+supported. The image names may include the directory path. The images must be
+in multi-extension FITS (MEF) format. The file extension ".fits" may or may not
+be included. (See help for GAIMCHK for examples of all syntax allowed.)
+.le
+.ls rawpath = ""
+Path to the directory where the images are located. One may
+set this parameter if the raw data are not located in the current
+working directory, or specify a path in the input image file names.
+If \fIrawpath\fR is supplied it will be prefixed to any path given as part of
+the input image names.
+.le
+.ls outpref = "g"
+Prefix for output images. The names of output images will be the names of
+the input images (without any paths included) with the prefix attached. If
+\fIoutpref\fR is used and does  not contain a directory path, the prepared
+images are written in the current working directory. \fIoutpref\fR may contain
+a directory path, in which case this defines where the prepared images are
+written relative to the current directory.
+.le
+.ls rootname = ""
+Root name of image(s) if supplying image number(s); blank for today's UT. For
+example, rootname="S20120101S".
+.le
+.ls fl_trim = yes
+Trim the images? This will remove the non-illuminated regions of the
+arrays. The non-illuminated regions are a boarder of 4 pixels around the
+outside of each physical array. For some observing modes no physical trimming
+will take place.
+.le
+.ls fl_nlc = yes
+Apply non-linearity correction to each array?
+.le
+.ls fl_vardq = no
+Create variance and data quality frames?
+.le
+.ls fl_sat = no
+Flag non-linear and saturated pixels in data quality frames?
+.le
+.ls badpix = "gsaoi$data/gsaoibpm_high_full.fits"
+Static MEF bad pixel mask.
+.le
+.ls sci_ext = "SCI"
+Name of the MEF extension containing the science data.
+.le
+.ls var_ext = "VAR"
+Name of the MEF extensions containing the calculated variance planes.
+.le
+.ls dq_ext = "DQ"
+Name of the MEF extensions containing the data quality information.
+.le
+.ls arraysdb = "gsaoi$data/gsaoiAMPS.dat"
+Database file containing characteristic information about the individual
+arrays. This file contains the readnoise, gain, saturation values and
+percentages of saturation where the counts depart >5% and >2% from linearity,
+before and after non-linearity correction, respectively.
+.le
+.ls non_lcdb = "gsaoi$data/gsaoiNLC.dat"
+Database file containing the coefficients for the 2nd order non-linearity
+correction
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes use of the logfile
+defined by gsaoi.logfile.
+.le
+.ls verbose = yes
+Print actions to screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted
+with an error. This parameter is set by the task and should not be
+modified by the user.
+.le
+.ih
+DESCRIPTION
+
+This task, GAPREPARE, takes raw GSAOI data (4-extensions) and prepares them for
+reduction. The task will check for any previously created images that have the
+same name as the output image will. If found that input image will be skipped.
+
+By default GAPREPARE will trim the input data to remove the boarder of 4
+unilluminated pixels around the outside of each physical array. In ARRAY mode
+this will mean that data array size of the output frames will be the same size
+as the input frames. For FULL-FRAME mode all edges and for DETECTOR mode just
+two edges (those closest to the center of the instrument) will be trimmed from
+each array.
+
+If not present, gain, readnoise (corrected for number of low-noise reads),
+non-linearity and saturation values will be updated for each array. All of
+these values are store in the file given by the \fIarraysdb\fR.
+
+In addition, if \fIfl_nlc\fR=yes (the default case), each array will be
+corrected for non-linearity. The following equation is applied to each array
+for all input ADU ranges:
+
+.nf
+Y = X*(a + b*X + c*X**2)
+.fi
+
+Where Y is the linearity corrected pixel values in ADU and X is the input pixel
+value sin ADU. a, b and c are the coefficients for the observing mode of that
+image (Bright, Faint and Very Faint), which are stored in the file given by the
+parameter \fInon_lcdb\fR. b and c are scaled by the inverse of the number of
+coadds and the inverse of the number of coadds squared, respectively.
+
+If desired, variance and data quality planes can be included in the output
+images. It is recommend to set fl_vardq=yes, especially for images that have
+guiding on detector guide windows (ODGWs) as the DQ planes can be used
+throughout the gsaoi reduction suite to mask the "empty" pixels when combining
+images and calculating image statistics.
+
+In the case where fl_vardq=yes:
+
+.in 4
+The variance plane is the sum of the readnoise (corrected for the number of
+low-reads) and the pixel value in ADU.
+
+If \fIbadpix\fR is set and the BPM exists, the pixels marked by the BPM will
+included in the output DQ as a value of 1. As the BPM given by \fIbadpix\fR
+is a FULL-FRAME gsaoi image, GAPREPARE will extract the correct region of the
+BPM that corresponds to the same region of the array that the input frame
+covers. The BPM must be a MEF, with extensions named (EXTNAME) the same as the
+string set by \fIdq_ext\fR with version numbers (EXTVER) matching those of the
+input data. E.g., extension [DQ,1] of the BPM must correspond to the same array
+as extension [1] of the input file. However, they need not be the same size.
+The requirement is that BPM must contain the area covered by the input frame.
+
+If fl_sat=yes, non-linear and saturated pixels will be flagged in the DQ plane
+with as values of 2 and 4, respectively.
+
+Those pixels not containing any data due to ODGW being active (guiding
+or parked) are given a value of 16.
+
+All DQ values are summed in a BITWISE OR operation. Thus, if a pixel is both
+bad and non-linear, it will have a value of 3. Or if a pixel is bad and
+unilluminated due to it falling within the area of an ODGW, then the DQ plane
+will have a value of 17.
+.in -4
+
+The output MEF image will contain extensions with an EXTNAME given by
+\fIsci_ext\fR with an EXTVER corresponding to the order of the input raw
+science extensions. If \fIfl_vardq=yes\fR the output MEF will also contain
+variance and data quality extensions with EXTNAME names given by \fIvar_ext\fR
+and \fIdq_ext\fR, respectively. The variance and data quality extensions will
+have the same EXTVER numbers as the science extensions that they correspond
+to.
+
+Finally, in addition to the time stamps from this task, a metadata
+configuration keyword (METACONF) is added to the PHU of the output image. This
+contains information, such as filters used, number of low noise reads, exposure
+time, coadds, data type and processing steps that are used throw out the gsaoi
+reduction suite to help sort data sets appropriately by the individual tasks.
+
+The METACONF keyword is built as follows:
+
+.in 4
+Dark Frames -
+
+.nf
+<time string>+<ROI>+<data reduction steps>
+.fi
+
+FLAT Frames -
+
+.nf
+<time string>+<filters>+<flat type>+<ROI>+<data reduction steps>
+.fi
+
+OBJECT (target and sky) frames -
+
+.nf
+<time string>+<filters>+OBJ+<ROI>+<data reduction steps>
+.fi
+
+Where <time string> comprises of the following separated by "_" (PHU
+keywords are given in parentheses):
+
+.nf
+<exposure time (EXPTIME)>
+
+<number of low-nose reads (LNRS)>
+
+<number of coadds (COADDS)>
+.fi
+
+The LNRS value designates which observation mode the image was taken in:
+.in 4
+
+ 2 - Bright mode
+
+ 8 - Faint mode
+
+16 - Very Faint mode
+.in -4
+
+The <filters> string is the two strings stored in FILTER1 and FILTER2,
+respectively, separated by "_".
+
+<ROI> designates the region of the arrays used during the observation:
+
+.in4
+FF - FULL-FRAME mode
+
+D# - DETECTOR mode, where # is the NAXIS1 length that is covered by each array
+
+A# - ARRAY mode, where # is the NAXIS1 length that is covered by each array
+.in -4
+
+For flat frames, the type of flat is also included:
+
+.in 4
+GCAL - GCAL flats
+
+DOME - Dome flats
+
+TWLT - Twilight flats
+
+With the expect ion of twilight flats an additional piece of information is
+added regarding the ON / OFF state of the illumination source. For GCAL flats
+where the shutter is open or closed. For example, <flat type> = GCAL+OPEN or
+GCAL+CLOS for open and closed shutter settings, respectively. For Dome
+flats, if the string "OFF" is in the object title, the the illumination source
+is off, thus  <flat type> = DOME+CLOS; <flat type> = DOME+OPEN for lamps ON.
+.in -4
+
+Finally, the <data reduction steps> tag is added:
+
+.in 4
+TRIM - Data has been trimmed
+
+NLC - Data has been corrected for non-linearity.
+
+.in -4
+These two values are separated by "+".
+
+An example METACONF value is:
+
+.in 4
+ 40._2_1+H_G1103_Clear+TWLT+FF+TRIM+NLC
+.in -4
+
+In this example, the input image is a full-frame twilight flat taken in bright
+mode, with an exposure time of 40 seconds and only 1 coadd. There was only one
+filter used; H_G1103. The frame was trimmed and non-linear corrected by
+GAPREPARE.
+.in -4
+
+EXAMPLES
+
+.nf
+   cl> gaprepare *.fits fl_vardq+ fl_sat+
+.fi
+
+Prepare all of the raw gsaoi images in the current directory. Create variance
+and data quality planes for each output image and flag non-linear and saturated
+pixels in the DQ plane. NOTE: Any other non gsaoi FITS files present will be
+ignored.
+
+.nf
+   cl> gaprepare path/S20120101S001 fl_vardq+ badpix="" fl_nlc-
+.fi
+
+Prepare the file "S20120101S001.fits" located in the directory "path", without
+correcting for non-linearity and only flagging ODGWs (if present) in the DQ
+plane.
+
+.nf
+   cl> gaprepare 23,45-50 rootname="S20120101S" rawpath="path" \
+           outpref="outdir/ga"
+.fi
+
+Prepare the images numbered 23,45-50 with a rootname of "S20120101S" (e.g.,
+"S20120101S0045.fits") located in the directory "path". The output files
+will located in the directory "outdir" and will be prefixed with "ga", e.g.,
+"outdir/gaS20120101S0045.fits".
+.ih
+SEE ALSO
+
+GAIMCHK and GADIMSCHK
+
+.endhelp

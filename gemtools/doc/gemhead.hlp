@@ -1,0 +1,47 @@
+.help gemhead Feb2002 gemini.gemtools
+.ih
+NAME
+gemhead -- List all headers of MEF images
+.ih
+USAGE
+gemhead images
+.ih
+PARAMETERS
+.ls images
+Images for which to list the headers. Lists and wild cards are
+supported. Minimal checking is done.
+.le
+.ls longheader = yes
+List long headers.
+.le
+.ih
+DESCRIPTION
+GEMHEAD uses IMHEAD to list the header content of the PHU and of
+all image extensions in a MEF file. Minimal checking is done,
+and the task therefore exits non-gracefully for some non-valid
+input. 
+GEMHEAD also works on simple FITS files.
+
+Extensions that are binary tables will not be listed. Instead GEMHEAD
+will give the output "Illegal image type (extension)" for these 
+extensions.
+
+.ih
+EXAMPLES
+1. To list the headers of a single MEF file
+
+.nf
+    cl> gemhead N20011221S141
+.fi
+
+2. To list short headers of all files N*fits in a directory
+.nf
+    cl> gemhead N*.fits longhead-
+.fi
+
+.ih
+BUGS
+.ih
+SEE ALSO
+imhead, fxhead
+.endhelp

@@ -1,0 +1,68 @@
+.help gemdqexpand October2013 gemini.gemtools
+.ih
+NAME
+gemdqexpand -- Expand an input data quality extension into it's constituent
+bits.
+.ih
+USAGE
+gemdqexpand inimage outimage
+.ih
+PARAMETERS
+.ls inimage
+Input data quality extension. Only one extension allowed at a time. Input plane
+must have a IRAF pixel type of short(i_pixtype=3), int(4), long(5), ushort(11)
+and ubyte(12). 
+.le
+.ls outimage
+Output MEF file containing expanded input \fIdq_ext\fR image.
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes use of the logfile
+defined by gemtools.logfile.
+.le
+.ls dq_ext = "DQ"
+The name used for the output extensions.
+.le
+.ls fl_real = no
+Convert output image to have a pixel type of real. For use when expanding the
+input data quality extension before, for example, transforming the extensions
+with GEOTRAN.
+.le
+.ls verbose = yes
+Print actions to screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error. This
+parameter is set by the task and should not be modified by the user.
+.le
+.ih
+DESCRIPTION
+GEMDQEXPAND will decompose the input data quality plane into it's constituent
+bit planes. The input extension, \fIinimage\fR, must have a pixel type of
+either unsigned or signed integer.
+
+The output image, \fIoutimage\fR, will be a MEF file, with a minimum of a PHU
+and an extension with extension name equal to \fIdq_ext\fR and an extension
+value of 0. The extension, [\fIdq_ext\fR,0], has the same dimensions as the
+input extension and all pixels have a value of 0.
+
+Additional extensions will be appended to the output image. Only planes where
+at least one pixel contains a bit value of the current bit value are
+appended. For example, a data quality plane has various pixels which contain
+bit values of either or and 0, 1, 4 and 64. The output image will be a MEF with
+4 extensions (NEXTEND=4 in the PHU), with extension values of 0, 1, 4 and 64,
+respectively. In each extension, only data related to the bit value represented
+by the extension version value is contained in that extension.
+
+.ih
+EXAMPLES
+
+.nf
+   cl> gemdqexpand S20120101S001.fits[DQ,1] expanded_dq_1.fits
+.fi
+.ih
+SEE ALSO
+imexpression, chpixtype and imstatistics
+
+.endhelp
+

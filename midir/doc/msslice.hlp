@@ -1,0 +1,195 @@
+.help msslice November2011 gemini.midir
+.ih
+NAME
+.sp
+msslice -- a routine to produce multiple T-ReCS or Michelle spectra across 
+an extended object, with or without calibration of the slices
+.ih
+USAGE
+.sp
+msslice inspec
+.ih
+PARAMETERS
+.ls inspec
+The name of an input two-dimensional spectral image output from the 
+\fInstransform\fR task, so there is information about the wavelength 
+as a function of position on the image.
+.le
+.ls outpref = "x"
+A prefix to prepend to the input file name in producing the output 
+files.  In addition an index number is appended to the output file 
+names for each slice.
+.le
+.ls fl_calibrate = yes 
+A boolean flag as to whether to calibrate the individual slices 
+via the \fImsabsflux\fR task
+.le
+.ls calpref = "a"
+When the \fIfl_calibrate\fR flag is "yes" this prefix will be 
+applied to each of the output sliced spectra when they are 
+calibrated.
+.le
+.ls scale = 1.0
+This is a parameter to pass to the \fItelluric\fR task, giving 
+a scaling for the calibration spectrum to match the airmass of 
+the object sliced spectra.  When \fIfl_inter\fR is "no" this 
+scaling is applied as specified without any adjustment.
+.le
+.ls shift = 0.0
+Another parameter to pass to the \fItelluric\fR task, which 
+specifies the shift in pixels to be applied to the calibration
+spectrum before the division and scaling is carried out to 
+produce the calibrated output spectra.  When \fIfl_inter\fR 
+is "no" this scaling is applied as specified without any 
+adjustment.
+.le
+.ls fl_inter = no
+A boolean flag for whether one wishes to interactively tweak 
+the shift and scale values for each spectral slice.  If the 
+value is "yes" then the shift and scale values can be adjusted 
+for each spectral slice.  This is tedious when many slices are 
+to be produced, but produces the best output spectra.  If the 
+value is "no" the scale and shift parameters are applied for the 
+calibration of each slice exactly as given.
+.le
+.ls outtype = "fnu"
+Key for what type of flux units one wants in the output spectra: one can 
+specify "fnu" to get frequency flux density values in Jy, "flambda" to get 
+wavelength flux density in Watts/meter squared per micron, or "lambdaFlambda" 
+to get values in Watts/meter-squared.  This is only used if \fIfl_bbody\fR 
+is "no".  In the blackbody case the output is wavelength flux density, but 
+the scaling is arbitrary, no matter what the \fIouttype\fR parameter value 
+is set to.
+.le
+.ls rawpath = ""
+A path for finding the input spectral file or files.
+.le
+.ls std = ""
+When fl_calibrate is "yes", one is required to specify the name of an 
+output wavelength calibrated spectrum (the output of the \fInsextract\fR
+task) to be used to calibrate the spectral slices.
+.le
+.ls stdname = ""
+If fl_bbody is "no" then the name of the spectral standard must be given 
+here to identify which spectrophotometric observation should be used for 
+the shape of the calibration spectrum.
+.le
+.ls fl_bbody = no
+If this flag is "yes" then the standard star spectrum is assumed to have 
+the shape of a blackbody radiator at the temperature specified in the 
+bbody parameter.  If it is set to "no" then the calibration object is 
+assumed to be a spectrophotometric standard and its name must be specified 
+so that the task can find the associated flux density curve.
+.le
+.ls bbody = 10000.
+Where the calibration object is assumed to be a blackbody, this parameter 
+specifies the temperature.
+.le
+.ls nspectra = 2
+This value tells the task how many spectra to extract over the aperture 
+defined during the execution.  Normally this would be expected to be 
+larger than 1.  The slices are evenly spaced in the y (slit) pixel 
+coordinate from low values to high values.
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes the task use the logfile
+defined by \fImidir.logfile\fR.
+.le
+.ls verbose = yes
+Print actions to the screen.
+.le
+.ls status = 0
+An output status flag.  For successful execution the value is returned as 
+zero, otherwise it is set to 1.
+.ih
+DESCRIPTION
+This task carries out a spectral extraction for mid-infrared observations, 
+but it differs from the standard extraction done via \fImsreduce\fR in that 
+a number of spectral slices are created across whatever aperture is defined.
+One can either simply extract the wavelength-calibrated raw spectra or 
+also carry out an absolute calibration via calls to the \fImsabsflux\fR 
+task for each slice.
+.sp
+The input spectrum image must be a two-dimensional MEF file output from 
+the \fImstransform\fR task (usually via \fImsreduce\fR) so that the 
+wavelength calibration is given over the two-dimensional image.  The 
+task proceeds by calling the \fIapsum\fR task.  This task first 
+calls \fIapfind\fR and the user then should define the aperture over 
+which the spectral slices are to be extracted (possibly with the 
+definition of background regions adjacent to the aperture).  Next 
+\fIaptrace\fR is called and the trace of the spectrum is fitted.  Once 
+these two steps are carried out a set of spectra are extracted.  
+Each output spectral file has a prefix applied to the original file 
+name, and a sequence number appended to differentiate the slices.
+The slices are uniformly extracted over the aperture that is defined, 
+with the first slice having the lowest y pixel values (where y is
+the axis dimension running along the slit).  The number of pixels along 
+the slit per slice is not defined until the aperture is defined, so one 
+cannot specify a number of pixels per slice, but can only specify the 
+number of slices to extract.
+.sp
+If the fl_calibrate flag is set to "yes" then each sliced spectrum 
+is calibrated in turn.  For this purpose one has to specify the 
+name of an extracted one-dimensional spectrum (from the \fInsextract\fR
+task) and the other parameters that specify the spectral shape of the 
+standard spectrum outside the atmosphere.  One can specify the spectral 
+shape to follow a blackbody curve, with arbitrary scaling so only a 
+relative calibration is carried out.  Alternatively one can specify 
+that the calibration object is a spectrophotometric standard, in which 
+case the name must be given so that the expected spectral shape can 
+be found.
+.sp
+When the calibration is to be carried out, using calls to the 
+\fImsabsflux\fR task, one has the option of adjusting the shifting 
+and scaling (see the documentation for \fItelluric\fR and for 
+\fImsabsflux\fR) for each spectral slice.  One can also simply fix 
+these values using the "scale" and "shift" parameters.  Which way 
+should be used depends on how extended the target is and how much 
+the wavelength solution changes along the slit.  In general one 
+should tweak the solution for each slice, but that is very time-consuming 
+and it may not be needed for some purposes.  Particularly for an 
+automatic initial extraction of slices to see how the spectrum changes
+with position it may be  convenient to apply a global shift and scaling.  
+If this is done, usually one finds that the ozone band around 10 microns 
+is visible in the extracted slices away from the center of the object, 
+either as an emission feature or as an absorption feature.
+.sp
+Normally one should first run \fImsreduce\fR to extract an overall 
+spectrum for the extended target, and in the process find the 
+wavelength solution and extract the object and standard star 
+spectra.  Then one can use this routine to slice the spectra 
+of the extended target; all the required input files will be 
+available and one will know the best shift and scale values for 
+the position on the array where the standard star spectrum is 
+found.
+.ih
+EXAMPLES
+.sp
+(1) the normal usage is to specify the object and standard star spectral file 
+names (the files can be produced by calling \fImsreduce\fR to extract the 
+overall spectrum of the extended target prior to calling \fImsslice\fR):
+
+cl> msslice trN20040810S0090 std=xtrN20040810S0100 stdname="HD169916" fl_inter-
+    nspectra=10 shift=-0.15 scale=1.0
+
+This will produce 10 sliced spectra over whatever region is marked on the 
+cross-cut plot produced by the \fIapfind\fR task.  The spectrum is traced 
+using the \fIaptrace\fR task and then the different slices are generated.  
+Each slice is then calibrated via calls to the \fImsabsflux\fR task.  In 
+this case the shift of -0.15 pixels and a scaling factor of 1.0 -- which 
+were determined for the overall spectrum of the target when \fImsreduce\fI 
+was run -- are applied to each slice.
+.ih
+BUGS AND LIMITATIONS
+The main limitation of the task is that the extracted spectra will likely 
+need to be cleaned up, say using \fIsplot\fR, as the regions of the 
+spectrum where there is no signal generally tend to end up with absurdly 
+large positive or/and negative values.
+.sp
+The aperture and the tracing need to be re-done each time the task is 
+called.
+.ih
+SEE ALSO
+.sp
+telluric, msreduce, msabsflux, apsum
+.endhelp

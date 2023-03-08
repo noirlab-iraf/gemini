@@ -1,0 +1,170 @@
+.help nfacquire March2006 gemini.nifs
+.ih
+NAME
+nfacquire -- Generate image of the NIFS IFU field for acquisition
+.ih
+USAGE
+nfacquire image
+.ih
+PARAMETERS
+.ls image   
+The integer number of the file to be reconstructed into an image.
+.le
+.ls rootname = "default"
+The rootname of the file to be reconstructed into an image, for example,
+N20060115S.
+.le
+.ls datadir = "adata$"
+The directory where the raw NIFS images can be found.  The default here is set 
+to be the main data directory at Gemini North.  This is because NFACQUIRE is 
+often used to reconstruct flip-mirror data into an image for acquisition 
+purposes, defining the default directory to be the main data directory is done 
+for convenience and speedier setups at the telescope.
+.le
+.ls sky = 0
+The integer number of a sky frame to be subtracted from the main NIFS data 
+frame.  NFACQUIRE automatically requires that the sky file has the same 
+rootname as the main NIFS frame to be reconstructed.
+.le
+.ls outimages = ""
+Optional output name of the reconstructed IFU image. 
+.le
+.ls outprefix = "a"
+The prefix set for output data from NFACQUIRE.  If no output name is specified 
+in \fIoutimages\fR, the reconstructed IFU image will be written to the working 
+directory with this prefix prepended to the name of the input image.
+.le
+.ls mdf = "nifs$data/nifs-mdf.fits"
+The definition file which describes the location and information for the NIFS 
+IFU slits.
+.le
+.ls shiftx = 0.0
+The shift value (in pixels) which describes the X-position of the lowermost 
+full slice with respect to the slice center in the \fImdf\fR file.  The 
+\fIshiftx\fR value is defined as the X-position of the slice center in the 
+\fImdf\fR file, subtracted from either the central X-position of the bottom of 
+the full slice in the flip mirror image or the X-position of the center of an 
+emission line.   If \fIshiftx\fR is the default value of 0.0 and NFACQUIRE is 
+run interactively, the user will be input into an IMEXAM session and will have 
+to determine interactively the \fIshiftx\fR value.  The value for \fIshiftx\fR 
+determined by running NFACQUIRE interactively can be input into the task in 
+order to bypass this IMEXAM session.
+.le
+.ls shifty = 0.0
+The shift value (in pixels) which describes the Y-position of the lowermost 
+full slice with respect to the slice center in the \fImdf\fR file.  The 
+\fIshifty\fR value is defined as the Y-position of the slice center in the 
+\fImdf\fR file, subtracted from the Y-position of the bottom of the full slice 
+in the image.   If \fIshifty\fR is the default value of 0.0 and NFACQUIRE is 
+run interactively, the user will be input into an IMEXAM session and will have 
+to interactively determine the \fIshifty\fR value.  The value for \fIshifty\fR 
+determined by running NFACQUIRE interactively can be input into the task in 
+order to bypass this IMEXAM session.
+.le
+.ls xpos = 0.0
+The X-axis coordinate (in pixels) of the position in the reconstructed IFU 
+field where the user wants to offset their target to.  The default value of 
+0.0 calculates an X offset value which will center the target in the 
+X-dimension on the IFU field.  The \fIxpos\fR parameter is included for 
+projects which wish to center a target at a location other than the field 
+center (i.e., for occulting disk setups, for example.)
+.le
+.ls ypos = 0.0
+The Y-axis coordinate (in pixels) of the position in the reconstructed IFU 
+field where the user wants to offset their target to.  The default value of 
+0.0 calculates an Y offset value which will center the target in the 
+Y-dimension on the IFU field.  The \fIypos\fR parameter is included for 
+projects which wish to center a target at a location other than the field 
+center (i.e., for occulting disk setups, for example.)
+.le
+.ls yscale = 0.043
+The spatial field scale (arcseconds) in the Y (spatial) direction of the raw 
+IFU data.
+.le
+.ls dispaxis = 1
+The value for the dispersion axis in the raw IFU data, 1 = X-axis dispersion.
+.le
+.ls fl_inter = yes
+Flag which permits the user to define if the \fIshiftx\fR and \fIshifty\fR 
+positions are determined interactively in an IMEXAM session.
+.le
+.ls fl_display = yes
+Flag giving the option to display each image in the user's image display tool. 
+.le
+.ls raw_frame = 1
+Image display tool frame buffer to display the raw data into.
+.le
+.ls img_frame = 2
+Image display tool frame buffer to display the reconstructed IFU image into.
+.le
+.ls fl_shift = yes
+Flag giving the option to derive offsets from a position in the IFU image to 
+either the center of the field (if \fIxpos\fR and \fIypos\fR are both 0.0) or 
+to an X and Y position in the field defined by the user with the \fIxpos\fR and
+\fIypos\fR parameters.
+.le
+.ls logfile = ""
+The name of the logfile.  The default value makes the task use the \fIlogfile\fR
+defined by \fInifs.logfile\fR, or "nifs.log" if the latter is also undefined.
+.le
+.ls verbose = yes
+Print verbose actions to the screen.
+.le
+.ls status = 0
+Exit status will be non-zero if NFACQUIRE halted with an error.  This 
+parameter is always set by the task and should not be modified by the user.
+.le
+.ih
+DESCRIPTION
+This task takes a raw, NIFS flip mirror frames and pastes each of the 29 slices 
+together to create an approximation of the 3" x 3" sky field that was observed. 
+This task also works with spectrally dispersed data, and can be used to 
+reconstruct an image over a strong emission feature. This task is used 
+internally at Gemini to speed observation acquisitions.  Hence, many of the 
+default parameters (such as \fIrootname\fR and \fIdatadir\fR) are set to be 
+useful for the Gemini observers.  However, NFACQUIRE is also very helpful for 
+doing a quick, rough-and-dirty reconstruction of any sky field as derived from 
+the input raw NIFS frame.  When run interactively (\fIfl_inter\fR=yes) or for 
+determining offset positions (\fIfl_shift\fR=yes), run the task and follow the 
+instructions printed on the screen for the IMEXAM sessions.
+.ih
+EXAMPLES
+1. Reconstruct an image of the IFU field from acquisition image NYYYYMMDDS0130.
+(Basic usage.)
+.sp
+.nf
+    ni> nfacquire 130
+.fi
+.sp
+2. Run the routine non-interactively when the X and Y shifts are already known.
+.sp
+.nf
+    ni> nfacquire 130 shiftx=0.0 shifty=-41.8 fl_inter-
+.fi
+.sp
+3. Run the routine with a local file and different rootname.
+.sp
+.nf
+    ni> nfacquire 130 rootname=N20060118S datadir="."
+.fi
+.sp
+4. Run the routine with a non-standard central offset position.
+.sp
+.nf
+    ni> nfacquire 130 xpos=64.5 ypos=83.0
+.fi
+.sp
+5. To run the routine with sky subtraction.
+.sp
+.nf
+    ni> nfacquire 130 sky=131
+.fi
+.ih
+BUGS AND LIMITATIONS
+Currently, a main limitation with NFACQUIRE is that the routine does not 
+handle input files that do not have a standard Gemini naming convention with a 
+rootname + an integer file number.
+.ih
+SEE ALSO
+nfimage, gnirs.nfquick
+.endhelp

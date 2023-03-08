@@ -1,0 +1,306 @@
+.help gqecorr January2015 gemini.gmos
+.ih
+NAME
+
+gqecorr -- Create quantum efficiency data for and correct GMOS data.
+.ih
+USAGE
+
+gqecorr inimages <refimages|corrimages>
+.ih
+PARAMETERS
+.ls inimages
+GMOS data to quantum efficiency (QE) correct or to use as templates to create
+QE correction data for. Wild cards are not supported. Any observing mode can
+be supplied, including GMOS-S IFU nod-and-shuffle data.
+Images must be prepared with GPREPARE and must not be mosaicked or
+tiled. If correcting \fIinimages\fR, they must be either BIAS / DARK subtracted
+and / or OVERSCAN corrected.
+.le
+.ls outimages = ""
+Output MEF images that have been QE corrected. The parameter can be one single
+image name, a list of images or a list file. The number of output images must
+equal the number of input images. \fIoutimages\fR has precedence over
+\fIoutpref\fR.
+.le
+.ls outpref = "q"
+Prefix of output QE corrected image names. Names of output images will be
+the names of the input images with the prefix attached. \fIoutpref\fR is
+used if \fIoutimages\fR="".
+.le
+.ls refimages = ""
+Wavelength reference images used as a template to create the QE correction
+images for \fIinimages\fR, when \fIinimages\fR is spectroscopic data.
+\fIrefimages\fR must have a full wavelength solution, e.g., have been processed
+by GSWAVELENGTH (but not rectified) i.e., an arc, and as such will have been
+mosaicked by GMOSAIC. Also, in the cases of MOS and IFU data the data will
+have been GSCUT and GFEXTRACT'ed, respectively. For nod-and-shuffle
+data the reference image should not have been shuffled during reduction. The
+number of reference images must be one or equal to the number of \fIinimages\fR.
+.le
+.ls fl_correct = yes
+QE correct the input images? If not correcting the input images the parameter
+\fIfl_keep\fR will be set to yes automatically.
+.le
+.le
+.ls fl_keep = no
+Keep the QE correction data created by \fIgqecorr\fR.
+.le
+.ls corrimages = ""
+The QE correction data created by GQECORR. Either to be created in the
+current call to GQECORR. Or previously created GQECORR
+correction images to be used to correct \fIinimages\fR in the current call.
+Or to be used as templates to create new correction images that have been
+corrected for nod-and-shuffle, if \fIinimages\fR have been nod-and-shuffled and
+\fIcorrimages\fR have not. In the latter case, the output correction image
+names will be \fIcorrimages\fR prefixed with 'ns'.
+
+The number of correction file names must be either 1, equal
+to the number of \fIrefimages\fR (if applying a nod-and-shuffle shuffle to the
+previously created correction images) or equal to the number of \fIinimages\fR.
+\fIcorrimages\fR has precedence over \fIcorrimpref\fR.
+
+In the case of spectroscopic data, correction data created by GQECORR
+will be a MEF image containing the same
+number of extensions as the number of \fIsci_ext\fR extensions in each
+corresponding input image (or first input image in the case of only one
+\fIrefimages\fR). The extensions will be named and ordered in the correction
+images as they are in the input files (\fIinimages\fR). Each
+extension in the correction image will have the same dimensions as the
+\fIkey_datasec\fR of the corresponding input \fIsci_ext\fR extension.
+
+For imaging data this is a text file that contains the QE factor to be
+applied indexed by the values of the header keyword 'CCDNAME' for each
+extension.
+If all \fIinimages\fR have the same
+filter combination then only one file will be written to disk.
+.le
+.ls corrimpref = "qecorr"
+Prefix for correction data names. Names of correction data files will be the
+name of the input images with the prefix attached for imaging data. For
+spectroscopic data the correction file names will be the
+\fIrefimages\fR with the prefix attached. \fIcorrimpref\fR is used if
+\fIcorrimages\fR="".
+.le
+.ls ifu_preced = 1
+Which slit (extension) that should take precedence, when creating the
+correction image, when the R (1) and B (2) overlap in IFU-2 observation mode.
+.le
+.ls fl_vardq = yes
+Propagate the variance and data quality planes, when correcting \fIinimages\fR?
+.le
+.ls sci_ext = "SCI"
+Name of the MEF extension containing the science data.
+.le
+.ls var_ext = "VAR"
+Name of the MEF extensions containing the variance frames.
+.le
+.ls dq_ext = "DQ"
+Name of the MEF extensions containing the data quality arrays.
+.le
+.ls mdf_ext = "MDF"
+Name of the MEF extension containing the Mask Definition File.
+.le
+.ls key_detsec = "DETSEC"
+Header keyword for the detector section.
+.le
+.ls key_ccdsec = "CCDSEC"
+Header keyword for the CCD section.
+.le
+.ls key_datasec = "DATASEC"
+Header keyword for the data section.
+.le
+.ls key_biassec = "BIASSEC"
+Header keyword for the overscan section.
+.le
+.ls key_CCDSUM = "CCDSUM"
+Header keyword for the CCD binning.
+.le
+.ls qecorr_data = "gmos$data/gmosQEfactors.dat"
+Database file containing the calculated GMOS QE data based on supplied
+or empirically determined QE data for each CCD. The file contains fit
+coefficients for spectroscopic data and numerical factors for imaging.
+.le
+.ls database = "database/"
+Location of wavelength solutions associated with \fIrefimages\fR.
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes the task use the logfile
+defined by gmos.logfile.
+.le
+.ls verbose = no
+Print all actions to the screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted
+with an error. This parameter is set by the task and should not be
+modified by the user.
+.le
+.ls scanfile = ""
+For internal use only
+.le
+.ls scanfile2 = ""
+For internal use only
+.le
+.ih
+DESCRIPTION
+
+GQECORR exists to correct the relative difference in quantum efficiency
+(QE) between CCD 2 and the other 2 outer CCDs (1 and 3), for GMOS-S and
+GMOS-N. All observing modes are supported, however, only EEV and Hamamatsu CCD
+types are supported (see LIMITATIONS for current exceptions to this).
+
+Data (\fIinimages\fR) that are to be QE corrected by GQECORR must be either
+BIAS or DARK subtracted and / or OVERSCAN corrected. However, if GQECORR is
+only to be used to create a correction image (\fIcorrimages\fR) for
+spectroscopic data or extract the correction factors for imaging data then the
+checks for BIAS / DARK subtraction / OVERSCAN correction are not performed. In
+either case \fIinimages\fR must not have been processed by GTILE or GMOSAIC.
+
+Each input reference image (\fIrefimages\fR) must have an associated wavelength
+solution (for all \fIsci_ext\fR extensions) in the
+\fIdatabase\fR directory, i.e., have been processed by GSWAVELENGTH, but must
+not have been rectified, thus an arc is best to use. This means
+all spectroscopic reference data will have been processed with GMOSAIC,
+GSCUT too for MOS data and GFXTRACT for IFU data. Thus the QE correction
+image (\fIcorrimages\fR) will contain regions with no correction as only those
+extracted / cut regions will contain a correction. The areas with no correction
+will have a value of 1 in the correction image.
+
+If any of \fIcorrimages\fR files exist on disk they will be used instead of
+creating new files, expect in the case of nod-and-shuffle \fIinimages\fR and
+the supplied correction images on disk have not been shuffled. In this case, a
+new, shuffled, correction image with the prefix 'ns' will be created from the
+existing correction image.
+
+IMAGING
+
+The relative correction factors for imaging data is a single value for each of
+the outer 2 CCDs. The correction is applied multiplicatively. The default
+correction factors are stored in the file "gmos$data/gmosQEfactors.dat", given
+by \fIqecorr_data\fR. The QE correction for imaging observations can, in
+addition to using this script, be applied using GIREDUCE setting the
+'fl_qecorr' flag to yes.
+
+For imaging data, the flat image that is to be used to correct the science data
+must have been reduced in the same way that science data are to be
+reduced. Thus, if using GIREDUCE to flat field and QE correct the science data,
+the input images used to create the flat field image must have been QE
+corrected too ('fl_qecorr'=yes in GIFLAT). GIREDUCE will check for this when
+processing the science data. The flat image and the science image must have or
+about to have the same QE state during processing.
+
+SPECTROSCOPY
+
+As for imaging data the correction images for spectroscopic data are applied
+multiplicatively. For spectroscopic data observed with EEV and Hamamatsu CCDs
+the corrections were empirically determined and are fourth and ninth order
+simple polynomials, respectively.
+
+.nf
+    correction_value =
+
+         C0 + (C1 * lambda) + (C2 * lambda**2) + \
+             ... + (Cn * lambda**n)
+.fi
+
+where lambda is the calculated wavelength of the pixel for the reference image
+and C0-n are the coefficients of the polynomial fit. The default coefficients
+are stored in the file "gmos$data/gmosQEfactors.dat", given by
+\fIqecorr_data\fR.
+
+First the wavelength of each pixel in the input reference image is calculated,
+using FCEVAL for LS and MOS data, and GFUNEXWL for IFU data, in conjunction
+with the associated wavelength solution stored in \fIdatabase\fR. This
+temporary image has the same dimensions as the reference image, where the pixel
+value is the wavelength for that pixel. For IFU-2 observations, there can be
+overlap of the extracted region. This causes as issue in that only one QE
+correction can be applied in QECORR. Thus, the parameter \fIifu_preced\fR exists
+to allow the user to specify which slit correction (wavelength) should be used
+in the overlap region.
+
+Once this wavelength image is created the image is cut into the 3 extensions
+equivalent to the separate CCDs on the detector, and the relevant polynomials
+applied to each CCD (according to the correction value specified above). This
+is the penultimate correction image.
+
+After this the \fIinimages\fR are used to further cut this penultimate
+correction image to create the final output correction image. The final
+correction image will have the same number of extensions as the \fIinimages\fR,
+where the dimensions of each extension match the equivalent extension version
+in the \fIinimages\fR.
+
+PROCESS
+
+As previously mentioned to QE correct an image the image must have
+had the bias removed in one way form or another (BIAS / DARK and / or OVERSCAN
+subtraction). It is recommend to apply the QE correction soon after performing
+this step, if not immediately after that step, and should be applied to all
+science and flat data.
+
+Applying the QE correction for imaging data can be performed by GIREDUCE. For
+spectroscopic data GQECORR will have to be used.
+
+Currently, an example of the processing steps to perform QE correction can
+be found in the MOS gmosexample.
+
+The general rules are to first process your arcs as normal. For MOS data this
+will require to process flat data twice; first to find the slit footprints and
+second to apply the QE correction to the input flat images before creating the
+reduced flat image. Similarly, re-processing of the flats / twilights for IFU
+data may be required. It will reduce processing time if the BIAS / DARK and /
+or OVERSCAN corrected versions of the input flats are stored on disk.
+
+Then BIAS / DARK and / or OVERSCAN correct the science data.
+
+With the associated arcs in hand, use QECORR to correct the BIAS / DARK and /
+or OVERSCAN corrected flat and science images. After this, continue to reduce
+the flat and science data as normal.
+.ih
+EXAMPLES
+
+1. Create, apply and store QE correction image for nod-and-shuffle input image
+
+.nf
+    ecl> gqecorr inimages="rgN20050406S0072.fits" fl_keep+ \
+             fl_correct+ refimages="gsN20050508S0016.fits" \
+             database="database/"
+.fi
+
+This will create a correction image, "qecorrgsN20050508S0016.fits", and use it
+to QE correct the input image to create the corrected output image
+"qrgN20050406S0072.fits".
+
+2. Use a previously created correction image to correct the input image
+
+.nf
+    ecl> gqecorr inimages="rgN20050406S0071.fits" fl_correct+ \
+             corrimages="qecorrgsN20050508S0016.fits"
+.fi
+
+3. Correct a list of imaging data
+
+.nf
+    ecl> gqecorr inimages=rg@sci.lis fl_correct+
+.fi
+.ih
+LIMITATIONS
+
+Currently, imaging data from both GMOS-N and GMOS-S EEV and GMOS-N e2vDD CCDs
+cannot be QE corrected. Also, spectroscopic data from GMOS-N e2vDD CCDs cannot
+be QE corrected.
+
+Processing of 1x1 binned MOS / LS data can take a notable amount of time.
+
+The QE correction has not yet been fully integrated into the automated
+reduction scripts GSFLAT, GSREDUCE, and GFREDUCE.  Therefore, the users
+will need to use gqecorr directly. Refer to the MOS example to learn how
+to proceed.  (The other examples will be updated in a future release.)
+
+Currently there is no correction of the correction images for the translation
+and rotation applied by GMOSAIC to the reference images.
+.ih
+SEE ALSO
+
+GSWAVELENGTH, GFUNEXWL, FCEVAL
+.endhelp

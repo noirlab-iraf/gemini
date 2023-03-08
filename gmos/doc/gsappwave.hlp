@@ -1,0 +1,99 @@
+.help gsappwave February2002 gemini.gmos
+.ih
+NAME
+gsappwave -- Add approximate wavelength calibration to the headers of GMOS spectra
+.ih
+USAGE   
+gsappwave inimages
+.ih
+PARAMETERS
+.ls inimages
+Input files of reduced GMOS spectra from GSREDUCE.
+This may be a list or include wildcards.
+Directory names should not be included as part of the image names.
+.le
+.ls gratingdb = "gmos$data/GMOSgratings.dat"
+Database file with GMOS grating information.
+.le
+.ls filterdb = "gmos$data/GMOSfilters.dat"
+Database file with GMOS filter information.
+.le
+.ls key_dispaxis = "DISPAXIS"
+Header keyword for dispersion axis
+.le
+.ls dispaxis=1
+Dispersion axis, if not defined from the header.
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes the task use the logfile
+defined by gmos.logfile.
+.le
+.ls verbose = yes
+Print actions to the screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error. 
+This parameter is always set by the task, and should not be modified by 
+the user.
+.ih 
+DESCRIPTION 
+
+GSAPPWAVE calculates a simple wavelength calibration based on the
+grating, filter (if any), and central wavelength.  The calibration
+will be best near the center of chip 2 and degrade towards the corners
+as the distortion in the spectrograph is not accounted for yet.  It is
+expected that the spectra have been processed by GSREDUCE.
+GSREDUCE calls GSAPPWAVE as the final step in the reduction.
+
+For MOS data, GSREDUCE calls GSCUT and then GSAPPWAVE. Correct calibration
+of all the image extensions in the input MEF relies on GSCUT being run
+first. If the user wants to change one of the databases and rerun GSAPPWAVE
+to recalibrate MOS data, it is necessary to rerun GSREDUCE and its call to
+GSCUT.
+
+The gratings database \fIgratingdb\fR contains estimated offsets for the 
+wavelength calibration for the GMOS gratings. If the user needs to adjust
+those offsets, it is necessary to make a local copy of the default database, 
+"gmos$data/GMOSgratings.dat", edit as needed, and then run GSAPPWAVE using 
+this local copy.
+
+GSAPPWAVE adds or changes the following header keywords
+to each of the pixel extensions:
+
+.nf
+Keyword   Description
+----------------------------------------------------------
+WAT0_001  WCS description
+WAT1_001  WCS description
+WAT2_001  WCS description
+CTYPE1    WCS type in X-axis (LINEAR)
+CTYPE2    WCS type in Y-axis (LINEAR)
+CRVAL1    Central wavelength in Angstrom
+CRPIX1    Reference pixel in X-axis
+CRPIX2    Reference pixel in Y-axis
+CD1_1     WCS matrix element, dispersion in Angstrom/pixel
+CD2_2     WCS matrix element (1.0)
+CD1_2     WCS matrix element (0.0)
+CD2_1     WCS matrix element (0.0)
+DISPAXIS  Dispersion axis (1)
+----------------------------------------------------------
+.fi
+
+.ih
+EXAMPLES
+
+1. Wavelength calibrate GSREDUCDd MOS 2D spectra
+
+.nf
+    cl> gsappwave gsN20011219S134.fits
+.fi
+
+.ih
+BUGS AND LIMITATIONS
+MOS data already processed with GSREDUCE and GSCUT cannot easily be recalibrated
+with GSAPPWAVE, since for MOS data GSAPPWAVE relies on the keyword REFPIX1 added 
+by GSCUT.
+.ih
+SEE ALSO
+gmosinfo, gmosinfospec, gsreduce, gscut, gswavelength
+.endhelp

@@ -1,0 +1,20 @@
+The Gemini IRAF package
+-------------------------
+This software is Copyright(c) 2000-2017 Association of Universities for
+Research in Astronomy, Inc.  This software is written and distributed by
+the Association of Universities for Research in Astronomy, Inc. (AURA) as
+operator of the Gemini Observatory under a cooperative agreement with
+the National Science Foundation.  Users shall not, without prior
+written permission from AURA, establish a claim to statutory copyright.
+
+The software is free software available to all interested users. The
+users may copy, modify and distribute the software provided that all
+modified versions of this software shall be subject to AURA's copyright.
+No fees may be charged for any distribution of the software or modified
+versions of the software. All distributions of the software or modified
+versions of the software must include this copyright statement.
+
+Also see lib/pda/Readme and lib/gslalib/Readme regarding separate copyright
+conditions for two third-party components used by the GMOS task gfcube.
+
+Hilo, Hawaii, July 20, 2017

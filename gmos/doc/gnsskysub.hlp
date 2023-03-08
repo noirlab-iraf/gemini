@@ -1,0 +1,141 @@
+.help gnsskysub December2012 gemini.gmos
+.ih
+NAME
+gnsskysub - Nod-and-shuffle shift and sky subtraction of GMOS spectra
+.ih
+USAGE
+gnsskysub inimages
+.ih
+PARAMETERS
+.ls inimages
+List of images to sky subtract. Input images must first be pre-processed
+using GPREPARE task prior to the processing with GNSSKYSUB. 
+The input images may be bias subtracted using GSREDUCE prior to the processing
+with GNSSKYSUB. Input 
+can given as a list of images. Wildcards are supported. The image 
+names may include the directory path. The images must be in 
+multi-extension FITS (MEF) format.
+.le
+.ls outimages = ""
+Output MEF images. The parameter can be one single image name, 
+a list of images or a list file; as long as the number of output images matches
+the number of input images. \fIoutimages\fR has precedence over \fIoutpref\fR. 
+.le
+.ls outpref = "n"
+Prefix for output images. Names of output images will be the names of 
+the input images with the prefix attached. \fIoutpref\fR is used 
+if \fIoutimages\fR="". If \fIoutpref\fR is used and does not contain 
+a directory path, the prepared images are written in the current directory.
+\fIoutpref\fR may contain a directory path, in which case this defines
+where the prepared images are written relative to the current directory.
+.le
+.ls fl_fixnc = no
+Attempt to fix a mismatch in the nod counts at the A and B 
+positions of the nod & shuffle sequence. If this option is
+chosen then intermediate frames are rescaled to synchronize
+the position with the lower nod count to the position with
+the higher nod count. 
+.le
+.ls sci_ext = "SCI"
+Name of the MEF extension containing the science data.
+.le
+.ls var_ext = "VAR"
+Name of the MEF extensions containing the variance frame.
+.le
+.ls dq_ext = "DQ"
+Name of the MEF extensions containing the data quality array.
+.le
+.ls mdf_ext = "MDF"
+Name of the MEF extension containing the Mask Definition File.
+.le
+.ls fl_vardq = no
+Create or propagate the variance and data quality images?
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes the task use the logfile
+defined by gmos.logfile.
+.le
+.ls verbose = yes
+Print actions to the screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error. 
+This parameter is always set by the task, and should not be modified by 
+the user.
+.le
+.ih
+DESCRIPTION
+
+GNSSKYSUB sky subtracts a nod & shuffled GMOS frame. The input image is
+self-subtracted by a shifted version of itself, so that a spectrum at a
+given nod position has a spectrum of the sky obtained through exactly
+the same light path removed. The final output of this task is a set of
+positive and negative object spectrum pairs (corresponding to sky
+subtracted spectra at the two nod positions), both of which are
+sandwiched between a pair of of positive and negative sky spectra.
+Shown schematically, the output for each object looks like this:
+
+.le 
+   ................. negative sky spectrum .........................
+.le 
+   .... sky-subtracted positive object spectrum (nod position A)....
+.le 
+   .... sky-subtracted negative object spectrum (nod position B)....
+.le 
+   ................. positive sky spectrum .........................
+.le
+
+To create the final one-dimensional spectrum the positive and negative
+sky-subtracted object spectrum pairs need to be separately extracted and
+(after one set of the pairs is inverted) co-added.
+
+Because the bias for GMOS images has structure, it is recommended
+to bias subtract the images using GSREDUCE before processing the images
+with GNSSKYSUB. 
+Flat fielding should be done after processing with GNSSKYSUB.
+
+If an unforseen hiccup in the nod & shuffle sequence has occurred during
+the exposure (for example, a loss of guiding partway through the
+exposure) it is possible that the exposure times at the two nodded
+telescope positions are not equal, leading to errors in sky subtraction.
+One signature of this problem would be that the ANODCNT and BNODCNT
+keywords in the PHU of the MEF would have differing values. This task
+checks for this and issues a warning if ANODCNT and BNODCNT are not the
+same. If \fIfl_fixnc\fR=yes the task attempts to fix the problem by
+re-scaling intermediate frames to match the higher nod count.
+
+.ih
+EXAMPLES
+
+1. Sky subtract a single image.  Use the output prefix, and
+fix any nod count mismatch that is found to exist:
+
+.nj
+   cl> gnsskysub inimage fl_fixnc+
+.ju
+
+2. Sky subtract a list of images:
+
+.nj
+   cl> gnsskysub @inlist outimages=@outlist
+.ju    
+    
+.ih
+TIME REQUIREMENTS
+The procedure implemented by this script is basically a simple shift and
+subtraction. If the a mismatch in the nod counts at the A and B
+positions is detected and the \fIfl_fixnc\fR option has been set to yes
+in an attempt to fix the problem, then additional computations are
+needed which will increase the time needed for processing by about a 
+factor of two.
+.ih
+BUGS AND LIMITATIONS
+Improvements to the (previously semi-functional) variance and
+data quality propagation in the GMOS package have undergone limited
+testing; the accuracy of the results should still be verified at
+each step by the scientist, particularly for spectroscopic data
+reduction tasks.
+.ih
+SEE ALSO
+gprepare, gsreduce
+.endhelp

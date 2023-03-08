@@ -1,0 +1,18 @@
+   nfacquire - Collapse flip-mirror frame into image of field for acquisition   
+     nfdispc - Display a series of channel maps from a NIFS data cube
+   nfextract - Extract a 1D spectrum from a transformed NIFS file
+    nffixbad - Fix bad pixels in NIFS frames
+     nfimage - Collapse unprocessed dispersed spectral frame into 2D image
+       nfmap - Extract a channel map from a NIFS data cube
+   nfprepare - Prepare NIFS data for reduction
+     nfsdist - Establish S-distortion calibration
+  nftelluric - Correct telluric absorption in transformed NIFS file
+     nifcube - Create data cubes from NIFS format files.
+     
+Hidden Tasks:
+       nfpad - Pad frame in the y-dimension for overfilling of the detector
+       nfwcs - Set 3-D WCS
+
+Documentation:
+    nifsinfo - Overview of the NIFS package
+nifsexamples - Print data reduction examples to the screen

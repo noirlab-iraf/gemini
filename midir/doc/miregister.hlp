@@ -1,0 +1,135 @@
+.help miregister December2011 gemini.midir
+.ih
+NAME
+miregister -- Register and average the nod images within a given data file
+.ih
+USAGE
+miregister inimages
+.ih
+PARAMETERS
+.ls inimages
+The input image(s) to be processed by the task. It can be an image name, 
+a list of image names, a wild-card image name, or the "@" syntax can be 
+used to direct the task to read a list of file names.  These all must be 
+files that have been made by the TPREPARE or MPREPARE tasks.
+.le
+.ls outimages = ""
+The output image name(s) for the registered files.  If this field is left 
+blank the \fIoutpref\fR string is used to create new file names from the 
+input file names.  Otherwise the number of output file names must match 
+the number of input file names or an error condition occurs.  The field 
+must contain either a list of output file names or use the "@" syntax to 
+direct the task to read a list of file names.  The task tests for whether 
+the output images exist and exits with an error condition if any of them 
+do exist.
+.le
+.ls outpref = "x"
+A prefix string which is prepended to each input image name to make
+the corresponding output image name if the output file name(s) are 
+not specified via the \fIoutimages\fR parameter.
+.le
+.ls rawpath = ""
+The path to the directory containing the T-ReCS or Michelle image files.  
+If the value is "" (empty string) the current directory is used.
+.le
+.ls combine = "average"
+A variable which can have the values "average" or "sum".  This determines 
+whether the combination of images is done via averaging or by summation. 
+This variable is passed to the IMCOMBINE task as its \fIcombine\fR 
+parameter.  Any value aside from "average" or "sum" produces an error.
+.le
+.ls fl_variance = no
+If this flag is set to "yes" then when the images from the individual nod 
+pair images are combined the variance is also calculated and written to the 
+output file as a second extension.
+.le
+.ls region = "[*,*]"
+This parameter is passed onto XREGISTER, defining the region of the 
+images which are used in registration.  The default, and the "old" behaviour 
+of this task before revision in early 2006, is to use the entire image for 
+registration.
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes the task use the logfile
+defined by \fImidir.logfile\fR.
+.le
+.ls verbose = yes
+Print actions to the screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error. 
+This parameter is always set by the task, and should not be modified by 
+the user.
+.le
+.ih
+DESCRIPTION
+This task, which may be called as part of the standard reduction pipeline 
+in MIREDUCE, takes one or more input midir image files and combines   
+the difference frames from the various nods after using the XREGISTER task
+to attempt to correct any small shifts from image to image.  The 
+resulting output MEF file contains one or two extensions depending 
+on the \fIfl_variance\fR flag.  If this flag is "no" then the output 
+image has a single extension in which the combined frame is stored.  
+This image has dimension [320,240].  All input images have equal 
+weight in the averaging or summation.  If the \fIfl_variance\fR flag 
+is set to "yes" then there is an additional second extension in the 
+output file which contains the variance image.
+.sp
+The first "good" frame is used as reference for the registration of the 
+set of images.  The part of the image specified by the \fIregions\fR 
+parameter is used for the registration. No checks are made as to the 
+validity of any shift, so the user needs to examine the log file to 
+see what the shifts were and needs to look at the output image to see 
+whether the result of the registration is reasonable.
+.sp
+The registration process works well only if there is a reasonably strong 
+source, preferably an extended source, in the T-ReCS or Michelle field of 
+view.  It also works when there is a point source present, but initial tests 
+indicated that this does not improve the FWHM of the point source profile so 
+it is possible that using MISTACK is preferable when dealing with 
+stellar images, especially of standard stars where the total exposure time 
+is going to be relatively short.  In some cases a better registration 
+is obtained by defining a smaller region around the target with the 
+\fIregions\fR parameter.  This can only be determined by experimentation.  
+If the region specified is too small the shifts may not be good.
+.sp
+The task will exit with an error if the specified output file already exists 
+or if the input file is not the output of TPREPARE or MPREPARE.
+It will also fail with a system level error if there are no good frames in 
+a given input file.
+.sp
+If the input file specified has already been combined (either with MISTACK 
+or with MIREGISTER), then no output file is produced.  In this case a message 
+is printed to the logfile but no error is flagged.
+.sp 
+The \fIcombine\fR parameter is passed to the IMCOMBINE task and 
+determines whether the individual nod position images are averaged (the 
+default) or summed.  The output images for the two different "combine" 
+parameter values are identical except for a factor of 2 times the 
+number of nod cycles in the image.
+.ih
+EXAMPLE
+1. Register a T-ReCS image located in "/home/user/data":
+.sp
+.nf
+    cl> miregister tS20030916S0101 rawpath="/home/user/data"
+.fi
+.sp
+This command would look in directory /home/user/data for input file, which 
+would have been previously produced using TPREPARE.  It will produce an
+output file named "xfS20030916S0101" in the current directory.  All "GOOD" 
+images in the file are registered first and then averaged using 
+IMCOMBINE with equal weights.
+.ih
+BUGS AND LIMITATIONS
+.sp
+Use of the XREGISTER routine to register the images does not always work 
+well.  It is always necessary for the user to carefully examine the results 
+of the registration, and is it useful to compare the results of using 
+MISTACK to those of using MIREGISTER to see whether the use of registration 
+has actually improved the resulting image.
+.ih
+SEE ALSO
+mistack, mireduce, tprepare, mprepare, images.immatch.xregister, imcombine
+.endhelp
+

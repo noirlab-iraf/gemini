@@ -1,0 +1,49 @@
+.help cnvtsec March2005 gemini.gemtools
+.ih
+NAME
+cnvtsec -- Convert a date and time to seconds
+.ih
+USAGE
+cnvtsec dateobs timeobs
+.ih
+PARAMETERS
+.ls dateobs
+The date string.  This string can be a fully specified date
+and time using the standard FITS format 
+(YYYY-MM-DDTHH:MM:SS.SS).  It can also contain only the
+date (YYYY-MM-DD), in which case the time must be given
+by \fItimeobs\fR.
+.le
+.ls timeobs
+The time string (HH:MM:SS.SS).  This string must be
+non-empty if the time is not included in \fIdateobs\fR.
+.le
+.ls status = 0
+Exit status will be non-zero if the task halted with an error.  This parameter
+is always set by the task, and should not be modified by the user.
+.le
+.ih
+DESCRIPTION
+This task converts a date and time (FITS format) to a number of seconds
+since 00:00:00 01-Jan-80, and prints it.  The fractional parts of
+seconds are conserved.  Note that leap-seconds are ignored.  This task
+is particularly useful to calculate time intervals between observations.
+.ih
+EXAMPLES
+1. Converted a FITS formated date and time string.
+.sp
+.nf
+    ge> cnvtsec "2005-03-30T15:51:43.45" ""
+    796665103.4500
+.fi
+.sp
+2. Converted using a date string and time string.
+.sp
+.nf
+    ge> cnvtsec "2005-03-30" "15:51:43.45"
+    796665103.4500
+.fi
+.ih
+BUGS AND LIMITATIONS
+.ih
+SEE ALSO

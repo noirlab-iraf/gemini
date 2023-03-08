@@ -1,0 +1,91 @@
+.help gacalfind October2013 gemini.gsaoi
+.ih
+NAME
+gacalfind -- Find master dark and flat frames
+.ih
+USAGE
+gacalfind inimages
+.ih
+PARAMETERS
+.ls inimages
+List of master dark and or flat GSAOI images. Can be a list of image names or
+numbers (comma separated or @ lists), or a range of images numbers - wild
+cards are supported. The image names may include the directory path. The images
+must be in multi-extension FITS (MEF) format. The file extension ".fits" may or
+may not be included. (See help for GAIMCHK for examples of all syntax allowed.)
+.le
+.ls calpath = "./"
+Location of input calibrations images
+.le
+.ls caltable = "gsaoical.fits"
+Name of output table with calibration information. Written to the local working
+directory.
+.le
+.ls fl_calrun = no
+If \fIcaltable\fR already exists re-create it?
+.le
+.ls fl_find = no
+Return an appropriate calibration specified by \fIcaltype\fR for the image
+specified by \fIsciimg\fR?
+.le
+.ls caltype = "" (""|DARK|FLAT<{DOME|TWLT|GCAL}>)
+If \fIfl_find\fR=yes, this specifies which type of calibration to return. For
+flats an additional string can be appended to "FLAT" to specify the type of
+flat to find, e.g., \fIcaltype\fR="FLAT{TWLT}", will find only master flats
+created  using twilight flats.
+.le
+.ls sciimg = ""
+Science image for which to return and appropriate calibration.
+.le
+.ls out_calimg = ""
+The requested calibration for \fIsciimg\fR. This is an output parameter for
+this task and should not be set by the user.
+.le
+.ls maxtime = INDEF
+Maximum time difference between calibration observation and current image to be
+reduced. Used to select closest in time calibrations if more than one suitable
+calibration of a given type is found.
+.le
+.ls ignore_nlc = no
+Ignore any differences in the non-linearity correction states of calibrations
+found and \fIsciimg\fR?
+.le
+.ls sci_ext = "SCI"
+Name of the MEF extension containing the science data.
+.le
+.ls var_ext = "VAR"
+Name of the MEF extensions containing the calculated variance planes.
+.le
+.ls dq_ext = "DQ"
+Name of the MEF extensions containing the data quality information.
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes use of the logfile
+defined by gsaoi.logfile.
+.le
+.ls verbose = yes
+Print actions to screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted
+with an error. This parameter is set by the task and should not be
+modified by the user.
+.le
+.ih
+DESCRIPTION
+
+GCALFIND will search \fIcalpath\fR for master dark and flat frames and upon
+request return a suitable calibration file of \fIcaltype\fR for the specified
+input frame \fIsciimg\fR. calibration files that have the same ROI take
+precedence. If more than one file matches the requested \fIcaltype\fR the one
+closest in time will be chosen.
+
+A specific type of flat can be requested by specifying the flat type when
+requesting, e.g., \fIcaltype\fR="FLAT{DOME}". Allowed types are DOME, TWLT and
+GCAL.
+.ih
+SEE ALSO
+
+GADIMSCHK, GAIMCHK
+
+.endhelp

@@ -1,0 +1,28 @@
+-------------------------------------------------------------------------
+GMOS calibration files included in the Gemini IRAF package
+Version: September 1, 2003
+Author: Inger Jorgensen
+-------------------------------------------------------------------------
+
+File                   Description
+-------------------------------------------------------------------------
+README                 This file
+
+Spectrophotometric standard stars not included in IRAF itself:
+  standards.men        List of spectrophotometric standards 
+  names.men            List of alias names for spectrophotometric standards
+  eg131.dat            Data file for EG131
+
+mkoextinct.dat         Mean extinction for Mauna Kea
+
+Photometric standard stars
+  gmosnlandolt.dat     ugriz magnitudes for the Landolt standard stars
+                       Format as required by photcal
+  fgmosnlandolt.dat    Format file for gmosnlandolt.dat
+                       Format as required by photcal
+  nlandolt.fits        FITS table containing UBVRI and ugriz magnitudes for
+                       the Landolt standard stars
+                       Columns RA_USNO,DEC_USNO contain J2000 coordinates
+                       consistent with the USNO 
+
+-------------------------------------------------------------------------

@@ -1,0 +1,26 @@
+$checkout libdbc.a ../
+$update   libdbc.a
+$checkin  libdbc.a ../
+$exit
+
+update:
+libdbc.a:
+
+imakbc.x        "idb.h"
+imakdc.x	"idb.h"
+imakic.x	"idb.h"
+imaklc.x	"idb.h"
+imakrc.x	"idb.h"
+imaksc.x	"idb.h"
+imastrc.x	"idb.h"
+imdcom.x	"idb.h"
+imgcom.x	"idb.h"
+impcom.x	"idb.h"
+impkbc.x	"idb.h"
+impkdc.x	"idb.h"
+impkic.x	"idb.h"
+impklc.x	"idb.h"
+impkrc.x	"idb.h"
+impksc.x	"idb.h"
+impstrc.x	"idb.h"
+;

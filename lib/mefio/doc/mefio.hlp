@@ -1,0 +1,319 @@
+.help MEFIO Jun04 Gemini Library
+.ih
+MEFIO Procedures
+.ih 
+BANNER
+.nf
+*****************************************************
+MEFIO implementation interface as it currently stands
+*****************************************************
+Craig Allen, Gemini Observatory
+Jun 04 2004
+.fi
+.ls gdcorrelate.x, gdpropagate.x:
+.ls pointer procedure gdrelate (mefpary,nomefs, name)
+
+.nf
+pointer mefpary		: points to array of ME_ struct pointers
+int	nomefs		: number of ME_ structures in buffer
+char 	name[ARB]	: EXTNAME to use for correlation 	
+.fi
+
+Correlates frames within input mefs and returns a dynamic 2d array
+accessible by i2d routines in mefioutil.x.  Unlike fmrelate this
+routine performs some validation and table cleanup,
+for example truncating rows which have missing frames from the table
+and printing errors/warnings in invalid cases.
+.le
+
+.ls procedure gdpropagate (source, dest, typename)
+
+.nf
+char source[ARB]	: source MEF
+char dest[ARB]		: destination MEF
+char typename[ARB]	: typename to direct kind of propagation 
+.fi
+Propagate frames by propagation type, currently only "MDF" is 
+supported.  This routine is important so that applications do not have
+to know what sort of meta-information is in frames that are not
+a part of their primary purpose.  
+.le
+
+.ls procedure gdfmfree(corary)
+
+.nf
+pointer corary		: pointer to correlation array
+			  as returned by gdrelate(..)
+.fi
+
+This frees the memory of the correlation table returned by gdrelate(..),
+which is an i2d (integer 2D) pointer.
+.le
+.le
+
+.ls mefiocorrelate.x:
+.ls pointer procedure fmrelate(mefpary, nomefs, name)
+
+.nf
+pointer mefpary		: pointer to array of ME_ structs
+int nomefs		: number of ME_ structs in array
+char name[ARB]		: EXTNAME to correlate with respect to
+.fi
+
+This routine creates a frame correlation array, it does not validate per se, but marks
+the array with special codes as necessary. (e.g. the array is sized based on the first MEF in the mefpary array and "0" appears in cells where no related frame was found in subsequent MEFs).
+.le
+
+.ls procedure fmfree(corary)
+
+.nf
+pointer corary 	: pointer to i2d pointer
+.fi
+Free memory returned by fmrelat(..), an i2d pointer.
+.le
+.le
+
+.ls mefiodata.x:
+
+.nf
+pointer procedure mignl$t(ep, buffer, v)
+pointer procedure mipnl$t(ep, buffer, v)
+pointer procedure migl1$t(ep)
+pointer procedure mipl1$t(ep)
+pointer procedure migl2$t(ep, line)
+pointer procedure mipl2$t(ep, line)
+pointer procedure migl3$t(ep, line, band)
+pointer procedure mipl3$t(ep, line, band)
+
+pointer	ep	: EXT_ structure
+pointer buffer	: output buffer
+pointer v	: array on indexes as with related IMIO procs
+int	line	: line to read
+int	band	: band to read
+.fi
+
+Line oriented input and output routines currently supported by MEFIO.  Equivalent to the similar IMIO calls but accept the MEFIO produce EXT_ structures, or "extension pointers".  The purpose of these routines rather
+than just getting the IMIO image pointer from the EXT_ struct and using it is to allow MEFIO
+to perform any coordination or other extra actions on input and output.
+.le
+
+.ls mefioimcopy.x:
+.ls procedure mimcopy (imagesource, imagedest, verbose)
+
+.nf
+char imagesource[ARB]	: name of fully qualified IMIO frame
+char imagedest[ARB]	: name of output frame
+bool verbose		: verbose flag
+.fi
+
+Copies an extension from one extension to another.  This works with image extensions (or the PHU), headers are
+copied and pixel data is copied on a line by line basis.
+
+.le
+.le
+.ls mefioiter.x:
+
+.ls pointer procedure megetep (mep, exti, mode)
+
+.nf
+pointer mep	: pointer to ME_ structure
+int exti	: absolute extension index
+int mode	: read write mode as for IMIO/extension type
+.fi
+
+Retrieves extension pointer (to EXT_ structure) by absolute index.  If the extension has not been
+mapped the appropriate subsystem will be used to map the extension, (e.g. IMIO).  If the image
+is already mapped, the existing EXT_ structure will be returned and it's reference count incremented.
+.le
+
+.ls pointer procedure megbnv(mep, name, ver, mode)
+
+.nf
+pointer mep	: pointer to ME_ structure
+char name[ARB]	: EXTNAME of desired extension
+int ver		: EXTVER of desired extension
+int mode	: read/write mode for extension type
+.fi
+
+Retrieves extension pointer based on EXTNAME and EXTVER which are part of the indexing when memap(..) is called, so this does not cause the MEF to be opened again.  If the MEF has been altered the results are
+undefined.  This issue is why MEFIO wants to be middleman for all manipulation of the MEF, even
+in cases which are direclty handed off to subsystems.
+.le
+
+.ls int procedure meindbnv(mep, name, ver)
+
+.nf
+pointer mep	: pointer to ME_ structure
+char name[ARB]	: EXTNAME of desired extension
+int ver		: EXTVER of desired extension
+int mode	: read/write mode for extension type
+.fi
+
+Returns the absolute extension index of an extension by EXTNAME and EXTVER.
+.le
+
+.ls int procedure countbn(mep, name)
+.nf
+pointer mep	: multiple extension pointer
+char name[ARB]	: name of extension
+.fi
+
+Counts the number of extensions in a given mep of a given EXTNAME.
+.le
+
+.ls procedure mesetiter(mep, exti)
+.nf
+pointer	mep	: multiple extension pointer
+int exti	: extension index
+.fi
+
+Sets current internal ME_ structure iteration index to an absolute value. Generally 
+this is used to reset the iterator to the top (e.g. call mesetiter(mep, 0))
+.le
+
+.ls pointer procedure megnep(mep, mode)
+.nf
+pointer	mep	: multiple extension pointer
+int	mode	: read/write mode
+.fi
+
+Returns "next" extension pointer in mep.  Iterator index used is in mep structure and can be set/reset with mesetiter(..).
+.le
+
+.ls pointer procedure megntep(mep, type, mode )
+.nf
+pointer	mep	: multiple extension pointer
+int type	: type of extension to retrieve
+int mode	: read/write mode
+.fi
+
+Returns "next" extension of a given type.  Supported types are ET_IMAGE, ET_TABLE, ET_ANY (NOTE: MEFIO does not map TABLES extension at this time but there are plans to).
+.le
+
+.ls procedure idecr(iptr, index)
+.nf
+pointer iptr	: buffer pointer to array of ints
+int index	: index into buffer
+.fi
+
+Decrement int at given offset.  'iptr' is a TY_INT buffer allocated with malloc or calloc.
+.le
+
+.ls procedure iincr(iptr, index)
+.nf
+pointer iptr	: buffer pointer to array of ints
+int index	: index into buffer
+.fi
+
+Increment int at given offset.  'iptr' is TY_INT buffer allocated with malloc or calloc.
+.le
+.le
+
+.ls mefiomap.x:
+
+.ls pointer procedure memap(mefname)
+.nf
+char mefname[ARB]
+.fi
+
+Map MEF file named 'mefname'.  MEF is opened and extension information is put in an extension index, including type of extension, name, version, and other information.  The MEF file itself is not left open after mapping but is physically closed on disk until extensions are retrieved, at which time they are mapped by the 
+appropriate subsystem (e.g. IMIO).  Returns pointer to filled out ME_ structure on success, null otherwise.
+.le
+
+.ls procedure meepunmap(ep)
+.nf
+pointer ep	: extension pointer
+.fi
+
+Unmap extension pointer.  NOTE: reference counting is used so for image extensions 'imunmap' would only be called when reference count is decremented to 0.
+.le
+
+.ls procedure meepfunmap(ep, force)
+.nf
+pointer ep	: extension pointer
+bool force	: if true, force unmap
+.fi
+
+This version of unmap allows the caller to force the extension closed (aka "unmapped") even if the reference count is not fully decremented.
+.le
+
+.ls procedure meunmap(mep)
+.nf
+pointer	mep	: multiple extension pointer
+.fi
+
+Unmap any extensions associated with the given ME_ structure and free all memory associated with the structure.
+.le
+
+.ls procedure meprint(mep)
+.nf
+pointer mep	: multiple extension pointer
+.fi
+
+Prints out information on the MEF index as loaded by memap(..).
+.le
+
+.le
+
+.ls mefioutil.x:
+.ls pointer procedure i2dmalloc(cols, rows)
+.nf
+int 	cols	: number columns to allocate
+int	rows	: number of rows to allocate
+.fi
+
+Allocates dynamic 2D int buffer structure.  In addition to space for
+the integers, there is also space for the ncols and nrows values, 
+and the ability to truncate the table without freeing the extra rows.
+Other information may be added to this structure in the future, such
+as elements for application specific purposes
+.le
+
+.ls procedure i2dfree(i2dp)
+.nf
+pointer	i2dp	: pointer to i2d structure
+.fi
+
+Frees "i2d" structure.
+.le
+
+.ls procedure i2dset(i2dp, col, row, val)
+.nf
+pointer	i2dp	: pointer to i2d structure
+int col		: column to set
+int row		: row to set
+int val		: value to put in table
+.fi
+
+Set integer value in i2d table.
+.le
+
+.ls int procedure i2dget(i2dp, x, y)
+.nf
+pointer	i2dp	: pointer to i2d structure
+int col		: column to set
+int row		: row to set
+.fi
+
+Get integer value in i2d table.
+.le
+
+.ls procedure i2dprint(i2dp)
+.nf
+.fi
+
+Print i2d table for debug purposes (not super pretty)
+.le
+
+Other:
+.nf
+pointer procedure parymalloc(siz)
+procedure iset( iary, index, val)
+int procedure iget( iary, index)
+procedure paryset( pary, index, val)
+pointer procedure paryget(pary, index)
+int procedure iaryget(iary, index)
+procedure iaryset( iary, index, val)
+procedure pset( pary, index, val)
+pointer procedure pget( pary, index)
+.endhelp

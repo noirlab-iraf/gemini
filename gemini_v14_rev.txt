@@ -1,0 +1,134 @@
+GEMINI (Sep2002)         Gemini IRAF package v1.4       GEMINI (Sep2002)
+
+Release date: September 20, 2002
+
+This document describes the revisions relative to the Gemini IRAF package v1.3
+
+
+PRIMARY REVISIONS:
+
+1) Tasks for reduction of GMOS IFU data are now included in the "gmos" 
+   package.
+2) A cosmic ray rejection task is included for GMOS spectra.
+3) Tasks for reduction of NIRI longslit spectroscopic data are now included
+   in the "niri" package.
+4) New tasks have been added to the "oscir" package, which now serves as the
+   prototype of the reduction software to be developed for T-ReCS and other 
+   mid-IR imagers.
+
+
+DETAILS OF THE REVISIONS:
+
+gmos
+  All tasks in the "gmos" package should be unlearned prior to use in order
+  to implement new parameters and default parameter values.
+
+gmos.gbias
+gmos.ggain (hidden task)
+gmos.gireduce
+gmos.gprepare
+gmos.gstransform
+gmos.gswavelength
+  Small bug fixes and better stability.
+
+gmos.gdisplay
+  Transparent handling of images with only one extension.
+
+gmos.gmosaic
+   User defined interpolation type.
+
+gmos.garith
+   The task has been retired and replaced with the generic MEF arithmetic task
+   gemtools.gemarith
+
+gmos.gscut
+  Distortion in the X-direction taken into account. 
+  Easier user defined X- and Y-offsets
+  Small bug fixes and better stability.
+
+gmos.gsextract
+  Support for sky subtraction as part of the extraction.
+
+gmos.gsflat
+  Support for the user defined X- and Y-offsets in gscut.
+  
+gmos.gsreduce
+  User defined interpolation type. Optional call to gscrrej.
+
+gmos.gnsskysub 
+  New task for sky subtraction of Nod-and-Shuffle data taken with GMOS.
+
+gmos.gscrrej
+gmos.gscrmask
+  New tasks for cosmic ray cleaning of GMOS spectroscopic data.
+
+gmos.gfapsum
+gmos.gfcube
+gmos.gfdisplay
+gmos.gfextract
+gmos.gfquick
+gmos.gfreduce
+gmos.gfresponse
+gmos.gfskysub
+gmos.gftransform
+  New tasks for reduction of GMOS IFU data. A description of the typical IFU
+  reductions is included as the task "gmosinfoifu".
+  Example reductions of IFU data are included in "gmosexamples".
+
+gmos.mostools.stsdas2objt
+  Small bug fixes. Support for Flamingos-I.
+
+
+niri
+  All tasks in the "niri" package should be unlearned prior to use in order
+  to implement new parameters and default parameter values.
+
+
+niri.nprepare
+  Handling of regions-of-interests added.
+
+niri.niflat
+  Write BPM as a separate file.
+
+niri.nireduce
+niri.nifastsky
+niri.nisky
+  Smaller bug fixes and optimizing.
+
+niri.nsappwave
+niri.nsextract
+niri.nsflat
+niri.nsreduce
+niri.nssdist
+niri.nstransform
+niri.nswavelength
+  New tasks for reduction of NIRI spectroscopic data. See also "niriinfo".
+  An example reduction has been included in "niriexamples".
+
+
+oscir.obackground
+oscir.oflat
+oscir.ohead
+oscir.oreduce
+oscir.oview
+  The "oscir" package have been extended to serve as a proto-type for the
+  reduction software for T-ReCS and other mid-IR imagers.
+
+
+gemtools.imcoadd
+  Support for use of the header WCS for defining the transformations.
+  Support for use of instrument offsets in the image headers for defining
+  the transformations. Automatic selection of bad pixel file. Smaller bug fixes.
+
+gemtools.gemarith
+  New task. Generic arithmetic task for MEF files. Replaces gmos.garith.
+
+gemtools.gemoffsetlist
+  New task for splitting images lists based on offsets in space or time. Used
+  extensively by the tasks in the "niri" package.
+
+gemtools.gemlogname (hidden task)
+gemtools.gemvsample (hidden task)
+  Generic tasks for support of various parameter checking have been added to 
+  the "gemtools" package.
+

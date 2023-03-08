@@ -1,0 +1,324 @@
+.help msreduce December2011 gemini.midir
+.ih
+NAME
+msreduce -- Pipeline routine for Mid-IR spectral reductions
+USAGE 
+msreduce inspec
+.ih
+PARAMETERS
+.ls inspec
+The name of Michelle or T-ReCS spectral raw image(s).
+.le
+.ls outtype = "fnu"
+Key for what type of flux units one wants in the output spectrum: one can 
+specify "fnu" to get frequency flux density values in Jy, "flambda" to get 
+wavelength flux density in Watts/meter squared per micron, or "lambdaFlmabda" 
+to get values in Watts/meter-squared.  This is used only if the \fIfl_std\fR
+flag is "yes" and \fIfl_bbody\fR flag is "no".
+.le
+.ls rawpath = ""
+The directory path for the image(s).  If the image or images are in the 
+current directory, this should be set to "".
+.le
+.ls line = 160
+The column number for the center of the region which is extracted and used to 
+identify the aperture for the spectrum.  The default is 160, the array center.
+.le
+.ls fl_std = no
+This is a flag for whether both source and standard star spectra are 
+extracted.  If it is "no", the source spectrum is wavelength calibrated 
+and extracted giving a raw spectrum in counts uncorrected for atmospheric
+effect.  If it is "yes" then for each source spectrum a standard star spectrum
+is also reduced, and the telluric correction (plus possibly a 
+spectrophotometric calibration) is carried out.
+.le
+.ls std = ""
+The name of Michelle or T-ReCS standard star spectral raw image(s).  This 
+is not used if the \fIfl_std\fR is "no".
+.le
+.ls stdname = "" 
+This is the name of the standard star.  It is used in querying for the 
+absolute spectrum of the standard in the mid-infrared.  This is used only if 
+\fIfl_std\fR is "yes" and \fIfl_bbody\fR is "no".  The name is passed to the 
+MSABSFLUX routine.
+.le
+.ls fl_bbody = no 
+This is a flag for whether the standard star spectrum will be approximated
+by a normalized blackbody function.  It is ignored if \fIfl_std\fR is 
+"no".  If \fIfl_std\fR is "yes" and this parameter is "yes" then the 
+\fIbbody\fR parameter is used to set the continuum shape for the standard 
+star spectrum in a call to MSTELLURIC.  If \fIfl_std\fR is "yes" 
+and this parameter is "no" then the MSABSFLUX routine is called, and 
+actual spectrophotometric data for the standard is used for calibration.
+.le
+.ls bbody = 10000.0
+When \fIfl_std\fR is "yes" and \fIfl_bbody\fR is "yes" this value is 
+taken as the colour temperature of the standard star in the mid-infrared. 
+Otherwise it is ignored.  The value is passed to MSTELLURIC.
+.le
+.ls fl_flat = no
+A flag for whether the raw image is bias subtracted and flat fielded 
+before other steps in the processing.  If this value is "yes" then the 
+\fIflat\fR and \fIbias\fR parameters must give the names of the flat-field
+and bias images.
+.le
+.ls flat = ""
+When \fIfl_flat\fR is "yes" this is the name of the flat-field images(s) 
+to be used with the source and standard star image(s).  Otherwise it is 
+ignored.  There must be one flat-field image for each source image.
+.le
+.ls bias = ""
+When \fIfl_flat\fR is "yes" this is the name of the bias images(s) 
+to be used with the source and standard star image(s).  Otherwise it is 
+ignored.  There must be one bias image for each source image.
+.le
+.ls fl_extract = no
+A boolean value indicating whether to run NSEXTRACT in interactive mode.
+.le
+.ls fl_telluric = no
+A boolean value indicating whether to run MSTELLURIC in interactive mode.
+.le
+.ls fl_wavelength = no
+A boolean value indicating whether to run NSWAVELENGTH in interactive mode.
+.le
+.ls fl_fitcoords = no
+A boolean value indicating whether to run NSFITCOORDS in interactive mode.
+.le
+.ls fl_retrace = no
+A boolean value indicating whether to retrace the spectrum in the processing, 
+if one has done a reduction previously.
+.le
+.ls fl_process = yes
+A boolean value indicating whether to run MIREDUCE before going on to 
+the subsequent steps in the processing.
+.le
+.ls fl_clear = yes
+A boolean value indicating whether to clear the "database" directory, and
+thereby lose all previous processing information, before starting the 
+reductions.
+.le
+.ls fl_negative = no
+A boolean value indicating whether to try to extract a negative spectrum from 
+the images or not; this is necessary for spectra taken in pure NOD mode.  It 
+will not work for CHOP-NOD mode observations.  Higher resolution Michelle 
+spectra are usually taken in pure NOD mode.  All T-ReCS spectra and low 
+resolution Michelle spectra are taken in regular CHOP-NOD mode.
+.le
+.ls fl_defringe = yes
+A boolean value indicating whether to defringe the extracted spectrum with 
+the MSDEFRINGE task.  The defringing routine is intrinsically interactive 
+because the period of the fringes in a spectrum is a function of the 
+resolution, the wavelength, and the slit width.  No generic automatic 
+defringing algorithm has been found, it must be done by hand.
+.le
+.ls fl_lowres = yes
+A boolean value for whether the spectrum is in low resolution mode or not; 
+this is used only for MSDEFRINGE, so it does not matter if 
+\fIfl_defringe\fR is set to "no".  This is passed to MSDEFRINGE
+.le
+.ls fl_skybiassub = no
+A boolean value for whether the bias frame is subtracted off the sky frames 
+used for wavelength calibration. 
+.le
+.ls fmin = 18
+This value is passed to MSDEFRINGE.  When \fIfl_lowres\fR is "no" 
+this determines the initial minimum frequency to screen out.
+.le
+.ls fmax = 32
+This value is passed to MSDEFRINGE.  When \fIfl_lowres\fR is "no" 
+this determines the initial maximum frequency to screen out.
+.le
+.ls fl_dfinterp = yes
+This value is passed to MSDEFRINGE as the \fImsdefringe.fl_interpolate\fR 
+flag, determining whether the screened frequency components are set to zero
+or whether a linear interpolation from the adjacent frequency bins is carried
+out.
+.le
+.ls fl_zerocut = yes
+This parameter is passed to MSDEFRINGE, and determines whether any negative 
+values in the input spectrum are masked to zero or not.
+.le
+.ls fl_reextract = no
+A boolean value indicating whether to just re-extract the spectra; if this 
+is "yes" than it will be assumed that the wavelength calibrated raw spectra 
+are present to work with, and only MSABSFLUX/MSTELLURIC will be called in the 
+processing for each pair of files.
+.le
+.ls linelist = ""
+The name for the line list file to be used in identification of the atmospheric
+lines.  If this is blank, the default file "gnirs$data/sky.dat" is used; that
+file is intended for low resolution spectra only.
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes the task use the logfile
+defined by \fImidir.logfile\fR.
+.le
+.ls verbose = yes
+Print actions to the screen.
+.le
+.ls status = 0
+An output status flag.  For successful execution the value is returned as 
+zero, otherwise it is set to 1.
+.ih
+DESCRIPTION
+This is a wrapper routine which calls the spectroscopic reduction tasks in the 
+GNIRS package, and some tasks in the MIDIR package, to carry 
+out the processing of either individual source spectra or pairs of source 
+and standard spectra taken with Michelle or T-ReCS.  If only source spectra 
+are being processed the result is a wavelength calibrated raw spectrum in 
+counts, with no telluric corrections or absolute calibration.  The more 
+usual option is to reduce pairs of spectra, one from the source and one from 
+a standard star, to produce output source spectra which has been wavelength 
+calibrated, corrected for the telluric features, and which has the correct 
+shape.  The output spectrum will either have the correct relative shape but 
+not absolute brightness information (if the MSTELLURIC routine is used) 
+or will be absolutely calibrated subject to the uncertainties of correcting 
+for the slit losses (if the MSABSFLUX routine is used).  Which method is 
+used depends upon the \fIfl_std\fR flag and the \fIfl_bbody\fR flag.
+.sp
+Various steps in the process can be executed with some type of interactive 
+input.  Many of the flags, such as \fIfl_extract\fR, allow one to control which
+steps are run interactively.  It is not generally a good idea to run everything
+without interactive input, since the wavelength calibration may come out 
+wrong when this is done.  For a stellar target the extraction and tracing 
+may work properly in automatic mode, but this also is not certain.  The 
+defringing cannot be done automatically.  If that option is to be used, that 
+step at least must be interactive.
+.sp
+The steps of the processing are as follows:
+.ls
+(0) Run NSHEADERS to configure the spectroscopy routine to Michelle or T-ReCs
+data.
+.le
+.ls
+.sp
+(1) Each input file is checked and the instrument name, Michelle or T-ReCS, 
+is determined.  Any other instrument name or a failure 
+to determine the name causes the file to be skipped in the processing.
+.le
+.ls
+.sp
+(2) If the \fIfl_flat\fR flag is set to "yes" then each input file has the 
+bias subtraction and flat fielding carried out via a call to the MSFLATCOR 
+routine.  The output of this then has an "f" prefixed to the original file 
+name.  This is done for all the raw data files, whether of a source or of a 
+standard.
+.le
+.ls
+.sp
+(3) If \fIfl_process\fR is "yes" then MIREDUCE is run on the files to 
+extract the stacked difference and sky reference images.  These 
+output files have prefixes "r" and "a" respectively.  If files that match 
+these output file names, or the name of the "prepared" file, are already 
+in the current directory they are replaced by new files.
+.le
+.ls
+.sp
+(4) The routine NSWAVELENGTH is run to identify the sky lines in the sky
+image.  The output file has prefix "wa".  The sky lines are identified at 
+different positions along the slit.  If the output file already exists, 
+it is replaced. It is possible to subtract a bias frame off the sky frames used
+for wavelength calibration. This can help greatly with the ease of identifying 
+the emission lines.
+.le
+.ls
+.sp
+(5) The routines NSFITCOORDS and NSTRANSFORM are run to apply the wavelength 
+solution to the difference image.  The output file has prefix "tfr".  If a file
+of that name is present it is replaced.
+.le
+.ls
+.sp
+(6) The routine NSEXTRACT is run to extract the target spectrum.  When 
+the spectrum is extracted the prefix is "xtr", and any existing file is 
+replaced.
+.le
+.ls
+.sp
+(7) If the \fIfl_defringe\fR value is "yes", the spectrum is defringed using 
+the MSDEFRINGE routine.  If this is successful the defringed spectrum is given 
+the prefix "dxtr".
+.le
+.sp
+These steps are carried out for both the object spectrum and the standard 
+star spectrum when \fIfl_std\fR is "yes".  If this flag is "no" then 
+these steps are done only for the specified source spectra, and the task 
+ends after this step.
+.le
+.ls
+.sp
+(8) Finally, either MSABSFLUX or MSTELLURIC is called with the two extracted 
+spectra (the "xtr" or "dxtr" files).  The object spectrum is ratioed 
+with that of the standard star with a possible small shift to best remove 
+the telluric features, and then the ratio spectrum is multiplied by either 
+the spectrophotometric values for the given standard star (if MSABSFLUX is 
+used) or by a normalized blackbody function of the temperature given by the 
+\fIbbody\fR parameter (if MSTELLURIC is used).  Which option is used
+depends on the \fIfl_bbody\fR parameter.  
+
+If the spectrophotometry for a standard is to be used, the name of the 
+standard needs to be specified in the \fIstdname\fR parameter.  The standards 
+are nearly all listed under their HD number, so a name such as "HD197192" 
+would be recognized.  For some of the brightest standards names similar to 
+"alphaCMa" are used.  In the midir$data directory the file "standards.list" 
+gives the names of all the standards for which the spectral energy distribution
+values are tabulated.  The files are in the "STANDARD STAR CALIBRATION FILES" 
+format used by routines such as SENSFUNC in the NOAO ONEDSPEC package. 
+The help for SENSFUNC describes the format of these files.
+
+A special case is if the \fIstdname\fR is given as "asteroid".  In that case 
+a template asteroid spectral energy distribution file is used for the standard 
+spectrum.  This template is a blackbody fit to the Infrared Space Observatory 
+SWS-06 and PHT-40 spectra of Ceres, scaled to the case of an asteroid radius 
+of 100 km seen at exactly 1 AU.  The values in the file are for a blackbody 
+of temperature 217.05 K.  This file provides an approximate template for 
+any large main-belt asteroid which used for spectral calibration.  However 
+it should be remembered that there is some variation in temperature for 
+different asteroids, and that there is also a variation in mid-infrared 
+emissivity with wavelength from asteroid to asteroid.  A really accurate 
+calibration using an asteroid requires a detailed physical model of the 
+thermal emission, which is beyond the scope of this package.
+
+When MSABSFLUX is used, if the slit losses are the same for the object 
+and the standard star, the output spectrum will have the correct 
+absolute level and shape.  If not the shape will be correct but the 
+level will be wrong by some unknown factor.  The output file has prefix 
+"axtr" or "adxtr", and replaces any file of this name already in the directory.
+
+When MSTELLURIC is used all absolute level information is removed from 
+the standard star spectrum in the reduction.  The output spectrum will have 
+the correct shape provided the standard star has a spectral shape matching 
+the defined blackbody temperature over the spectral region.  This temperature 
+is given by the \fIbbody\fR parameter.  In the mid-infrared a value of 
+10000.0 K will usually be accurate enough for stars of spectral type K and 
+earlier.  Note that this is the mid-infrared colour temperature and it need 
+not be the same as the stellar effective temperature.  For K-type standard 
+stars it is known that the continuum shape is not well approximated by a 
+blackbody in the 8 to 13 micron wavelength range due to an SiO molecular 
+band.  Thus, the blackbody approximation should only be used for stars 
+that are of earlier spectral type.  This option should also not be used 
+for stars of spectral types F or later with the higher resolution 
+spectral modes of T-ReCS or Michelle.
+.le
+.sp
+Once the spectrum has been extracted, it is displayed with SPLOT for 
+the user to look at.
+.sp
+In the description above, when it is stated that files may be replaced it 
+assumes that the operations will be successful.  Any existing output files 
+are deleted before the various tasks are run.
+.ih
+EXAMPLES
+.sp
+Refer to the Mid-IR Spectroscopy Reduction webpage at:
+.sp
+.nf
+http://www.gemini.edu/sciops/instruments/midir-resources/data-reduction/spectroscopy-reduction
+.fi
+.ih
+BUGS AND LIMITATIONS
+.ih
+SEE ALSO
+mireduce, nswavelength, nsfitcoords, nstransform, nsextract, msabsflux, 
+msdefringe
+.endhelp

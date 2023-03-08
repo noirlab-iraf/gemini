@@ -1,0 +1,199 @@
+.help flamingosinfo June2012 gemini.flamingos
+.ih
+NAME
+flamingos -- Reduction scripts for Flamingos data
+.ih
+USAGE
+flamingos
+.ih
+DESCRIPTION
+
+The FLAMINGOS package contains one task: FPREPARE  for 
+processing of Flamingos data from Gemini-South. The output
+data from FPREPARE are similar to the native format 
+for NIRI data from Gemini-North, and allow for subsequent
+processing with the NIRI package. 
+
+The NIRI package contains tasks for processing near-IR imaging and
+long-slit spectroscopy data. The specifics of the individual tasks can 
+be found in their help files. This document describes the common 
+features of the tasks and gives a description of the NIRI data format.
+
+Only the NIRI imaging tasks have been released at this time.
+The spectroscopy tasks will be released at a later date.  
+
+The tasks are designed to provide a fairly complete and flexible
+reduction for the purpose of assessing data quality at the time
+of observation.  Real-time reductions may not be optimal for a 
+particular science application.  The NIRI package scripts can be
+optimized for a particular application using the hidden parameters to
+achieve the best possible results.
+
+The tasks produce logfiles of the performed processing steps.
+The name of the logfile may be set in each individual task, or at
+the package level by setting \fIniri.logfile\fR.
+
+The tasks add header keywords to the output images. These header
+keywords contain information about the performed processing steps
+and the values of the critical parameters that were used.
+
+It is recommended to use \fIimtype\fR="fits". This is set automatically
+when loading the GEMINI package.
+
+.ih
+SHORT DESCRIPTIONS OF THE TASKS
+.ls FPREPARE - Convert Flamingos data to MEF; attach VAR and DQ extensions
+
+All data must be run through FPREPARE before further processing.
+FPREPARE first converts the simple FITS images from Flamingos to 
+Multi-Extension FITS (MEF) and adds certain essential header keywords
+to the primary header unit (PHU). If requested, it also computes the
+variance and data quality planes.  If no input bad pixel mask is given, 
+only saturated and non-linear pixels are flagged. FPREPARE can also 
+be run a second time on a dataset to create the VAR/DQ planes and add 
+a bad pixel mask and DQ information at a later time. Additionally, 
+if the number of non-destructive reads is greater than 1, the data
+are scaled to have the correct flux-level and exposure time. 
+
+Currently, FPREPARE is the only task unique to Flamingos.  Basically,
+FPREPARE makes Flamingos images look like NIRI images, so the remainder
+of the reduction steps mirror those of NIRI.
+.le
+
+.ih
+The NIRI scripts for imaging data
+
+.ls NIFLAT - Derive imaging flat field and bad pixel mask.
+
+NIFLAT is used for deriving normalized flat fields as well as bad
+pixel masks for imaging data. The input images can be 
+calibration unit (GCAL) flat fields, twilight flat fields, or 
+sky flat fields, and darks.
+The output images are the normalized flat field and a bad pixel 
+mask (in the data quality plane, if requested).  
+If flagged, objects are identified and removed using NISKY prior
+to normalization.
+
+The \fIniflat.statsec\fR, \fIniflat.thresh_dlo\fR, and \fIniflat.thresh_dup\fR
+parameters should be changed from the NIRI defaults to take into account 
+differences between the NIRI and FLAMINGOS detectors.  Use: 
+
+.nf
+   niflat.statsec="[200:1848,200:1848]"
+   niflat.thresh_dlo=-30. 
+   niflat.thresh_dup=450.
+.fi
+
+.le
+
+.ls NIFASTSKY - Derive sky image, median or min/max filtering
+
+NIFASTSKY is used for constructing sky images by median or min/max
+filtering. No attempt is made to specifically flag objects
+in the sky images. The task is mostly used for rapid reductions
+at the telescope, although it may suffice for standard reductions 
+depending on the complexity of the field. 
+
+The \fInifastsky.statsec\fR parameter should be changed to 
+"[200:1848,200:1848]" from the default NIRI value.  
+
+.le
+
+.ls NISKY - Derive sky image, includes masking of objects
+
+NISKY is used for constructing sky images. Objects in the input
+images are flagged using information about the FWHM of the PSF
+and the signal in the objects. In general, it is recommended to use 
+NISKY rather than NIFASTSKY for science quality reductions.  Because
+NISKY does a preliminary reduction of each image and identifies
+objects to mask, it is considerably slower than NIFASTSKY.
+
+The values of \fInisky.statsec\fR, \fInisky.fwhmpsf\fR, and \fInisky.rebin\fR
+should be changed to: 
+
+.nf
+   nisky.statsec="[200:1848,200:1848]"
+   nisky.fwhmpsf=8.
+   nisky.rebin=10.
+.fi
+
+Depending on the seeing one may need to iterate further on the 
+\fInisky.fwhmpsf\fR parameter, although the above value should work fairly well
+in general.
+
+.le
+
+.ls NIREDUCE - Reduce images from NIRI  (sky and/or dark subtract, divide flat)
+
+NIREDUCE is used to sky and/or dark subtract and flat field divide
+the science data.  The sky image can be scaled before subtraction
+if desired. The dark current does not appear to 
+
+The \fInifastsky.statsec\fR parameter should be changed to
+"[200:1848,200:1848]" from the default NIRI value.  
+
+
+.le
+
+.ih
+TYPICAL REDUCTIONS FOR IMAGING DATA
+
+For typical reductions the user will need appropriate flat fields
+and short dark images, on-target science images and sky images.
+Flat field images taken with the calibration unit are usually taken
+both with the IR lamp on and off to allow separation of the 
+instrumental thermal signature from the sensitivity response.
+Short darks are used to identify bad pixels.
+
+If the target is not extended and the field is uncrowded, the on-target
+images may be used as the sky images. This assumes that
+sufficiently large dither steps were used during the observations.
+
+1. Use FPREPARE to update the raw data images to MEF and create the
+variance and data quality planes, if desired.  The other tasks will
+not run if the data has not been FPREPAREd. You may wish to run 
+FPREPARE first on just the calibration images, use NIFLAT to derive
+the bad pixel mask, and then run FPREPARE on your science frames 
+using the bad pixel mask as input to making the DQ plane. 
+
+2. Use NIFLAT to derive normalized flat fields and a bad pixel mask.
+
+3. Use NISKY (or alternatively NIFASTSKY) to derive sky images.
+The near-IR sky level and structure varies on timescales of a 
+few minutes, and care should be taken to combine only sky images that 
+are close enough in time to each other and to the relevant science 
+images that such variations are non-significant. This may take some 
+experimentation.  
+
+4. Use NIREDUCE to subtract the sky images and apply the flat fields.
+Data from each filter should be processed separately, as NIREDUCE takes
+only one sky image at a time as its input.
+Better sky subtraction can often be achieved by scaling the sky image
+to the same mean level as the science frame (assuming the science frame
+is sky-dominated). There is a flag to set scaling in NIREDUCE. 
+
+.ih
+WHAT TO DO NEXT
+
+The processed images may be co-added with the task GEMTOOLS.IMCOADD.
+Photometry may be derived with any suitable photometry package. 
+
+.ih
+BUGS AND LIMITATIONS
+
+The tasks in the NIRI package are designed to operate on MEF FITS
+images that have been processed using FPREPARE.  FPREPARE will not
+run on data from instruments other than Flamingos.  The NIRI tasks will
+not run on simple FITS files.
+
+The NIRI spectroscopy tasks have been used to reduce Flamingos-I
+spectroscopic data, but this use may require that the user experiments
+with the parameter setting of the NIRI tasks.
+The FLAMINGOS package contains a database file flamingos$fsappwave.dat
+to use with NSAPPWAVE.
+
+.ih
+SEE ALSO
+fprepare, niflat, nifastsky, nisky, nireduce, imcoadd
+.endhelp
+

@@ -1,0 +1,13 @@
+# Copyright(c) 2001-2017 Association of Universities for Research in Astronomy, Inc.
+#
+# Help directory for the  mostools  package
+
+$doc = "mostools$doc/"
+
+app2objt        hlp=doc$app2objt.hlp, src=mostools$app2objt.cl, sys=doc$objtexample1.cl
+stsdas2objt     hlp=doc$stsdas2objt.hlp, src=mostools$stsdas2objt.cl, sys=doc$objtexample2.cl
+mdfplot         hlp=doc$mdfplot.hlp, src=mostools$mdfplot.cl
+gmskcreate	hlp=doc$gmskcreate.hlp, src=mostools$gmskcreate.cl
+gmskxy		hlp=doc$gmskxy.hlp, src=mostools$gmskxy.cl
+gmskimg		hlp=doc$gmskimg.hlp, src=mostools$gmskimg.cl
+

@@ -1,0 +1,48 @@
+# Copyright(c) 2004-2013 Association of Universities for Research in Astronomy, Inc.
+
+# IMEXPR parameters
+sci_expr,s,a,,,,Expression to apply to SCI (science) frames
+output,f,a,,,,Output MEF name for results
+
+# Input image Operands.
+a,s,a,,,,Operand a
+b,s,a,,,,Operand b
+c,s,a,,,,Operand c
+d,s,a,,,,Operand d
+e,s,a,,,,Operand e
+f,s,a,,,,Operand f
+g,s,a,,,,Operand g
+h,s,a,,,,Operand h
+i,s,a,,,,Operand i
+j,s,a,,,,Operand j
+k,s,a,,,,Operand k
+l,s,a,,,,Operand l
+m,s,a,,,,Operand m
+
+# I put this here... will be "var_expr,h,default..." in the future, 
+# but for now I want to make sure the user is prompted for it if 
+# they don't give it as an absolute parm... 
+# the Operands need to be able to be given positionally
+var_expr,s,a,,,,Expression to apply to VAR (variance) frames
+dq_expr,s,h,"default",,,Expression to apply to DQ (data quality) frames
+
+sci_ext,s,h,"SCI",,,Name of science extensions
+var_ext,s,h,"VAR",,,Name of variance extensions
+dq_ext,s,h,"DQ",,,Name of data quality extensions
+mdf_ext,s,h,"MDF",,,Name of MDF extension 
+fl_vardq,b,h,no,,,Propagate variance and data quality
+# parms mimexpr wants too
+dims,s,h,"default",,,Output image dimensions
+intype,s,h,"default",,,Minimum type for input operands
+outtype,s,h,"default",,,Output image pixel datatype
+refim,s,h,"default",,,Reference image for wcs etc
+rangecheck,b,h,yes,,,Perform range checking
+verbose,b,h,yes,,,Print informative messages
+exprdb,s,h,"none",,,Expression database
+lastout,s,h,"",,,Last output image
+
+# gemlog parms
+logfile,s,h,"",,,"Logfile name"
+glogpars,pset,h,"glogpars",,,"Logging preferences"
+status,i,h,0,,,"Exit status (0=good)"
+

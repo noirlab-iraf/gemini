@@ -1,0 +1,125 @@
+.help nfextract November2011 gemini.nifs
+.ih
+NAME
+nfextract -- Extract spectra
+.ih
+USAGE   
+nfextract inimages
+.ih
+PARAMETERS
+.ls inimages
+List of input spectra.
+.le
+.ls outspectra = ""
+List of output spectra.  There must be an equal number of input 
+and output spectra. 
+.le
+.ls outprefix = "x"
+Prefix  for  output spectra. Names of output files are the names
+of the input images with a prefix attached.  \fIoutprefix\fR  is  used
+if \fIoutspectra\fR="".
+.le
+.ls diameter = 0.5
+Aperture diameter in arc second.
+.le
+.ls fl_inter = yes
+Extract interactively?
+.le
+.ls xc = INDEF
+X-position for an automatic spectrum extraction.
+.le
+.ls yc = INDEF
+Y-position for an automatic spectrum extraction.
+.le
+.ls fl_zval = no
+Set \fIfl_zval\fR to yes to use the \fIz1\fR and \fIz2\fR display range value.
+.le
+.ls z1 = 0.0, z2 = 10000.0
+Minimum and maximum image intensity to be mapped to the minimum and maximum 
+display levels.  These values apply when \fIfl_zval\fR is yes.
+.le
+.ls dispaxis = 1
+Dispersion axis, if not defined in the header.
+.le
+.ls logfile = ""
+Name of logfile.  If empty, then the package logfile (nifs.logfile) is used.
+.le
+.ls verbose = yes
+Verbose output.
+.le
+.ls status = 0
+Exit status.  Equal to 0 for proper completion, greater than 0 if an error 
+occurred.
+.le
+
+.ce
+Parameters from NSHEADERS
+.sp
+The following values are read from gnirs.nsheaders.
+.ls key_dispaxis
+Header keyword for the dispersion axis.
+.le
+.ls sci_ext
+Name of science extension.
+.le
+.ls var_ext
+Name of variance extension.
+.le
+.ls dq_ext
+Name of data quality extension.
+.le
+
+.ih 
+DESCRIPTION 
+NFEXTRACT extracts spectra from input images which are
+processed through NSTRANSFORM.  Output is a 1-D spectra in
+MEF format. Extracted spectra can be used as an input to
+NFTELLURIC. Source extraction can be done in interactive &
+non-interactive mode.
+.sp
+In the interactive extraction mode, an image will be
+displayed on the already opened ximtool (or ds9), then a
+user will be asked to mark the source on the ximtool screen
+with any keystroke. Then, extracted source spectrum will be
+displayed through SPLOT. Spectra extraction aperture
+size can be changed via \fIaperture\fR and the default is
+set to 0.5 arc second in diameter.
+.sp
+Spectrum extraction can be done in non-interactive mode also
+which is useful in a script.  In this mode, a spectrum is
+extracted from a user input position (xc,yc) with an
+aperture size from \fIaperture\fR.  xc and yc are IFU pixel
+positions (i.e., xc:1 through 29 and yc:1 through 69) which
+can be measured from an image produced from NFIMAGE.
+Note, however, that images create through NFIMAGE will have
+different scale factors for x and y positions and this is to
+account for the rectangular pixel of NIFS. To get (xc, yc)
+from NFIMAGE (x,y), use relations:
+.sp
+.nf 
+      xc = x / 5.0 
+.fi
+.nf 
+      yc = y / 2.0 
+.fi
+
+.ih
+EXAMPLES
+1. Interactively extract a spectrum.
+.sp
+.nf
+    cl> nfextract spectrum.fits fl_inter+
+.fi
+.sp
+2. Run non-interactively on a set of spectra.
+.sp
+.nf
+    cl> nfextract @filelist fl_inter- xc=15.0 yc=35.0 aperture=0.5
+.fi
+.ih
+BUGS AND LIMITATIONS
+The input spectra must be in multi-extension FITS format.
+.ih
+SEE ALSO
+nstransform, nftelluric
+.endhelp

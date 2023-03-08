@@ -1,0 +1,70 @@
+
+# Standard header keywords
+print "setting header keywords"
+nsheaders.sci_ext =		"SCI"
+nsheaders.var_ext =		"VAR"
+nsheaders.dq_ext =		"DQ"
+nsheaders.key_instrument =	"INSTRUME"
+nsheaders.key_bias =		"(unused)"
+nsheaders.key_ron =		"(unused)"
+nsheaders.key_gain =		"(unused)"
+nsheaders.key_sat =		"(unused)"
+nsheaders.key_nonlinear =	"(unused)"
+nsheaders.key_arrayid = 	"(unused)"
+nsheaders.key_filter =		"FILTER2"
+nsheaders.key_decker =		"(unused)"
+nsheaders.key_slit =		"SLIT"
+nsheaders.key_prism =		"(unused)"
+nsheaders.key_order =		"(unused)"
+nsheaders.key_ndavgs =		"(unused)"
+nsheaders.key_coadds =		"(unused)"
+nsheaders.key_lnrs =		"(unused)"
+nsheaders.key_camera =		"OBSMODE"
+nsheaders.key_grating =		"GRATING"
+nsheaders.key_fpmask =		"SLIT"
+nsheaders.key_dispaxis =	"DISPAXIS"
+nsheaders.key_wave =		"GRATWAVE"
+nsheaders.key_delta =		"GRATDISP"
+nsheaders.key_waveorder =	"(unused)"
+nsheaders.key_cradius =		"CRADIUS"
+nsheaders.key_exptime =		"OBJTIME" 
+nsheaders.key_section =		"SPECSEC"
+nsheaders.key_cut_section =	"NSCUTSEC"
+nsheaders.key_pixscale =	"(unused)"
+nsheaders.key_wavevar =		"(unused)"
+nsheaders.key_dark =		"(unused)" 
+nsheaders.val_dark =		"(unused)"
+nsheaders.key_xoff =		"(unused)"
+nsheaders.key_yoff =		"(unused)"
+nsheaders.key_date =            "DATE-OBS"
+nsheaders.key_time =		"UT"
+nsheaders.key_airmass =		"(unused)"
+nsheaders.key_mode =            "(unused)"
+nsheaders.key_obstype =         "(unused)"
+
+# michelle doesn't currently use MDF
+print "setting nscut.section"
+nscut.section =			nsheaders.key_section
+print "setting nsreduce.section"
+nsreduce.section =		nsheaders.key_section
+print "setting nsflat.statsec and fitsec"
+nsflat.statsec = "default"
+nsflat.fitsec = "default"
+
+# Clear possible changes from GNIRS config
+print "resetting nswavelength.dispaxis"
+nswavelength.dispaxis = 1
+print "setting nswavelength.coordlist, nswavelength.threshold, and"
+print "   nswavelength.fl_median."
+nswavelength.coordlist = "gnirs$data/sky.dat"
+nswavelength.threshold = 0.
+nswavelength.fl_median = no
+
+# Set the logfile name
+cache ("gnirs")
+print "setting the default logfile"
+gnirs.logfile=")midir.logfile"
+if (gnirs.logfile == "") {
+    gnirs.logfile = "midir.log"
+}
+;

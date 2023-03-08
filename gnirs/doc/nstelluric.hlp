@@ -1,0 +1,199 @@
+.help nstelluric November2011 gemini.gnirs
+.ih
+NAME
+nstelluric -- remove telluric features from 1D spectra in MEF format
+.ih
+USAGE
+nstelluric inimages cal
+.ih
+PARAMETERS
+.ls inimages
+MEF input data images containing either 1 or 2 dimensional spectra to be
+corrected.  In the case of a 2D image, spectra in each row (aperture) are 
+corrected. The spectra need not be wavelength calibrated. Input may be a string
+of images separated by commas, a single image, or a list (@list).
+.le
+.ls cal  
+A single, one dimensional telluric calibration image.
+.le
+.ls extract = ""
+An optional pre-extracted reference for 2D data.  See discussion below.
+.le
+.ls outspectra = ""
+List of corrected image for output. These images must not exist
+already.
+.le
+.ls outprefix = "a"
+Prefix to use for output image. The outprefix is used only if
+\fIoutspectra\fR is empty.
+.le
+.ls dispaxis = 1
+Axis along which the spectrum runs. If \fIdispaxis\fR=1, spectra run along
+rows, if \fIdispaxis\fR=2, along columns.  This is used only of no value
+is found in the header (see \fIkey_dispaxis\fR from NSHEADERS below).
+.le
+.ls fitfunction = "spline3"
+The function used for fitting to spectra for normalization.
+.le
+.ls fitorder = 10
+The order of \fIfitfunction\fR.
+.le
+.ls fl_xcorr = yes
+Cross-correlate each input spectrum with the calibration spectrum to
+determine a shift for the calibration spectrum?  Only regions specified by
+the sample regions parameter will be used in the cross-correlation.
+.le
+.ls fl_tweakrms = yes
+Search for the minimum RMS in the corrected spectrum by adjusting the
+shifts and scales between the input spectrum and the calibration spectrum?
+The RMS is minimized in the specified sample regions.
+.le
+.ls sample = "*"
+Sample regions to use for cross-correlation, automatic RMS minimization,
+and RMS values.  The sample regions are specified by a list of comma
+separated ranges.  The ranges are colon separate coordinate values.
+For dispersion calibrated spectra the coordinate values are in the
+dispersion units otherwise they are in pixel coordinates.  The string "*"
+selects the entire spectrum.  The sample regions may be changed
+interactively either with the cursor or with a colon command.
+.le
+.ls threshold = 0.
+Since the calibration consists of division by the scaled calibration data
+it is possible for totally saturated lines to have zero or negative values.
+The task will quit if detects negative or zero calibration values.  The
+\fIthreshold\fR allows applying a minimum threshold to the calibration
+values so the task may continue.  IMPORTANT - see description below.
+.le
+.ls lag = 20
+The cross-correlation lag to use when \fIfl_xcorr\fR = yes.  The lag
+is given in pixels.   This is the distance to either side of the
+initial shift over which the cross-correlation profile is computed.
+If a value of zero is given then the cross-correlation step is not done.
+.le
+.ls shift = 0., dshift = 0.5
+The initial shift and shift step in pixels.  This initializes the shift
+search parameters for the first spectrum.  If \fIdshift\fR is zero then
+there will be no search for a new shift and the 'x' interactive function is
+disabled.  These parameters may be changed interactively.  After the
+first spectrum subsequent spectra begin with the values from the last
+spectrum.
+.le
+.ls scale = 1., dscale = 0.1
+The initial scale and scale step.  This initializes the scale
+search parameters for the first spectrum.  If \fIdscale\fR is zero then
+there will be no search for a new scale and the 'y' interactive function is
+disabled.  These parameters may be changed interactively.  After the
+first spectrum subsequent spectra begin with the values from the last
+spectrum.
+.le
+.ls low_reject = 1.5, high_reject = 3., niterate = 2, grow = 1.0
+Rejection parameters for FIT1D.
+.le
+.ls ifuextn = 12
+The extension version to use for IFU data (see below).
+.le
+.ls fl_inter = no
+Enter an interactive graphical mode to search for the best shift
+and scale between the input spectra and calibration spectra?  This
+is done after the optional automatic cross-correlation and RMS minimization
+step.  A query is made for each input spectrum so that the interactive
+step may be skipped during the execution of the task.
+.le
+.ls database = ""
+The database used if NSEXTRACT is called (if not specified, the value is
+taken from the GNIRS package parameters).
+.le
+.ls logfile = ""
+Name   of   logfile.    If   empty,  then  the  package  logfile is used.
+.le
+.ls verbose = yes
+Print actions to screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error.
+This parameter is always set by the task, and should not be modified
+by the user.
+.le
+
+
+.ce
+Parameters from NSHEADERS
+
+The following values are read from GNIRS.NSHEADERS
+.ls sci_ext
+Name of science extension
+.le
+.ls var_ext
+Name of variance extension
+.le
+.ls dq_ext
+Name of data quality extension
+.le
+.ls key_dispaxis
+Header keyword for dispersion axis
+.le
+.ls key_airmass
+Header keyword for airmass
+.le
+.ls key_mode
+Header keyword for reduction mode (value will be LS, IFU, or XD)
+.le
+.ih
+DESCRIPTION
+Telluric calibration spectra are shifted and scaled to best divide out
+telluric features from the data. A blackbody, typically a featureless
+star spectrum is used to determine the amount of telluric
+absorption. The wavelength shifts between the object and calibration
+spectrum are first determined with the native IRAF task TELLURIC.  The
+normalized and shifted calibration spectrum is then divided from the
+object spectrum.
+.sp
+It is important to understand the normlization process to use this
+task, otherwise the correct values of some parameters (eg
+\fIthreshold\fR) are not obvious.  Both the observation and the
+standard are normalised by fitting functions with the task FIT1D.  The
+normalized spectra are then passed to TELLURIC for cross-correlation.
+.sp
+So parameters passed to the TELLURIC task like \fIthreshold\fR refer
+to a normalised function with a typical continuum value of 1.
+.sp
+After the shift is measured, the normalized standard is shifted and
+scaled before being used to correct the original (not normalized)
+observation.
+.sp
+The telluric calculation requires both a calibration spectrum and
+an object spectrum.  If the task encounters 2D data it will either
+use the spectrum supplied as \fIextract\fR as reference or, if
+that is empty, call NSEXTRACT to extract a 1D spectrum from the 2D
+data provided.
+.sp
+In the case of IFU data, all extensions receive the same correction,
+calculated using calibration and object spectra from extension
+\fIifuextn\fR.  This correction may not be correct if the wavelength
+solutions of the different science extensions vary, so the task will
+warn if NSTRANSFORM has not been used to process IFU observations.
+.ih
+EXAMPLES
+1.  Correct the science spectrum, science.fits, with the telluric standard,
+std.fits.
+.nf
+   ni> nstelluric science.fits std.fits 
+.fi
+.ih
+TIME REQUIREMENTS
+.ih
+BUGS / LIMITATIONS
+The call to NSEXTRACT is rather limited, and there is no need to extract
+all extensions for IFU data.
+.sp
+This task is difficult to use on cross-dispersed data.  There is currently
+no way to provide order-specific parameters and so the same parameters are 
+passed to telluric for all orders, which is less than optimal.  In addition, 
+it is not possible to set the sample parameter when inputing spatially 
+rectified data due to an incompatibility in transformed units.
+.sp
+The ability to adjust the graphics display in telluric is limited.
+.ih
+SEE ALSO
+telluric, nsextract
+.endhelp

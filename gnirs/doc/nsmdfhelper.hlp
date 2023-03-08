@@ -1,0 +1,122 @@
+.help nsmdfhelper December2011 gemini.gnirs
+.ih
+NAME
+nsmdfhelper -- Calculate sections from MDF files
+.ih
+USAGE
+nsmdfhelper mdf row image
+.ih
+PARAMETERS
+.ls mdf    
+The MDF table (if it's in an extension, this should be the full
+extension, not just the filename).
+.le
+.ls row    
+The row of the MDF table to use.
+.le
+.ls image
+The source of size and header information.  Typically this might be a
+science extension.  If an extension is used, the task automatically
+appends the "inherit" fits kernel parameter, so that values from the
+PHU are read if they are not present in the science extension itself.
+.sp
+Size is taken from ORIGXSIZ and ORIGYSIZ header parameters, if they're
+given, otherwise the size of the image itself is used.
+.le
+.ls area = "spectrum" (spectrum|image|ifu-map)
+Calculate the corner coordinates for a spectrum or an image?  In
+spectra the apertures are extended in the dispersion direction to
+cover the image.
+.sp
+The "ifu-map" value is used to generate a mapping for IFU acquisition
+images.
+.le
+.ls mapfile = ""
+Output file used when \fIarea="ifu-map"\fR (for NFQUICK).  If not given,
+but required, then a temporary name will be generated.
+.le
+.ls pixscale = INDEF
+Default scale for pixels if no value found in the header.
+.le
+.ls dispaxis = INDEF
+The dispersion axis, if not defined from the header.
+.le
+
+.ce
+Output Parameters
+.ls ixlo = INDEF, iylo = INDEF ; ixhi = INDEF, iyhi = INDEF
+Integer coordinates that contain the region described above.
+.le
+.ls ixovershoot = INDEF
+Overshoot in x when the cross dispersed orders are very slanted, which adjust 
+the region cut.
+.le
+.ls xlo = INDEF, ylo = INDEF ; xhi = INDEF, yhi = INDEF
+Coordinates ((x,y) for bottom left and top right) for the aperture,
+calculated from the given \fIrow\fR in the \fImdf\fR table, for
+\fIimage\fR.
+.le
+.ls corner = INDEF
+The additional MDF parameter describing the slope of XD data.
+.le
+.ls specorder = INDEF
+The additional MDF parameter specifying spectral order.
+.le
+.ls slitwidth = INDEF
+A parameter describing the width of the slit (i.e., the area that includes 
+actual data)
+.le
+
+.ls logfile = ""
+Name of the logfile.
+.le
+.ls logname = "NSMDFHELPER"
+Task name to be used in log messages (so that the user isn't confused
+by messages from a hidden task).
+.le
+.ls verbose = yes
+Verbose log output.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error.
+This parameter is always set by the task, and should not be modified
+by the user.
+.le
+
+.ce
+Parameters from NSHEADERS
+.sp
+The following values are read from gnirs.nsheaders.
+.ls key_pixscale
+Header keyword for pixel scale.
+.le
+.ls key_dispaxis
+Header keyword for dispersion axis.
+.le
+.ih
+DESCRIPTION
+This task calculates the aperture described by a row in the given MDF.
+It handles both the original (incorrect) MDF format used in the first
+release of the GNIRS package, and the format described by Gemini
+documents at
+.sp
+http://www.gemini.edu/sciops/instruments/gmos/gmosMOSobserver.html
+.sp
+and
+.sp
+http://www.gemini.edu/sciops/instruments/gmos/gmosmaskmakingv104.ps.gz
+.ih
+EXAMPLES
+1. Calculate the shape of the second aperture in nS20040101S0000.
+.sp
+.nf
+   ni> nsmdfhelper nS20040101S0000[MDF] 2 nS20040101S0000[sci,2]
+.fi
+.ih
+TIME REQUIREMENTS
+.ih
+BUGS AND LIMITATIONS
+.ih
+SEE ALSO
+nscombine, nsstack, gemoffsetlist, gemcombine, imshift
+.endhelp

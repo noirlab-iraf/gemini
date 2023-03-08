@@ -1,0 +1,749 @@
+.help gemextn December2011 gemini.gemtools
+.ih
+NAME
+gemextn -- expand an image template with attribute checking
+.ih
+USAGE
+gemextn images
+.ih
+PARAMETERS
+.ls inimages
+List of input image names containing @file names or image templates.  Image
+templates may contain wildcard and substitution characters as well as any
+combination of directory paths, root image names, image extensions or
+sections, and other image kernel specifications (e.g. FITS kernel options
+such as 'noinherit').  List elements which are @files are replaced
+sequentially by the file contents, which may contain one additional
+level of @file.  Each image name is processed in turn, becoming the
+"current file" referenced below.  
+.le
+.ls check = "exists,mef"
+Checks to be performed on the final image specification.  Checks are
+defined using a comma-delimited attribute list to verify some property
+of either the root image name (using the list prefix 'img='), the
+fully specified extensions string (prefix 'ext='), or by automatic
+selection (either no prefix or "auto=") based on whether the image
+specification contains extension information.  Separate lists may be
+defined and/or combined by prepending each list with the appropriate
+prefix and separating the lists with a semicolon. For example,
+.nf
+
+    check="attr1,attr2"                  # automatic selection
+    check="img=attr1,attr2"              # image attrs only
+    check="ext=attr1,attr2"              # extn attrs only
+    check="attr1,attr2;ext=attr1"        # auto and extn attrs
+    check="img=attr1,attr2;auto=attr1"   # image and auto attrs
+
+.fi
+Currently defined attribute checks include:
+.ls absent        (img, ext, auto)
+The image or extension does not exist.  Existence is checked using the
+rules described for the exists attribute.  In addition, for files, the
+test will fail if a file with that name can be opened (the exist check
+for files requires image access; this check is more conservative to
+avoid conflicts with non-image files).  Auto implies ext if extension
+information is present.  If no extension information is present this
+test will fail for ext.
+.le
+.ls empty         (ext, auto)
+The specified extension exists but has no data.  If no extension
+information is present this test will fail for ext and succeed for
+auto.
+.le
+.ls exists        (img, ext, auto)
+The image or extension exists.  If used as an image attribute, only
+the root name (including path) of the image specification will be used
+to check the existence of the image (if no file extension is provided,
+".fit" and ".fits" will be used, if necessary).  The image is said to
+exist if it can be successfully mapped as an image using the name
+alone or appended with a "[0]" to indicate the primary image
+extension.  If used as an extension attribute, an extension must be
+specified and present in the image.  Auto implies ext if extension
+information is present.
+.le
+.ls image         (ext, auto)
+The specified extension is of type XTENSION=IMAGE.  If no extension
+information is present this test will fail for ext and succeed for
+auto.
+.le
+.ls mef           (img, auto)
+The image is an MEF file, specifically that the image has EXTEND=T in
+the primary header (Note this means a GEIS file will fail this check).
+This test will fail if the image does not exist.
+.le
+.ls table         (ext, auto)
+The specified extension is of type XTENSION=BINTABLE. If no extension
+information is present this test will fail for ext and succeed for
+auto.
+.le
+.ls write         (img, auto)
+Write access to the image must be possible.  Note this implies write
+access to the extension is also possible and so a specific extension
+check is not provided.  Read access is implicit in all checks.
+.le
+
+In case of conflicting attributes (e.g. 'absent' and 'exists'), or
+inconsistent checks (e.g. 'img=table') the task will halt with an
+error (this validation can be skipped by specifying auto=force, if
+necessary).  Whitespace is ignored in the string and unique
+abbreviations are permitted.
+
+A failed check will write an error message to the file specified by
+the \fIlogfile\fR parameter, increment the \fIfail_count\fR parameter
+and remove the item from the output list.  An image specification
+which passes all checks will be written to the output list specified
+by \fIoutfile\fR and increment the \fIcount\fR parameter.
+.le
+
+
+EXTENSION PARAMETERS
+
+The Extension Parameters (i.e. \fIindex\fR, \fIextname\fR, and
+\fIextversion\fR) may be used to expand the current image name when no
+explicit extension information is provided in the \fIinimages\fR parameter,
+or, when extension information is supplied, to select only those images
+from the input list which match the parameters.
+
+.ls process = "expand" (none|expand|filter|append)
+Process the input file specification?  Allowed values are:
+.ls none
+No expansion of the input specification is performed and the current
+file is passed through unchanged.  The \fIindex\fR, \fIextname\fR, and
+\fIextversion\fR parameters are not used in this case.
+.le
+.ls expand
+Access the image to expand the names of all extensions and match each
+specification against the \fIindex\fR, \fIextname\fR, and
+\fIextversion\fR parameters, selecting only those which match defined
+parameters for the output list.  The filename expansion is done only
+on those parts of the extension where there is a corresponding value
+set for the extension parameter (e.g. image indices will be expanded
+only when the \fIindex\fR parameter is defined). If extension
+information is already supplied in the current file it acts as an
+additional constraint on the expansion.
+
+Exceptionally, if no extension parameters are set and the task is called
+with no arguments apart from \fIinimages\fR, then, instead of
+displaying no information, all extension information available is
+displayed.  This allows the default configuration of \fIGEMEXTN\fR to
+display all available information for files (see examples).  This is
+intended to support interactive exploration of files.
+.le
+.ls filter
+Filter the input list to select only those specifications which match the
+\fIindex\fR, \fIextname\fR, and \fIextversion\fR parameters.  If the current
+file has no extension information it will not passed through to the output
+list.  Otherwise, each field of the extension must be selected by the
+extension parameters for the current file to appear in the output list.
+.le
+.ls append
+Append all input file specifications that contain no extension
+information with extensions constructed from either the \fIindex\fR or
+\fIextname\fR/\fIextversion\fR parameters.  If \fIindex\fR is
+specified, then \fIextname\fR and \fIextversion\fR will be ignored,
+otherwise pairs of extension names and versions will be constructed
+using \fIextname\fR and \fIextversion\fR.  If the current file already
+contains extension information it will be passed through unchanged.
+.le
+.le
+.ls index = ""
+Extension index range list.  Note that a range list may be specified that
+includes 0 (zero) to select the primary image header in FITS files.  The open
+range "1-" may be used to select all extensions in an MEF file.  If a null
+list is specified there is no selection by the extension index and the index
+number will not be written to the output list.
+
+Open ranges are not permitted when \fIprocess\fR is 'append'.  However
+if a range is defined, the \fIextname\fR and \fIextversion\fR
+parameters are not used and each value in the range will be appended
+to the current file in the output list.  When \fIprocess\fR is
+'expand' or 'filter' the image index must be within the specified
+range to be selected by this parameter and the index value will appear
+in the output file specification.
+
+The range list syntax is specified under the help topic \fIranges\fR.
+.le
+.ls extname = ""
+Extension name pattern list.  Values may be either explicit names or
+pattern matching strings containing wildcards in a comma-delimited list.
+If a null string is specified then there is no check on the extension name
+and the extension name will not be written to the output list.
+
+When \fIprocess\fR is 'append' wildcards are not permitted.  However,
+if a list of names is defined, each element of the list will be
+matched with each element of the \fIextversion\fR list and appended to the
+current file in the output list.  If no \fIextversion\fR parameter is
+specified each element of the name list will appear only once.
+
+When \fIprocess\fR is 'expand' or 'filter' only extension names that match
+this parameter list will appear in the output file specification.  The
+usual wildcards are supported (see the help topic \fImatch\fR), but
+matching is done against the complete extension name to avoid
+confusion with partial sequences ("im1" will not match "im12", for
+example).
+.le 
+.ls extversion = ""
+Extension version range list. If a null list is specified there is no
+selection by the extension version and the version number will not be written
+to the output list.  
+
+When \fIprocess\fR is 'append' open ranges are not permitted however
+if a list of names is defined, each element of the list will be
+matched with each element of the \fIextname\fR list and appended to
+the current file in the output list.  When \fIprocess\fR is 'expand'
+or 'filter' the extension version must be within the specified range
+to be selected by this parameter and the extension version will appear
+in the output file specification.
+
+The range list syntax is specified under the help topic \fIranges\fR.
+.le
+.ls ikparams = ""
+Additional image kernel parameters.  These are included in any kernel
+specification that is generated as part of an extension specification.
+For more information see, e.g. the FITS image kernel documentation.
+.le
+
+
+OUTPUT PARAMETERS
+.ls omit = "" (path|extension|index|name|version|params|kernel|section)
+A list of image name components to be omitted from each image specification
+before writing to \fIoutfile\fR.  An image specification consists of the
+following components: path, file name, extension, index, kernel section
+(containing name, version and other kernel-specific parameters), and image
+section.  For example:
+.nf
+
+    /path/file.exten[index][name,version,params][section]
+
+.fi
+Where "[index]" is the extension index number, "[name,version,params]"
+is the kernel section (e.g.  "[SCI,1,noinherit]") and "[section]" is the
+image section (e.g. "[*,*]").  The special value 'kernel' may be used to
+remove the entire kernel section at once and is equivalent to specifying
+\fIomit="name,version,params"\fR.
+
+Which components are present for a particular specification in the task
+depends on the task parameters supplied.  For "path" to exist for example,
+it must be supplied as part of the original image specification in the
+\fIinimages\fR parameter list, or generated during the application of the
+\fIreplace\fR parameter (described below).  If a component is not available
+in the specification then the \fIomit\fR parameter has no effect on that
+component in the output specification.
+
+Image sections present in the \fIinimages\fR parameter list will be propagated
+through to the output list unless modified by the \fIreplace\fR parameter.
+Kernel parameters specified by the \fIikparams\fR parameter will
+automatically
+be written to the kernel section.
+.le
+.ls replace = ""
+Replacement operator to apply to the final image specification.  String
+substitution is performed on the generated image specification using the
+'%' operator, e.g. "%old%new%" will replace the string 'old' with the
+string 'new'.  This substitution is applied before any verification done by
+the \fIcheck\fR parameter, allowing the user to process existing image
+names and verify the modify the name does not already exist (e.g. when
+generating unique output lists).
+
+The context in which the replacement occurs may be restricted by
+adding additional matches before or after the % operators
+(e.g. "im%old%new%").
+
+The special character '^' placed before the % operators identifies the
+start of the string and is useful, for example, to easily prepend 
+directory strings (e.g. "^%%pre%" would prepend 'pre').
+
+Note that substitution of \fIinimages\fR values done using the "%" operator
+on the command line may result in an input image list which cannot be
+expanded by the task.
+.le
+.ls outfile = "STDOUT"
+Output file or stream for final list of image specifications.  This file
+will be appended to if it already exists.
+.le
+.ls logfile = ""
+Name of the logfile or stream for warning or error messages.  If defined, the 
+Gemini log formatting system (GEMLOG) will be used.  The file will be appended 
+to if it already exists.
+.le
+.ls glogpars = ""
+Logging preferences.  Parameters for the Gemini log formatting system.
+.le
+.ls verbose = yes
+Verbose for the Gemini formatted logs?
+.le
+
+RETURN VALUES
+.ls fail_count = 0 (output)
+The number of verification failures (see the description of the \fIcheck\fR
+parameter above).  This count is reset at the start of each call to
+the task.
+.le
+.ls count = 0 (output)
+The number of output image specifications generated and (optionally)
+verified.  This count is reset at the start of each call to the task.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error.  This
+parameter is always set by the task, and should not be modified by the user.
+.le
+
+.ih 
+DESCRIPTION
+
+The \fIGEMEXTN\fR task is used to expand an image template list given
+in the \fIinimages\fR parameter and optionally check files or extensions for
+attributes specified by the \fIcheck\fR parameter.  Extension parameters
+allow the task to expand an image name to append extension information,
+or to filter an input list of image extensions to output only those which
+match the parameters.  Additional parameters control how the components
+of the specifications are displayed.
+
+The input \fIinimages\fR list may contain image templates with wildcards
+or @-files which may contain one additional level of @-file.  The
+\fIprocess\fR parameter may be used to create extension specifications 
+for image names which do not already have them on input, or to filter the
+input list to select only those extensions which match \fIindex\fR,
+\fIextname\fR, and \fIextversion\fR (known as the 'extension parameters').
+The default action is to pass through the input name unchanged.
+When \fIprocess\fR is set to 'expand' the image is opened and extensions
+are matched against the extension parameters to select extensions for
+the output list.  When \fIprocess\fR is set to 'filter', extensions specified
+in the input list are selected by the extension parameters (images with
+no extension information are not selected).  When \fIprocess\fR is set
+to 'append' the extension parameters are used to construct extension 
+names for the output list.
+
+The final image specification is checked against a list of attributes
+for the entire image, the extension or both as defined by the \fIcheck\fR
+parameter.  Attribute checking is done using the final image specification
+following any text substitution performed by the \fRreplace\fR parameter.
+A failed check will increment the \fIfail_count\fR parameter, log an
+error message to the stream identified by the \fIlogfile\fR parameter
+and remove the item from the output list.  Otherwise the \fIcount\fR
+parameter is incremented and the item is added to the output list.
+
+Image sections and kernel specifications present in the input list will be
+propagated through to output unless removed by the \fIomit\fR parameter.
+Image kernel parameters specified by the \fIikparams\fR parameter will be
+written to all output list elements once attribute checking is complete
+(since they may not be valid for the type of check to be performed if
+present).
+
+The output file list will be written to the stream or file specified by
+the \fIoutfile\fR parameter.  Each element of the output list will have
+passed both the attribute checks and any filtering of the input list
+done by the \fIindex\fR, \fIextname\fR and \fIextversion\fR extension
+parameters.  Components of the output specification may be removed
+by the \fIomit\fR parameter or modified by the \fIreplace\fR parameter.
+
+.ih
+EXAMPLES
+
+The examples below are divided into two categories.  The first group
+shows typical use within the gemini package.  The second group
+illustrates separate features of the command.
+
+
+TYPICAL USE IN THE GEMINI SCRIPTS
+
+To keep the examples reasonably compact and legible, parameters that
+take default values are not specified here (contrary to Gemini coding
+standards).
+
+1.  A task has the parameters 'inimages', 'outimages', 'rawpath' and
+'outprefix'.  The 'inimages' and 'outimages' parameters are either
+file names or @lists; 'rawpath' and 'outprefix' are the corresponding
+directories.
+
+We want to verify that the input images exist and are MEF format, and
+that the output images do not exist.  Before verification, however, we
+must prepend the directory name - using a temporary file guarantees
+that the string concatenation is done against individual files rather
+than comma separated or @-lists.
+
+.nf
+    procedure demo(inimages, outimages, rawpath, outprefix)
+
+    string    inimages     {prompt="Input images"}
+    string    rawpath      {prompt="Path for input images"}
+    string    outimages    {prompt="Output images"}
+    string    outprefix    {prompt="Path for output images"}
+
+    begin
+
+    string    names
+
+    cache ("gemextn")
+
+    names = mktemp ("tmpnames")
+    gemextn (inimages=inimages, check="", outfile=names)
+    gemextn (inimages=rawpath//"/@"//names, check="exists,mef")
+    if (gemextn.fail_count > 0) {
+        # error in input list
+    }
+    delete (names, verify-, >>& "dev$null")
+
+    names = mktemp ("tmpnames")
+    gemextn (inimages=outimages, check="", outfile=names)
+    gemextn (inimages=outprefix//"/@"//names, check="absent")
+    if (gemextn.fail_count > 0) {
+        # error in output list
+    }
+    delete (names, verify-, >>& "dev$null")
+
+    # process data here
+
+    end
+.fi
+
+In practice, the final expansions would probably be saved to separate
+temp files which would then be used as input to other routines during
+the processing.
+
+2.  Another task requires a list of files which contain SCI image
+extensions.  The number of SCI extensions is not fixed, but must be
+the same for all the images being processed in one operation.  In
+addition, each file should have a table in the extension MDF.
+
+Again we expand the input file list to a temporary file.  This allows
+the next steps to deal with a simple file list, whatever the user
+enters (single file, file list, or @list).  Next, we loop through that
+list counting SCI extensions and checking for the MDF table.
+
+.nf
+    struct  *scanfile           # for scanning file names
+    string  basenames           # initial expanded file list
+    string  filename            # individual file
+    int     scicount            # number of sci extensions
+
+    cache ("gemextn")           # so we can read output parameters
+
+    basenames = mktemp ("tmpbasenames")
+    gemextn (inimages, process="none", check="exists", outfile=basenames)
+    if (gemextn.fail_count == 0) {
+        scicount = -1
+        scanfile = basenames
+        while (fscan (scanfile, filename) != EOF) {
+            gemextn (inimages=filename, process="expand", extname="SCI",\
+                extversion="1-", check="exists,mef,image", outfile="dev$null")
+            if (gemextn.fail_count > 0) {
+                # error - extension incorrect
+            }
+            if (scicount < 0) {
+                scicount = gemextn.count
+            } else if (scicount != gemextn.count) {
+                # error - different number of extensions
+            }
+            gemextn (inimages=filename, process="append", extname="MDF",\
+                check="exists,mef,table", outfile="dev$null")
+            if (gemextn.fail_count > 0) {
+                # error - table doesn't exist
+            }
+        }
+    } else {
+        # error - missing initial file
+    }
+
+    # process data here, perhaps looping over basenames again
+
+    delete (basenames, verify-, >>& "dev$null")
+.fi
+
+It might also be useful, in the example above, for the later calls to
+gemextn to write to temp files rather than 'dev$null'.  These files
+could then be used as input for other routines via the '@' syntax (if
+\fIoutfile\fR already exists, further entries are appended).
+
+3.  Yet another task requires that each file contain a single SCI
+image extension and a single MDF table extension.  We must check that
+there are no other extensions.
+
+.nf
+    int scicount, mdfcount
+
+    cache("gemextn")
+
+    gemextn (inimages, process="append", extname="SCI", extversion="1",\
+        check="exists,mef,image", outfile="dev$null")
+    if (gemextn.fail_count > 0) {
+        # error - SCI extension missing
+    }
+    scicount = gemextn.count
+
+    gemextn (inimages, process="append", extname="MDF",\
+        check="exists,mef,table", outfile="dev$null")
+    if (gemextn.fail_count > 0) {
+        # error - MDF extension missing
+    }
+    mdfcount = gemextn.count
+
+    gemextn (inimages, process="expand", extname="*", extversion="1-",\
+        check="", outfile="dev$null")
+    if (scicount + mdfcount != gemextn.count) {
+        # error - additional extensions
+    }
+    if (scicount != mdfcount) {
+        # error - mismatch in the number of SCI and MDF extensions
+    }
+.fi
+
+Note that using 'append' forces all files to be checked (using
+'expand' in the first two calls to gemextn would not give an error if
+a file missed both SCI and MDF extensions).  Since each file will
+generate a single specification the final check is not strictly
+necessary (scicount is always equal to mdfcount if there are no
+earlier errors).
+
+
+FEATURES DEMONSTRATED AT THE COMMAND LINE
+
+1.  Expand a list of files and check that each list element exists.  
+.nf
+
+    cl> type list1
+    ngc1066.fits
+    @list2
+    cl> type list2
+    gemini.fits[1][SCI,1]
+    cl> gemextn @list1 process=none check=exists
+    ngc1066.fits
+    gemini.fits[1][SCI,1]
+.fi
+.ls 4
+Note the use of @-files within lists as well as the treatment of
+extensions on the filename.  In the resulting list, \fIimage1\fR
+is said to exist if it can be mapped as an image,  \fIimage2\fR
+only exists if the fully qualified extension specification is valid
+for the image.
+.le
+.nf
+
+    # Verify images are MEF files.
+    cl> gemextn @list1 process=none check="ext=exists,mef"
+    FAIL: ngc1066.fits - File not MEF (EXTEND != T)
+    gemini.fits[1][SCI,1]
+
+    # Suppress messages, including errors, by setting \fIlogfile\fR to 
+    # the NULL file and \fIverbose\fR to no. 
+    cl> gemextn @list1 process=none check="exists,mef" \
+    >>> logfile="dev$null" verbose-
+    gemini.fits[1][SCI,1]
+
+.fi
+2.  Expand an image name and append extensions.  Attribute checking is
+disabled.
+.nf
+
+    # Simple expansion of a filename to append extension indices
+    cl> gemextn Q1033-1 check="" process=expand index="1-3"
+    Q1033-1[1]
+    Q1033-1[2]
+    Q1033-1[3]
+
+    # Simple expansion of a filename to append extension name/ver pairs
+    cl> gemextn Q1033-1 check="" process=expand extname="SCI,VAR" \
+    >>>   extversion="1,2"
+    Q1033-1[SCI,1]
+    Q1033-1[SCI,2]
+    Q1033-1[VAR,1]
+    Q1033-1[VAR,2]
+
+    # Expansion of a filename template.
+    cl> gemextn Q1033-![1-2].fits check="" process=expand index="1-2"
+    Q1033-1.fits[1]
+    Q1033-1.fits[2]
+    Q1033-2.fits[1]
+.fi
+.ls 4
+Note the use of the character class escape, image extension appending,
+and explicit use of the .fits suffix.
+.le
+
+3.  Expand images in the current directory.
+.nf
+
+    # List all extension information.
+    cl> gemextn *
+    Q1033-1.fits[1][SCI,1]
+    Q1033-1.fits[2][SCI,2]
+    Q1033-1.fits[3][VAR,1]
+    Q1033-1.fits[4][VAR,2]
+    Q1033-2.fits[1][SCI,1]
+    Q1033-3.fits[1][SCI,1]
+    gemini.fits[0]
+    gemini.fits[1][SCI,1]
+    gemini.fits[2][VAR,2]
+    gemini.fits[3][DQ,3]
+.fi
+.ls 4
+The PHU for gemini.fits (index 0) has no extension name or version. This
+extension would not be displayed if extname="*" had been used.
+.le
+.nf
+
+    # Expand files, selecting all indices containing SCI extensions,
+    # without specifying versions
+    cl> gemextn *.fits process=expand index="1-" extname="SCI" extversion=""
+    >>>   check=""
+    Q1033-1.fits[1][SCI]
+    Q1033-1.fits[2][SCI]
+    Q1033-2.fits[1][SCI]
+    Q1033-3.fits[1][SCI]
+    gemini.fits[1][SCI]
+.fi
+.ls 4
+Note that no checking is done here because Q1033-1.fits[2][SCI] cannot
+be opened by IRAF (the missing extension version is assumed to be 1).
+.le
+.nf
+
+    # List only extension indices, append default kernel params.
+    cl> gemextn Q1033-1 process=expand index="1-" ikparams="append-"
+    Q1033-1[1][append-]
+    Q1033-1[2][append-]
+    Q1033-1[3][append-]
+    Q1033-1[4][append-]
+
+    # List only extension names, append default kernel params.
+    cl> gemextn gemini process=expand extname="*" ikparams="append-"
+    gemini[SCI,append-]
+    gemini[VAR,append-]
+    gemini[DQ,append-]
+
+.fi
+4.  Filter an input list to select only some of the elements.
+.nf
+
+    cl> type list3
+    gemini[0]
+    gemini[1][SCI,1]
+    gemini[2][VAR,1]
+    gemini[3][DQ,1]
+    Q1033-1[1][SCI,1]
+    Q1033-2[2][SCI,2]
+    Q1033-2[1][SCI,1]
+    Q1033-3[1][SCI,1]
+    cl> gemextn @list3 process=filter index="2-3" extname="*" extversion="1-" \
+    >>>   omit="index"
+    gemini[VAR,1]
+    gemini[DQ,1]
+    Q1033-2[SCI,2]
+.fi
+.ls 4
+Note that \fIextname\fR and \fIextversion\fR will match any defined name
+or value, so the selection here is only on the index number.
+.le
+.nf
+
+    # Use the above example but remove the kernel specification
+    cl> gemextn @list3 process=filter index=2 extname="*" extversion="1-" \
+    >>>   omit="kernel"
+    gemini[2]
+    gemini[3]
+    Q1033-2[2]
+
+.fi
+5.  Generate a list of image specifications, verifying different attributes.
+.nf
+
+    cl> dir *.fits
+    Q1033-1.fits
+    Q1033-2.fits
+    Q1033-3.fits
+    gemini.fits
+    ngc1066.fits
+    cl> gemextn *.fits check="exists,mef" process="none"
+    Q1033-1.fits
+    Q1033-2.fits
+    Q1033-3.fits
+    gemini.fits
+    FAIL: ngc1066.fits - File not MEF (EXTEND != T)
+    cl> =gemextn.fail_count
+    1
+    cl> =gemextn.count
+    4
+
+    # Append extensions and verify they exist as binary table type 
+    # extensions.
+    cl> gemextn ![gn]*.fits check="ext=exists,table" proc="append" index="1"
+    FAIL: gemini.fits[1] - File not table (XTENSION != BINTABLE)
+    FAIL: ngc1066.fits[1] - Extension not readable
+
+.fi
+6.  Generate an appropriate list of output specifications for an
+inhomogeneous set of input data.
+.nf
+
+    # Check the output name doesn't exist and remove a path prefix.
+    cl> gemextn /tmp/img check=absent extname="SCI,VAR" process=append \
+    >>>   omit="path"
+    img[SCI]
+    img[VAR]
+
+    # Combine name/version pairs and edit the image name.
+    cl> gemextn img1 check=absent process=append extname="SCI,VAR" \
+    >>>   extversion="1-2" replace="%img1%img2%"
+    img2[SCI,1]
+    img2[SCI,2]
+    img2[VAR,1]
+    img2[VAR,2]
+.fi
+.ls 4
+Note that the following will not work since in this case the string
+substitution occurs in the input list and so process=expand finds no
+images to expand.
+.le
+.nf
+
+    cl> gemextn Q1033-%1%9% process=expand index="1-3" check="absent"
+    cl> =gemextn.count
+    0
+.fi
+.ls 4
+The following works as expected, however, because substitution with
+the replace parameter occurs after expansion.
+.le
+.nf
+
+    cl> gemextn Q1033-1 replace="Q1033-%1%9%" process=expand index="1-3" \
+    >>>   check="absent"
+    Q1033-9[1]
+    Q1033-9[2]
+    Q1033-9[3]
+
+    # Simply edit an input image list.  Setting process=filter is 
+    # equivalent.
+    cl> type @list4
+    inim[1]
+    inim[2]
+    inim[3]
+    cl> gemextn @list4 process=none check="" replace="%inim%outim%"
+    outim[1]
+    outim[2]
+    outim[3]
+
+.fi
+7.  Convert extensions identified by name/version to index (first we use
+gemextn without any parameters to show the full contents of img1).
+.nf
+
+    cl> gemextn img1
+    img1[0]
+    img1[1][SCI,1]
+    img1[2][VAR,1]
+    img1[3][DQ,1]
+    img1[4][SCI,2]
+    img1[5][VAR,2]
+    img1[6][DQ,2]
+    cl> gemextn img1[SCI,1],img1[SCI,2] process=expand index="1-"
+    img1[1]
+    img1[4]
+
+.fi
+.ih
+BUGS AND LIMITATIONS
+.ih
+SEE ALSO
+gemlog
+.endhelp

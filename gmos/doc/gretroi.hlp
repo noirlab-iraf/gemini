@@ -1,0 +1,120 @@
+.help gretroi May2013 gemini.gmos
+.ih
+NAME
+gretroi -- Return data within an ROI or extensions containing ROI data
+.ih
+USAGE
+gretroi inimage
+.ih
+PARAMETERS
+.ls inimage
+GMOS image. Only one image allowed at a time.
+.le
+.ls outimage = ""
+Output MEF containing the requested ROI data or extensions. This has precedence
+over \fIoutfile\fR.
+.le
+.ls outfile = "STDOUT"
+Text file to print requested ROI information too. STDOUT will print to screen.
+.le
+.ls rawpath = ""
+Path to \fIinimage\fR.
+.le
+.ls req_roi = 0
+Which ROI(s) to return. A value of 0 means all ROIs will be returned. If not 0,
+then the value must be between 1 and the value defined by the keyword DETNROI
+in the PHU of the input image; only one value is allowed.
+.le
+.ls roi_only = yes
+This parameter determines what information (data) to return. If set to yes,
+only pixel data within the defined ROI(s) will be returned. If set to no
+the entire extensions (or their information) that contain ROI data will be
+returned.
+.le
+.ls fl_vardq = yes
+If \fIoutimage\fR is set, return the equivalent data from any \fIvar_ext\fR or
+\fIdq_ext\fR extensions that are present.
+.le
+.ls sci_ext = "SCI"
+Name of the MEF extension containing the science data.
+.le
+.ls var_ext = "VAR"
+Name of the MEF extensions containing the variance frames.
+.le
+.ls dq_ext = "DQ"
+Name of the MEF extensions containing the data quality arrays.
+.le
+.ls mdf_ext = "MDF"
+Name of the MEF extension containing the Mask Definition File.
+.le
+.ls key_detsec = "DETSEC"
+Header keyword for the detector section.
+.le
+.ls key_ccdsec = "CCDSEC"
+Header keyword for the CCD section.
+.le
+.ls key_datasec = "DATASEC"
+Header keyword for the data section.
+.le
+.ls key_biassec = "BIASSEC"
+Header keyword for the overscan section.
+.le
+.ls key_ccdsum = "CCDSUM"
+Header keyword for the CCD binning.
+.le
+.ls logfile = ""
+Logfile for this task.
+.le
+.ls verbose = no
+Verbose?
+.le
+.ls status = 0
+Exit status. If the task halted with and error the value will be 1.
+.le
+.ih
+DESCRIPTION
+
+GRETROI reads the ROI information in the PHU of the input image and will return
+only information or data that is relevant to the requested ROI(s).
+
+The output is either a MEF image if \fIoutimage\fR is set or a text file
+(defined by \fIoutfile\fR) containing the name of the input extension, and the
+\fIkey_datasec\fR, \fIkey_detsec\fR, \fIkey_ccdsec\fR, ROI designation and
+CRPIX values. If the value "STDOUT" is used for  \fIoutfile\fR, the information
+will be printed to screen.
+
+If \fIroi_only\fR is yes, only data within the requested ROI(s) / information
+about those data will be returned. If set to no, the entire image extension /
+information about the entire data section of that extension will be returned.
+
+EXAMPLES
+
+.nf
+   cl> gretroi infile.fits
+.fi
+
+infile.fits is a MEF GMOS image that has 1 ROI, spans the 3 CCDs and was
+observed in 3-amp mode (1 amplifier per CCD). As \fIoutimage\fR is not set,
+only information will be returned. In fact, as the default values are set the
+information will be printed to screen. It will display the extension number or
+extension name and version of the extensions that contain data within the
+ROI. For each of those extensions the \fIkey_datasec\fR, \fIkey_detsec\fR and
+\fIkey_ccdsec\fR information about the ROI data in that extension are
+returned. The CRPIX values, updated and relative to the returned
+\fIkey_datasec\fR are also returned, if present in the input image.
+
+.nf
+   cl> gretroi infile2.fits roi_only=no outimage=gretroiinfile2.fits
+
+.fi
+infile2.fits is a MEF GMOS image with 3 ROIs where the ROIs do not cover the
+entire width of the amplifiers that they were observed with. However, the
+entire width of the amplifier will be read out. Meaning there are pixels
+observed that lie outside of the ROI in certain extensions. This example would
+return only those extensions that contain ROI data but would not be trimmed in
+any way.
+
+.ih
+SEE ALSO
+.endhelp
+

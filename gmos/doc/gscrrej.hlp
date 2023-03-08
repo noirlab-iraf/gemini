@@ -1,0 +1,110 @@
+.help gscrrej September2002 gemini.gmos
+.ih
+NAME
+gscrrej -- Clean spectroscopic data for cosmic ray hits
+.ih
+USAGE
+gscrrej inimage outimage
+.ih
+PARAMETERS
+.ls inimage
+The name of a single input image; this may either be a multi-extension FITS
+image, processed previously by \fIgprepare\fR, or a simple FITS image. In the
+former case, each SCI extension will be cleaned in turn.
+.le
+.ls outimage
+Output image, the same as \fIinimage\fR, but with cosmic rays replaced by
+fitted cubic spline values.
+.le
+.ls datares = 4.0
+The equivalent Gaussian full width at half maximum (FWHM), in pixels, of
+the instrumental image profile in the spectral direction. For the IFU,
+this is the FWHM of an unresolved spectral line. For a rectangular
+slit, it will be smaller than the FWHM of an unresolved line, because
+a box-like profile contains higher frequencies than a Gaussian curve;
+the exact conversion depends on the relative widths of the slit itself
+and the PSF of the spectrograph+grating, but the curve must be able to fit
+the narrowest real features.
+.le
+.ls fnsigma = 8.0
+Sigma clipping threshold for the cubic spline fit. This should be low enough
+to minimize the effect of cosmic rays, but high enough to avoid rejecting
+good pixels (eg. where the gradient is steep), which could result in an
+equally bad fit.
+.le
+.ls niter = 5
+Number of iterations for fitting the data with bad pixel rejection, each
+time fit1d is called.
+.le
+.ls tnsigma = 10.0
+Sigma clipping threshold for the final pixel rejection. Pixels deviating
+from the fit by more than tnsigma times the estimated local noise are
+replaced by the fitted values.
+.le
+.ls fl_inter = no
+Examine and adjust the spline fit interactively?
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes the task use the
+logfile defined by gmos.logfile.
+.le
+.ls verbose = yes
+Print actions to the screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an
+error. This parameter is always set by the task, and should
+not be modified by the user.
+.le
+.ih
+DESCRIPTION
+Cosmic rays are identified in spectral data by comparison with a high-order
+model, fitting the instrumental resolution. Affected pixels are replaced
+by the model values in the output.
+
+Each row of the input image is fitted using the cubic spline function of the
+standard \fIfit1d\fR task. The order of the function is chosen to match the
+resolution of the data, based on the parameter \fIdatares\fR. The local
+noise is estimated crudely but robustly at each pixel, by taking the median
+of the squared residuals within a box of dimensions 2.5*datares
+(minimum 7x7 pix). Bad pixels are identified according to \fItnsigma\fR and
+initially replaced by a local median, to remove large deviations. The data
+are then re-fitted, improving the sensitivity to multi-pixel hits, and
+deviant pixels are replaced by the values of the new cubic spline function.
+
+Multi-pixel cosmic rays sometimes leave residuals after cleaning, even
+where most of the pixels are identified correctly. This can happen because
+one or more of the affected pixels is not rejected from the fit, biasing the
+spline curve nearby. Bad pixels sometimes escape rejection where the model
+happens to intersect the data, albeit with a different gradient, although
+the second iteration of the task alleviates this problem. Rejecting too many
+pixels makes the fit poorly constrained or leads to gaps, ruling out the use
+of a growth radius. Whilst not the most robust method for estimating missing
+values, the cubic spline should generally provide a better approximation
+than either a median or linear interpolant, particularly in spectral lines.
+
+The effectiveness of cosmic ray removal from single exposures improves with
+the level of oversampling at the detector; gscrrej will not work for
+data which are poorly sampled, such as GMOS observations with the 0.25"
+slit and 2x2 binning.
+.ih
+EXAMPLES
+Interactively clean the SCI extensions of a multi-extension FITS image:
+
+.nf
+cl> gscrrej gN20010908S090 crgN20010908S090 datares=4.0 fnsigma=8.0 \
+    niter=5 tnsigma=10.0 fl_inter+ verbose+
+.fi
+.ih
+TIME REQUIREMENTS
+Around 20 minutes on a Sun Ultra 60, for a full, unbinned GMOS observation.
+.ih
+BUGS AND LIMITATIONS
+The task is currently very slow, since the whole process has been
+prototyped as a CL script, which does a substantial amount of I/O.
+The algorithm for distinguishing between real features and CR's,
+particularly multi-pixel hits, could also be improved further.
+.ih
+SEE ALSO
+fit1d
+.endhelp

@@ -1,0 +1,82 @@
+# Standard header keywords for FLAMINGOS-2
+print "setting header keywords"
+nsheaders.sci_ext =		"SCI"
+nsheaders.var_ext =		"VAR"
+nsheaders.dq_ext =		"DQ"
+nsheaders.key_instrument =	"INSTRUME"
+nsheaders.key_bias =		"BIASVRES"
+nsheaders.key_ron =		"RDNOISE"
+nsheaders.key_gain =		"GAIN"
+nsheaders.key_sat =		"SATURATI"
+nsheaders.key_nonlinear =	"NONLINEA"
+nsheaders.key_arrayid =		"(unused)"
+nsheaders.key_filter =		"FILTER"
+nsheaders.key_decker =		"DECKER"
+nsheaders.key_slit =		"MOSPOS"
+nsheaders.key_prism =		"(unused)"
+nsheaders.key_order =		"F2CUTSPC"
+nsheaders.key_ndavgs =		"(unused)"
+nsheaders.key_coadds =		"(unused)"
+nsheaders.key_lnrs =		"LNRS"
+nsheaders.key_camera =		"LYOT"
+nsheaders.key_grating =		"GRISM"
+nsheaders.key_fpmask =		"MOSPOS"
+nsheaders.key_dispaxis =	"DISPAXIS"
+nsheaders.key_wave =		"WAVELENG"
+nsheaders.key_delta =		"DISPERSI"
+nsheaders.key_waveorder =	"(unused)"
+nsheaders.key_cradius =		"(unused)"
+nsheaders.key_exptime =		"EXPTIME"
+nsheaders.key_section =		"(unused)"
+nsheaders.key_cut_section =	"F2CUTSEC"
+nsheaders.key_pixscale =	"PIXSCALE"
+nsheaders.key_wavevar =		"WAVELENG"
+nsheaders.key_dark =		"OBSTYPE"
+nsheaders.val_dark =		"DARK"
+nsheaders.key_xoff =		"XOFFSET"
+nsheaders.key_yoff =		"YOFFSET"
+nsheaders.key_date =		"DATE-OBS"
+nsheaders.key_time =		"UT"
+nsheaders.key_airmass =		"AIRMASS"
+nsheaders.key_mode =		"(unused)"
+nsheaders.key_obstype =		"(unused)"
+
+# Set thresholds for FLAMINGOS-2 imaging data
+print "setting niflat.thresh_flo, niflat.thresh_fup, niflat.thresh_dlo,"
+print "   and niflat.thresh_dup."
+niflat.thresh_flo = 0.70
+niflat.thresh_fup = 1.20
+niflat.thresh_dlo = -50.
+niflat.thresh_dup = 600.
+
+# Set statistics sections for FLAMINGOS-2 imaging data
+print "setting niflat.statsec"
+niflat.statsec="[300:1748,300:1748]"
+print "setting nifastsky.statsec"
+nifastsky.statsec="[300:1748,300:1748]"
+print "setting nisky.statsec"
+nisky.statsec="[300:1748,300:1748]"
+print "setting nireduce.statsec"
+nireduce.statsec="[300:1748,300:1748]"
+
+# Set sections for FLAMINGOS-2 longslit data
+print "setting nsflat.statsec and fitsec"
+nsflat.statsec = "[*,*]"
+nsflat.fitsec = "[*,*]"
+
+# Clear possible changes from GNIRS config
+print "setting nswavelength.coordlist, nswavelength.threshold, and"
+print "   nswavelength.fl_median."
+nswavelength.coordlist = "gnirs$data/lowresargon.dat"
+nswavelength.threshold = 0.
+nswavelength.fl_median = no
+
+# Set the logfile name
+cache ("gnirs")
+print "setting the default logfile"
+niri.logfile=f2.logfile
+gnirs.logfile=f2.logfile
+
+# Set the database name
+print "setting the default database"
+gnirs.database=f2.database

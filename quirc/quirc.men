@@ -1,0 +1,6 @@
+       qflat - Derive flat field and bad pixel mask for QUIRC
+    qfastsky - Derive sky image for QUIRC, median or min/max filtering
+        qsky - Derive sky image for QUIRC, includes flagging of objects
+     qreduce - Reduce images from QUIRC  (sky, flat)
+
+   quircinfo - General help and information for the QUIRC package

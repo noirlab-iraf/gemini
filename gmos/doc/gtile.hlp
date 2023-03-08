@@ -1,0 +1,199 @@
+.help gtile October2013 gemini.gmos
+.ih
+NAME
+gtile -- Tile GMOS amplifiers into their respective CCDs.
+.ih
+USAGE
+gtile inimages 
+.ih
+PARAMETERS
+.ls inimages
+GMOS images to tile. It can be a list of images. Wild cards are not supported. 
+Any observing mode can be used. Images can be either raw or partly processed 
+with \fIgprepare\fR and / or \fIgireduce\fR, though cannot be mosaiced with 
+\fIgmosaic\fR.
+.le
+.ls outimages = ""
+Output MEF images. The parameter can be one single image name, a list of 
+images or a list file. The number of output images must equal the number of 
+input images. \fIoutimages\fR has precedence over \fIoutpref\fR. 
+.le
+.ls outpref = "ti"
+Prefix of output image names. Names of output images will be the names of
+the input images with the prefix attached. \fIoutpref\fR is used if 
+\fIoutimages\fR="". 
+.le
+.ls out_ccds = "all" (all|1|2|3)
+Which of the CCDs to return (all|1|2|3). Use "all" to return all CCDs 
+worth of data tiled into their respective CCDs. When set to "all" and 
+\fIfl_stats_only\fR=no, all extension types will be returned. Or when set to 
+"all" and used in conjunction with \fIfl_stats_only\fR=yes and 
+\fIfl_tile_det\fR=yes this will tile the entire detector for statistical 
+purposes. When using gtile to tile a specific CCD (e.g., "1" for CCD1, "2" for
+ CCD2 and "3" for CCD3) for statistical purposes (\fIfl_stats_only\fR=yes), 
+select the CCD using this parameter.
+.le
+.ls ret_roi = yes
+Return only data within ROIs defined by the DETRO?X, DETRO?XS, DETRO?Y and
+DETRO?YS keywords in the PHU of the input image.
+.le
+.ls req_roi = 0
+Which ROI(s) to return. A value of 0 means all ROIs will be returned. If not 0,
+then the value must be between 1 and the value defined by the keyword DETNROI
+in the PHU of the input image; only one value is allowed.
+.le
+.ls fl_stats_only = no
+Return a single extension fits file containing only the tiled science data for
+the specified CCD or the entire detector or ROI(s).
+.le
+.ls fl_tile_det = no
+Tile the science data for the entire data into one extension. 
+If only data from one CCD is available only one CCD's worth will be
+returned. If there is only one ROI is requested or available, only that ROI
+will be returned. If more than one ROI then the entire detector will be
+returned with the areas not covered by the ROIs having a pixel value of
+\fIsci_fakeval\fR. If set to no and the number of ROIs is greater than one (and
+all have been requested to be used) a 3 extension MEF will be returned.
+.le
+.ls fl_app_rois = no
+If the number of ROIs is greater than 1, return each ROI in its own extension
+of the output MEF?
+.le
+.ls fl_pad = no
+\fIfl_pad\fR=yes is only available if tiling \fIfl_tile_det\fR=yes. If set 
+to yes, \fIfl_pad\fR, will include the chipgaps in the output tiled image. Note
+GTILE does not interpolate or transform data. The output option should not be 
+used as input for any scientific reduction steps; the output from GMOSAIC 
+should be used instead.
+.le
+.ls sci_padval = 0.
+Value of the pixels inserted in the chip gaps when \fIfl_pad\fR=yes for the
+\fIsci_ext\fR data.
+.le
+.ls var_padval = 0.
+Value of the pixels inserted in the chip gaps when \fIfl_pad\fR=yes for the
+\fIvar_ext\fR data.
+.le
+.ls dq_padval = 16.
+Value of the pixels inserted in the chip gaps when \fIfl_pad\fR=yes for the
+\fIdq_ext\fR data.
+.le
+.ls sci_fakeval = 0.
+Value of the fake pixels used in the output \fIsci_ext\fR extension when
+\fIfl_tile\fR=yes and there are more than one ROI and all are to be used.
+.le
+.ls var_fakeval = 0.
+Value of the fake pixels used in the output \fIvar_ext\fR extension when
+\fIfl_tile\fR=yes and there are more than one ROI and all are to be used.
+.le
+.ls dq_fakeval = 16.
+Value of the fake pixels used in the output \fIdq_ext\fR extension when
+\fIfl_tile\fR=yes and there are more than one ROI and all are to be used.
+.le
+.ls chipgap = "default"
+This is the width of the gaps to insert between the CCDs. The default value is
+37 for unbinned data and 36/XBin for binned data, where Xbin is the binning in 
+the X direction.
+.le
+.ls sci_ext = "SCI"
+Name of the MEF extension containing the science data.
+.le
+.ls var_ext = "VAR"
+Name of the MEF extensions containing the variance frames.
+.le
+.ls dq_ext = "DQ"
+Name of the MEF extensions containing the data quality arrays.
+.le
+.ls mdf_ext = "MDF"
+Name of the MEF extension containing the Mask Definition File.
+.le
+.ls key_detsec = "DETSEC"
+Header keyword for the detector section.
+.le
+.ls key_ccdsec = "CCDSEC"
+Header keyword for the CCD section.
+.le
+.ls key_datasec = "DATASEC"
+Header keyword for the data section.
+.le
+.ls key_biassec = "BIASSEC"
+Header keyword for the overscan section.
+.le
+.ls key_ccdsum = "CCDSUM"
+Header keyword for the CCD binning.
+.le
+.ls rawpath = ""
+Path to raw data file(s).
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes the task use the logfile
+defined by gmos.logfile.
+.le
+.ls fl_verbose = no
+Print all actions to the screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted 
+with an error. This parameter is set by the task and should not be 
+modified by the user.
+.le
+.ih
+DESCRIPTION
+
+GTILE will tile the amplifiers in a GMOS data set (any observing mode can be 
+supplied) in order, into their respective CCDs, either to mimic 3-amp mode or 
+for the purpose of statistics, e.g., for use with images.imutil.IMSTATISTICS. 
+The data sets can be raw or processed with gprepare or gireduce. GTILE will 
+only tile the data sections of the given data set. In addition, raw data sets
+that have been GTILE'd cannot be GPREPARE'd. It is therefore recommended 
+to overscan subtract and bias correct the data before tiling if attempting to
+mimic 3-amp mode. GTILE can also handle MEFs that contain variance and data 
+quality planes. GTILE can also handle custom ROI data.
+
+The use of the \fIout_ccds\fR, \fIfl_stat_only\fR and \fIfl_tile_det\fR 
+parameters have been limited slightly. This means that certain incompatible 
+combinations of these parameters will result in one of the parameters being 
+reset. When this occurs a warning is printed to screen. The allowed 
+combinations are shown in the examples below.
+
+GTILE calls GRETROI to find the relevant data from the input file to return the
+requested information.
+
+.ih
+EXAMPLES
+
+.nf
+   cl> gtile infile.fits out_ccds="all" fl_stats=no \
+             fl_tile_det=no
+.fi
+
+This will return the data sections of the science extensions in the input file 
+ordered and tiled into their respective CCDs. It will also perform the same 
+action on any variance and data quality planes present. If an MDF is present in
+infile.fits it will be copied to the output file, which would be named 
+tiinfile.fits in this case.
+
+.nf
+   cl> gtile @infiles.lis out_ccds="all" fl_stats=yes \
+             fl_tile_det=yes
+.fi
+
+A list of input file can also be supplied to gtile. In this case, the output 
+files will be named the same as the input files but they will be prefixed with
+"ti". In this example, for each input image a single extension fits file will 
+be returned containing all of the data sections from each science extension 
+ordered and tiled together into one big section, i.e., the entire detector will
+be tiled together.
+
+.nf
+   cl> gtile infile.fits outimages=outfile.fits out_ccds="2" \
+           fl_stats=yes fl_tile_det=no
+.fi
+
+In this example, the output file name has been specified. outfile.fits will 
+only have 1 extension, which will contain only the data sections from the 
+science extensions from CCD 2 ordered and tiled together.
+.ih
+SEE ALSO
+imjoin, gretroi
+.endhelp

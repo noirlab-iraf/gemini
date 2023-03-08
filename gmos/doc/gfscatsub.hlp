@@ -1,0 +1,101 @@
+.help gfscatsub July2017 gemini.gmos
+.ih
+NAME
+gfscatsub -- Model and subtract scattered light background for IFU.
+.ih
+USAGE   
+gfscatsub image mask
+.ih
+PARAMETERS
+.ls image
+Input image from which to model and subtract scattered light.
+.le
+.ls mask
+Input text file from GFFINDBLOCKS, listing unilluminated image regions that
+may be used for scattered light estimation.
+.le
+.ls outimage = ""
+Output MEF image, if not using \fIprefix\fR to define the output name. If
+set, this parameter has precedence over \fIprefix\fR.
+.le
+.ls prefix
+Prefix added to \fIimage\fR to make the output image name if \fIoutimage\fR 
+not given.
+.le
+.ls xorder = 1
+Order of Legendre surface fit (per input extension) to pixel values in the
+IFU gaps, in the direction along image rows. This can either be a single 
+integer to use for all the extensions or a list containing a separate order
+for each image extension. A value similar to "5,5,9,5,5,5" (for the GMOS-N
+CCDs with 6 amplifiers) is suggested, where the 9 corresponds to the
+extension affected by overlap between the 2 IFU slits. Currently the user
+must adjust the length of this list and position of the overlap order
+according to the number of amplifiers used.
+.le
+.ls yorder = 3
+Order of Legendre surface fit to pixel values in the IFU gaps, in the
+direction along image columns. As for \fIxorder\fR, this can either be a
+single integer to use for all the extensions or a list (eg. "5,5,9,5,5,5")
+containing a separate order for each image extension.
+.le
+.ls cross = no
+Use cross-terms in IMSURFIT?
+.le
+.ls fl_inter = no
+Toggle the display of the calculated surface fit for visual inspection.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error. This
+parameter is set by the task and should not be modified by the user.
+.le
+.ih 
+DESCRIPTION 
+
+GFSCATSUB fits a 2D (Legendre) surface to pixel values falling in the gaps
+between GMOS IFU blocks, to estimate the level of scattered light above the
+bias, and subtracts the result from every pixel of its input file, to
+obtain true object+sky signal. This can provide an important improvement in
+the zero-point accuracy of flat field spectra in particular, as well as
+scientific exposures, helping avoid flat-fielding residuals or systematic
+errors in flux. This step should be inserted into the standard data
+processing sequence after bias subtraction and before fibre extraction,
+eg. by running GFREDUCE multiple times with different flags.
+
+The results from this task can be limited by such factors as light spilling
+into one or more gaps from the wings of bright sources, the scattered light
+profile being represented imperfectly by a single low-order surface fit,
+the regions used being an imperfect approximation of the IFU gaps,
+underconstrained top/bottom edges and/or a lack of continuity conditions
+between image extensions. Overall, however, the method can reduce errors of
+some thousands of counts (for settings with strong scattered light, such as
+below 4000A), by an order of magnitude. The user can check for residual
+errors by plotting cuts along or across gap rows (which should be zero) in
+the output; it is likely that residual structure will be observed at the
+level of up to a few hundred counts, but as long as that is only a fraction
+of the input gap levels, use of this task is recommended.
+
+.ih
+EXAMPLES
+
+1. Model and subtract the scattered light in a GMOS IFU flat:
+
+.nf
+cl> gfscatsub rgN20060820S0016 rgN20060820S0016_gaps
+.fi
+
+.ih
+BUGS AND LIMITATIONS
+Currently GFSCATSUB processes each input extension separately, which for the
+new GMOS CCDs means 6-12 separate fits, whereas it would probably be more
+stable to model the scattered light background over a larger area.
+The rectangular sample regions used as input are an approximation of the
+gaps between IFU blocks.
+The user is required to specify the correct number of extensions for
+\fIxorder\fR and \fIyorder\fR unless using the same number for all of them.
+This task has undergone limited testing after inclusion from the
+experimental gmosifudr package on the Gemini Data Reduction User Forum and
+may crash under some error conditions.
+.ih
+SEE ALSO
+gffindblocks, imsurfit
+.endhelp

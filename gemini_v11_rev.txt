@@ -1,0 +1,89 @@
+GEMINI (Jan2001)         Gemini IRAF package v1.1       GEMINI (Jan2001)
+
+Release date: January 29, 2001
+
+This document describes the revisions relative to the Gemini IRAF package v1.0
+
+
+PRIMARY REVISIONS:
+
+1) Tasks for reduction of OSCIR data. A new package "oscir" is included.
+2) Smaller bug fixes in the "quirc" package.
+3) Smaller bug fixes in the task gemtools.imcoadd.
+
+
+DETAILS OF THE REVISIONS:
+
+oscir.oflat
+oscir.oreduce
+oscir.oscirinfo
+  A new package "oscir" is released. Basic tasks to derive flat fields (oflat) 
+  and combine the images from the different chop and nod positions (oreduce) 
+  are included. A description of the OSCIR data format and how to reduce OSCIR 
+  data is available as the task "oscirinfo".
+
+quirc
+  Various typographical errors in the help files have been fixed.
+
+quirc.qfastsky
+  A warning regarding differences in exposure time is now only issued if the  
+  exposure times differ with more than 0.1 sec. The QUIRC controller often 
+  causes exposure time differences less than 0.1 sec for exposures with 
+  identical requested exposure time. The small differences have no implications
+  for the reduction of the data.
+
+quirc.qsky
+  In the old version size of the derived masks was hard-wired to 
+  1024 pixels x 1024 pixels. In the new version the required size is read from
+  the headers of the input images.
+  A bug that caused the task crash to if no objects were found has been fixed.
+  The determination of the FWHM using the task gemtools.gemseeing has been 
+  improved, especially for cases where FWHM > qsky.rebin.
+  Improved error trapping for unallowed parameters values.
+
+quirc.qflat
+  In the previous version, the task would start looking for the normalization
+  constant within a fixed range.  While appropriate for QUIRC data, if this
+  task were used on data in which the median data value exceeded the usual
+  QUIRC data range, the task would never find an appropriate normalization
+  value and the resulting flat field image would not be properly normalized.
+  This has now been fixed so that the task now looks for the normalization
+  constant starting in the range defined by thresh_flo and thresh_fup.
+  The default value for thresh_fup has been changed from 30000. to 40000.
+  A warning regarding differences in exposure time is now only issued if the 
+  exposure times differ with more than 0.1 sec. The QUIRC controller often 
+  causes exposure time differences less than 0.1 sec for exposures with 
+  identical requested exposure time. The small differences have no implications
+  for the reduction of the data.
+  Improved error trapping for unallowed parameter values. 
+  Parameter names combine, reject and expname changed to combtype, rejtype
+  and key_exptime, respectively. This makes the parameter names consistent with
+  those used by qsky and qfastsky.
+
+quirc.qreduce
+  If any of the parameters filteri (i=1,6) are set to identical values, the
+  first existing flat field that matches the filter header keyword is used.
+  For example, if filter1="Kp" and filter2="Kp", then flatimage1 is used for the
+  filter Kp, if that image exists.
+  If flatimagei=="", the filter defined by the matching parameter filteri is
+  ignored.
+  Improved error trapping for unallowed parameter values.
+
+gemtools.gemqa
+  The value "unknown" is now allowed as the value for the data quality 
+  assessment keywords FINALINT, FINALIQ, PICONFIG, PITARGET.
+
+gemtools.gemseeing
+  Corrected entries in gemseing.dat are provided for Hokupaa+QUIRC and OSCIR.
+  The entries in v1.0 contained slightly incorrect pixel scales for the two 
+  instruments.
+
+gemtools.imcoadd
+  The default value parameter "instscale" has been changed from 1.6 to 1.611444
+  The new version of the task has an improved handling of multiple occurrences 
+  of same object in the coordinate files.
+  A warning message from "tinfo" about an empty table of objects has been 
+  removed - the case is handled by "imcoadd" as a case of no objects in common.
+  The flagging of cosmic-ray events occasionally caused a floating point 
+  overflow fault. This problem has been resolved.
+

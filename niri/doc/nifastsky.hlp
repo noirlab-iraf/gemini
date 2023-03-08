@@ -1,0 +1,144 @@
+.help nifastsky March2012 gemini.niri
+.ih
+NAME
+nifastsky -- Derive a quick sky image for NIRI
+.ih
+USAGE
+nifastsky inimages
+.ih
+PARAMETERS
+.ls inimages 
+List of images to combine.
+.le
+.ls outimage = ""
+Output sky image.  If not specified, the output image name will be the
+first input image with "_sky" appended.
+.le
+.ls outtitle = "default"
+The outtitle string will be written in the output image header 
+under the keyword specified by the \fIi_title\fR. 
+If set to "default", NIFASTSKY will write
+"SKY IMAGE from gemini.niri.nifastsky" in the output image header.
+.le
+.ls key_exptime = "EXPTIME"
+Image header keyword for exposure time.
+.le
+.ls combtype = "default" (default|median|average)
+Type of combine operation.
+.le
+.ls statsec = "[100:924,100:924]"
+Region of input images to use for statistics.
+.le
+.ls rejtype = "minmax" (none|minmax)
+Type of rejection.
+.le
+.ls logfile = ""
+Logfile of operations.
+.le
+.ls nlow = 0, nhigh = 1
+Number of low and high pixels to reject, when using \fIrejtype\fR=minmax.
+Note that using \fIcombtype\fR = "default" will override the user-specified
+values of \fInlow\fR and \fInhigh\fR.
+.le
+.ls sci_ext = "SCI"
+Name or number of science extension.
+.le
+.ls var_ext = "VAR"
+Name or number of variance extension.
+.le
+.ls dq_ext = "DQ"
+Name or number of data quality extension.
+.le
+.ls key_ron = "RDNOISE"
+Header keyword for the estimated read noise (in e-).
+.le
+.ls key_gain = "GAIN"
+Header keyword for the estimated gain (in e-/ADU).
+.le
+.ls fl_vardq = no
+Generate variance and data quality planes in the final output image?
+.le
+.ls fl_dqprop = no
+Propagate all DQ values of individual images through to final DQ extension?
+If \fIfl_dqprop\fR = "no" then the pixel mask from the combine operation
+is used to create a new DQ frame for the combined image.
+If \fIfl_dqprop\fR = "yes" then the output DQ frame is the pixel mask from the
+combine operation combined with (logical OR) all the input DQ frames.  Note
+that if any of the input images do not have DQ frames, \fIfl_dqprop\fR will be
+reset to "no". 
+.le
+.ls verbose = yes
+Print actions to the screen as well as in \fIlogfile\fR.
+.le
+.ls status = 0
+Exit status will be non-zero if the  procedure  halted  with  an
+error.   This  parameter  is  always set by NIFASTSKY, and should
+not be modified by the user.
+.le
+
+.ih
+DESCRIPTION
+.le
+NIFASTSKY makes a sky image from a list of input images.
+It is designed to do a fast (but not necessarily) optimal
+job of combining sky images and rejecting the pixels affected by
+signal from objects.
+
+The input images must be in multi-extension FITS format and must all
+have the same exposure time.  Images must have been pre-processed
+using NPREPARE.
+
+With \fIcombtype\fR=default the type of combination and rejection 
+is chosen based on the number of input images. 
+Two to four images are combined by averaging after rejecting the
+highest pixel.  Five to seven images are median combined after
+rejecting the highest and lowest pixels.  Eight more more images
+are median combined rejecting the two highest and one lowest pixels.
+
+\fIcombtype\fR, \fIrejtype\fR, \fInlow\fR and \fInhigh\fR can also
+be set by the user. However, the choices are limited since the
+purpose of this task is to provide a fast determination of 
+a sky image. For more advanced determinations, use NISKY. 
+
+The variance frame contains the definitive measure of the noise in
+each pixel.  Nevertheless, NIFASTSKY tries to keep the header keywords
+for read noise and gain in the output image sensible.  
+It does so by dividing the read noise in the first input image
+header by the square root of the number of images.  If the read
+noise is not the same for all the input images, the value in the
+header of the output image will be wrong (although the variance
+plane will be computed correctly).  Similarly, the gain in the
+output image header will be the first input gain times the number
+of frames, and will be wrong if all the input images do not have
+the same gain.  These header values should be considered estimates
+only.
+
+.le
+.ih
+EXAMPLES
+
+1. To combine a list of images to a sky image
+
+.nf
+      cl> nifastsky image1,image2,image3,image4,image5 skyimage
+.fi
+
+2. To combine a list of images given in the file inputfile to a 
+sky image
+
+.nf
+      cl> nifastsky @inputfile skyimage
+.fi
+
+3. To combine all fits images starting with "nu" in the current directory
+to a sky image
+
+.nf
+      cl> nifastsky nu*fits skyimage
+.fi
+.ih
+BUGS
+.ih
+SEE ALSO
+nisky, nprepare, imcombine
+.endhelp

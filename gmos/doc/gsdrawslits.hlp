@@ -1,0 +1,118 @@
+.help gsdrawslits October2015 gemini.gmos
+.ih
+NAME
+gsdrawslits - Draw slits from MDF on a GMOS image
+.ih
+USAGE
+gsdrawslits image mdf
+.ih
+PARAMETERS
+.ls image
+GMOS image on which to draw the slits. The image is first displayed
+if \fIfl_disp\fR=yes. The image must be in multi-extension FITS (MEF) format.
+.le
+.ls mdf    
+Mask-definition-file (MDF) matching the GMOS \fIimage\fR.
+.le
+.ls fl_disp = yes
+Display image before drawing the slits. If \fIfl_disp\fR = yes,
+the image is displayed with the default stretch from DISPLAY in the 
+frame defined by \fIframe\fR. If a stretch other than the default
+is needed, the user can display the image first, and then use \fIfl_disp\fR=no.
+.le
+.ls fl_slits = yes
+Draw the slits on the frame defined by \fIframe\fR.
+Tilted slits are not drawn tilted.
+.le
+.ls fl_label = no
+Label slits with the number from the ID column in the \fImdf\fR.
+.le
+.ls fl_spec = no
+Draw the location of the spectra on the frame defined by \fIframe\fR.
+.le
+.ls lwidth = 4
+Line width of slits and spectra. Because this task uses a simple interface
+to TVMARK, the actual line width is smaller than \fIlwidth\fR.
+\fIlwidth\fR = 4 is usually sufficient to see the slits even when the 
+display is zoomed out to see the full GMOS field of view.
+.le
+.ls frame = 1
+Display frame to use.
+.le
+.ls sci_ext = "1"
+The name of the science extension to display. For raw data, especially 
+acquisition images, then this should be an extension number such as "1". For 
+reduced data this can be an extension name, eg. "sci,1".
+.le
+.ls drawprior = "all"
+Priorities of objects for which to draw the slits and/or spectra, given 
+as a comma separated list. If \fIdrawprior\fR = "all" slits and/or spectra are
+drawn for all objects.
+.le
+.ih
+DESCRIPTION
+
+GSDRAWSLITS draws the slits defined in a mask-definition-file (MDF) on
+a displayed GMOS image. The task is supplied as a convenient utility
+task for visualizing MDFs without having to start the mask making software
+(gmmps).
+
+If \fIfl_disp\fR = yes, GSDRAWSLITS first displays the input image.
+Then the task draws the slits (if \fIfl_slits\fR = yes) and then
+the location of the spectra (if \fIfl_spec\fR = yes). The slits and
+location of the spectra are color coded according to priority in the
+MDF:
+
+.nf
+red    prior 1
+green  prior 2
+blue   prior 3
+yellow prior 0
+.fi
+
+Tilted slits are not supported, i.e., tilted slits are not drawn tilted.
+
+.ih
+EXAMPLES
+
+1. Display a GMOS image and draw the slits, the data are located in the current
+directory.
+
+.nf
+   cl> gsdrawslits mrgN20011224S145_add GN2001B-Q-10-5.fits
+.fi
+
+2. Display a GMOS image and draw the slits, the image and the MDF are not in
+the same directory.
+
+.nf
+   cl> gsdrawslits coadds/mrgN20011224S145_add mdfs/GN2001B-Q-10-5.fits
+.fi
+
+3. Display an image logarithmically with a custom stretch, then draw the slits
+and the location of the spectra on the displayed image
+
+.nf
+   cl> display raw$mrgN20020214S066_add[1] 3 z1=650 z2=6000 zsc- zra- ztr=log
+   cl> gsdrawslits raw$mrgN20020214S066_add raw$GN2002A-Q-89-2.fits frame=3 \
+       fl_disp- fl_spec+
+.fi
+
+4. Same as (3) but draw only for priority 1 and 2 objects
+
+.nf
+   cl> display raw$mrgN20020214S066_add[1] 3 z1=650 z2=6000 zsc- zra- ztr=log
+   cl> gsdrawslits raw$mrgN20020214S066_add raw$GN2002A-Q-89-2.fits frame=3 \
+       fl_disp- fl_spec+ drawprior="1,2"
+.fi   
+    
+.ih
+TIME REQUIREMENTS
+
+.ih
+BUGS AND LIMITATIONS
+GSDRAWSLITS does not draw tilted slits tilted.
+.ih
+SEE ALSO
+gmosinfospec, display, tvmark
+.endhelp

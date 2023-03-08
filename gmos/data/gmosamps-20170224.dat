@@ -1,0 +1,85 @@
+# Database of GMOS CCD amplifier properties
+#
+# Values for older GMOS detectors are found in gmosamps-20060831.dat &
+# gmosamps-20150826.dat.
+#
+# Note: If adding more lines of information,
+#       please make sure there is no whitespace
+#       after the closing quote around the AMPNAME.
+#       Otherwise print out in GGAIN looks bad.
+# Manually tuned by GG for Hamamatsu_new
+
+# GMOS-N bias for best amps change when in 6amp mode
+# READOUT GAINSTATE GAIN RDNOISE BIAS AMPNAME
+# GMOS-N (2011-10-25) New e2v DD devices
+# best amps ##M These need checking
+slow low  2.310  3.17 1176. "e2v 10031-23-05, right"
+slow high 4.520   3.2  889. "e2v 10031-23-05, right"
+fast high 5.340   7.8  768. "e2v 10031-23-05, right"
+fast low  2.530   4.2 1036. "e2v 10031-23-05, right"
+slow low  2.270  3.22  909. "e2v 10031-01-03, right"
+slow high 4.390   1.5  551. "e2v 10031-01-03, right"
+fast high 5.270   5.8  429. "e2v 10031-01-03, right"
+fast low  2.500   4.1  757. "e2v 10031-01-03, right"
+slow low  2.170  3.46 1188. "e2v 10031-18-04, left"
+slow high 4.820   2.8  886. "e2v 10031-18-04, left"
+fast high 5.160   6.4  787. "e2v 10031-18-04, left"
+fast low  2.430   4.3 1099. "e2v 10031-18-04, left"
+# secondary amps
+slow low  2.310  3.41 1055. "e2v 10031-23-05, left"
+slow high 4.590   3.1  776. "e2v 10031-23-05, left"
+fast high 5.360   7.0  653. "e2v 10031-23-05, left"
+fast low  2.530   4.3  917. "e2v 10031-23-05, left"
+slow low  2.210  3.20 1099. "e2v 10031-01-03, left"
+slow high 4.590   2.4  695. "e2v 10031-01-03, left"
+fast high 5.100   5.7  560. "e2v 10031-01-03, left"
+fast low  2.410   4.1  934. "e2v 10031-01-03, left"
+slow low  2.330  3.44 1105. "e2v 10031-18-04, right"
+slow high 4.330   3.1  827. "e2v 10031-18-04, right"
+fast high 5.410   6.3  727. "e2v 10031-18-04, right"
+fast low  2.560   4.4  997. "e2v 10031-18-04, right"
+
+# Hamamatsu upgrades (12 AMPS) (2015sep14) #hcode
+# Amplifier names in order of 'engineering' readout
+# EXTs in order they are read out in a raw image
+# Updated slow/low(all), fast/low(all)
+#EXT 1-4 CCDr  #hcode
+slow low  1.834  4.04   730.  "BI5-36-4k-2, 4"
+fast high 5.183  8.07  2909.  "BI5-36-4k-2, 4"
+fast low  1.556  5.49   841.  "BI5-36-4k-2, 4"
+slow low  1.874  4.28   633.  "BI5-36-4k-2, 3"
+fast high 5.300  8.85  2932.  "BI5-36-4k-2, 3"
+fast low  1.593  6.35   856.  "BI5-36-4k-2, 3"
+slow low  1.878  4.24   897.  "BI5-36-4k-2, 2"
+fast high 5.330  9.13  2854.  "BI5-36-4k-2, 2"
+fast low  1.592  7.10  1040.  "BI5-36-4k-2, 2"
+slow low  1.852  4.21   500.  "BI5-36-4k-2, 1"
+fast high 5.240  8.93  2811.  "BI5-36-4k-2, 1"
+fast low  1.566  6.68   819.  "BI5-36-4k-2, 1"
+#EXT 5-8 CCDg  #hcode
+slow low  1.908  3.90   905.  "BI11-33-4k-1, 4"
+fast high 5.407  8.02  3252.  "BI11-33-4k-1, 4"
+fast low  1.634  5.77  2172.  "BI11-33-4k-1, 4"
+slow low  1.933  4.24   495.  "BI11-33-4k-1, 3"
+fast high 5.459  8.62  3091.  "BI11-33-4k-1, 3"
+fast low  1.648  7.38  2114.  "BI11-33-4k-1, 3"
+slow low  1.840  4.07   760.  "BI11-33-4k-1, 2"
+fast high 5.225  8.59  3272.  "BI11-33-4k-1, 2"
+fast low  1.582  6.14  2551.  "BI11-33-4k-1, 2"
+slow low  1.878  4.29   990.  "BI11-33-4k-1, 1"
+fast high 5.334  8.35  3334.  "BI11-33-4k-1, 1"
+fast low  1.613  5.19  2682.  "BI11-33-4k-1, 1"
+#EXT 9-12 CCDb  #hcode
+slow low  1.813  4.15   230.  "BI12-34-4k-1, 4"
+fast high 5.120  9.34  3058.  "BI12-34-4k-1, 4"
+fast low  1.549  7.72   893.  "BI12-34-4k-1, 4"
+slow low  1.724  3.61   525.  "BI12-34-4k-1, 3"
+fast high 4.894  7.99  3003.  "BI12-34-4k-1, 3"
+fast low  1.478  7.88  1445.  "BI12-34-4k-1, 3"
+slow low  1.761  3.72   470.  "BI12-34-4k-1, 2"
+fast high 5.129  8.30  3078.  "BI12-34-4k-1, 2"
+fast low  1.545  6.80  1322.  "BI12-34-4k-1, 2"
+slow low  1.652  3.53   795.  "BI12-34-4k-1, 1"
+fast high 4.828  7.94  3078.  "BI12-34-4k-1, 1"
+fast low  1.445  6.36  1856.  "BI12-34-4k-1, 1"
+

@@ -1,0 +1,233 @@
+.help niriinfo June2012 gemini.niri
+.ih
+NAME
+niriinfo -- Reduction scripts for NIRI data
+.ih
+USAGE
+niriinfo
+.ih
+DESCRIPTION
+The NIRI package contains tasks for processing NIRI imaging and
+long-slit spectroscopy data, although spectroscopy reduction
+will also use tasks in the GNIRS package.
+
+This document describes the tasks specific to the NIRI package
+and gives a description of the NIRI data format.  For information
+on the GNIRS package, see \fIgnirsinfo\fR (since the GNIRS tasks
+were derived from the NIRI codebase, they should be familiar to
+experienced NIRI users).
+
+The tasks produce logfiles of the performed processing steps.
+The name of the logfile may be set in each individual task, or at
+the package level by setting \fIniri.logfile\fR.
+
+The tasks add header keywords to the output images. These header
+keywords contain information about the performed processing steps
+and the values of the critical parameters that were used.
+
+All NIRI images are written as multi-extension FITS (MEF) files.
+Raw data have a single unnamed extension [1].  Most of the header
+information is written to the primary header unit [0] (PHU).  
+After being run through \fInprepare\fR, NIRI data extensions will be 
+named as defined by the parameters.  Several additional header keywords
+will be added.  If desired, variance and data quality planes can
+be added by \fInprepare\fR.
+
+It is recommended to use \fIimtype\fR="fits". This is set automatically
+when loading the GEMINI package.
+
+.ih
+SHORT DESCRIPTIONS OF THE TASKS
+.ls NPREPARE - Prepare raw data and create variance and data quality planes.
+
+All data must be run through NPREPARE before further processing.
+NPREPARE adds certain essential header keywords to the PHU.  It
+also computes the variance and data quality planes, if desired.
+The data file nprepare.dat contains information about the array
+characteristics and the regions of the array illuminated by the
+spectroscopic slits.  Although changes are infrequent, it is important 
+that nprepare.dat be up to date.  NPREPARE fixes the WCS information
+in the header for subarray data taken before Feb. 2005.
+
+This task must be used before processing the data with tasks in the
+GNIRS package, too.
+.le
+.ls NRESIDUAL - Flag saturated pixels in the DQ planes of subsequent
+exposures
+
+When there are saturated or nearly-saturated objects in a frame,
+image persistence in the array leaves a faint residual that can
+be confused with a real object in subsequent images.  NRESIDUAL
+takes the DQ planes from the images taken immediately prior to
+an image and combines them, allowing the effects of saturation to
+be followed in subsequent exposures.  This task is not needed if
+there are no saturated or non-linear pixels in the exposures.
+.le
+.ls NIFASTSKY - Derive sky image, median or min/max filtering
+
+NIFASTSKY is used for constructing sky images by median or min/max
+filtering. There is made no attempt to specifically flag objects
+in the sky images. The task is mostly used for rapid reductions
+at the telescope.
+.le
+.ls NISKY - Derive sky image, includes masking of objects
+
+NISKY is used for constructing sky images. Objects in the input
+images are identified and masked using OBJMASKS.
+It is recommended to use NISKY 
+rather than NIFASTSKY for science quality reductions.  Because
+NISKY does a preliminary reduction of each image and identifies
+objects to mask, it is somewhat slower than NIFASTSKY.
+.le
+.ls NIREDUCE - Reduce images from NIRI  (sky or dark subtract, divide flat)
+
+NIREDUCE is used to sky or dark subtract and flat field divide
+the science data.  The sky image can be scaled before subtraction
+if desired.
+.le
+
+.ls NISUPERSKY - Make improved (deeper) object masks for NISKY
+
+NISUPERSKY takes a stacked image produced using IMCOADD and
+creates new object masks for use with NISKY.  This allows one
+to mask faint objects that are only detected in the final stacked
+image.  After running NISUPERSKY, one must return to the NISKY
+step and repeat all steps in the reduction sequence again.
+.le
+
+.ls NIFLAT - Derive flat field and bad pixel mask for NIRI images
+
+NIFLAT is used to construct flat field images and bad pixel
+masks using either GCAL or sky data.  For GCAL data, a set of
+exposures with the shutter closed is combined and subtracted
+from a set with the shutter open.  For sky flats, NIFLAT calls
+NISKY to mask and remove objects before normalizing.  NIFLAT
+uses the flats and short darks to identify bad pixels.
+.le
+
+.ls NIROTATE - de-rotate NIRI images based on WCS information
+
+NIROTATE can be used to correct for image rotation using
+only the information in header WCS.  This is useful mainly
+for reducing Altair/NIRI AO data taken with the cass rotator
+fixed in position.
+.le
+.ls GNIRS.NVNOISE - remove vertical stripes
+
+NVNOISE can be used to independently fit a constant to each of
+the 32 amplifiers in NIRI or GNIRS. This task helps remove some
+of the vertical stripe and quadrant bias offset pattern sometimes
+seen in low-background observations.  It is primarily for GNIRS
+spectra, but can be used with NIRI imaging data in some 
+circumstances.
+
+
+.ih
+TYPICAL IMAGING REDUCTIONS
+For typical reductions the user will need appropriate flat fields
+and short dark images, on-target science images and sky images.
+Flat field images taken with the calibration unit are usually taken
+both with the IR lamp on and off to allow separation of the 
+instrumental thermal signature from the sensitivity response.
+Short darks are used to identify bad pixels.
+
+If the target is not extended and the field is uncrowded the on-target
+images may be used as the sky images. This assumes that
+sufficiently large dither steps were used during the observations.
+
+1. Use NPREPARE and NIFLAT to derive normalized flat fields and
+derive a bad pixel mask.  NIFLAT will not run if the data
+have not first been NPREPAREd.  Be sure to exclude the first
+frame in each sequence.
+
+2. Use NPREPARE to update the raw data headers and create the
+variance and data quality planes of the science data.  Use the
+bad pixel mask created by NIFLAT to generate the DQ planes.  
+The other tasks will not run if the data has not been NPREPAREd.
+
+3. If there are non-linear or saturated pixels in the image, then
+it is best to run NRESIDUAL.  This makes sure that persistence
+images from saturated objects are tracked in the subsequent DQ
+planes.  
+
+4. Use NISKY (or alternatively NIFASTSKY) to derive sky images.
+The near-IR sky level and structure varies on time scales of a 
+few minutes, and care should be taken to combine only sky images that 
+are close enough in time to each other and to the relevant science 
+images that such variations are non-significant. This may take some 
+experimentation.  Use fl_keepmasks=yes to check the object
+identification step.  Once again, always be sure to check and
+exclude the first frame from an observing sequence.
+
+5. Use NIREDUCE to subtract the sky images and apply the flat fields.
+Data from each filter should be processed separately, as NIREDUCE takes only
+one sky image at the time as its input.
+With NIRI data, better sky subtraction can often
+be achieved by scaling the sky image to the same mean level as the
+science frame using fl_scalesky=yes 
+(assuming the science frame is sky-dominated).
+
+6. If the data were taken with the cass rotator fixed, and there
+are no objects to register the images, use NIROTATE to de-rotate
+the images using the WCS information in the headers.  (This step
+will not normally be needed.
+
+7. For low-background imaging or spectroscopy, there are sometimes
+vertical stripes seen in some quadrants.  The GNIRS task NVNOISE
+is designed to fit a constant offset for each of the 32 amplifiers,
+and can help remove this pattern.  NVNOISE should be run after
+flat fielding and sky subtraction.  This task should not be used
+unless a problem is apparent.
+
+8. The processed images may be co-added with the task GEMTOOLS.IMCOADD.
+Photometry may be derived with any suitable photometry package. 
+Once again, be sure to exclude the first bad frame in a sequence.
+
+9. For deep imaging, NISUPERSKY should be run on the output image
+produced by IMCOADD to create better object masks.  The interim
+steps are then deleted, and the reduction procedure re-started from
+the NISKY step (step 4 above). 
+
+.ih
+TYPICAL SPECTROSCOPIC REDUCTIONS
+For most spectroscopic reductions the user will need appropriate flat 
+fields, arc lamp spectra, and short dark images, on-target science 
+images and possibly sky images.
+Short darks are used to identify bad pixels.
+If the target is not extended the on-target
+images may be used as the sky images. This assumes that
+sufficiently large dither steps were used during the observations.
+
+1. Use NPREPARE to update the raw data headers and create the
+variance and data quality planes, if desired.  The other tasks will
+not run if the data has not been NPREPAREd.  NPREPARE will write
+the appropriate SPECSECs to the headers.
+
+2. If there are saturated pixels (such as a setup frame on a bright
+telluric standard), you should run NRESIDUAL at this point.
+
+3. Process the data with the GNIRS package.  For more information see
+both \fIgnirsinfo\fR (general information) and \fIgnirsinfols\fR
+(advice specific to longslit spectroscopy).
+
+.ih
+BUGS AND LIMITATIONS
+The tasks in the NIRI package are designed to operate on MEF FITS
+images that have been processed using NPREPARE.  NPREPARE will not
+run on data from instruments other than NIRI.  The NIRI tasks will
+not run on simple FITS files.
+
+The NIRI spectroscopic tasks have been adapted for use with GNIRS,
+and are still being tested and debugged.
+Please use them with caution while we fix the bugs and determine
+the best way to use the scripts.
+
+.ih
+SEE ALSO
+nprepare, nresidual, niflat, nifastsky, nisky, nireduce, nirotate,
+nisupersky,
+gnirs.nvnoise, gnirs.nscut, 
+gnirs.nsflat, gnirs.nsreduce, gnirs.nsstack, gnirs.nscombine, 
+gnirs.nsappwave, gnirs.nswavelength, gnirs.nssdist, gnirs.nstransform, 
+gnirs.nsextract, gnirs.nstelluric, gnirs.gnirsinfo, gnirs.gnirsinfols
+.endhelp

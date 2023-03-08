@@ -1,0 +1,7 @@
+# Copyright(c) 2005-2006 Association of Universities for Research in Astronomy, Inc.
+
+# Parameters for PEAKHELPER
+
+inimage,s,l,"",,,"Input image (typically a flatfield)"
+outimage,s,l,"",,,"Output image"
+threshold,r,h,100,,,"Cutoff threshold"

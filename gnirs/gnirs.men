@@ -1,0 +1,49 @@
+Spectroscopy:
+
+     nsheaders - Configure package for a particular instrument
+   nsmdfhelper - Calculate sections from MDF files
+
+     nsprepare - Prepare GNIRS data for reductions 
+                 (update headers, derive variance and DQ planes)
+
+        nsflat - Derive flat field from GCAL exposures
+        nsedge - Extend the bad pixel mask to include aperture edges
+nsslitfunction - Extend flat field to include sky illumination
+
+      nsreduce - Reduce spectra (dark, sky, flat, trim)
+         nscut - Cut spectrum out of image frame (called by nsreduce)
+         nssky - Generate appropriate sky frames (called by nsreduce)
+      nsressky - Subtract residual sky lines from rectified spectra
+
+       nssdist - Establish S-distortion
+  nswavelength - Manage wavelength calibration
+     nswhelper - Determine the wavelength solution using arc spectra
+     nsappwave - Add approximate wavelength calibration to the headers 
+                 of GNIRS spectra (called by nswavelength)
+       nswedit - Edit the table used by nsappwave
+   nsfitcoords - Determine 2D wavelength and S-distortions functions
+   nstransform - Rectify spectra
+
+     nsextract - Extract 1D and 2D spectra
+
+     nscombine - Combine spectra 
+     nschelper - Shift or group, and combine, spectra
+       nsstack - Group spectra taken at the same offset position
+      nsoffset - Measure the offset between two 2D images
+
+       nfquick - Reconstruct IFU acquisition image
+     nfflt2pin - Generate synthetic pinhole data from flat for IFU
+    peakhelper - Provide the basic transform necessary for NFFLT2PIN
+        nfcube - Stack IFU extensions to for a datacube
+
+     nxdisplay - Quick display of all XD orders
+
+       nvnoise - Remove vertical offset bias in GNIRS and NIRI data
+    nstelluric - Correct GNIRS spectra for telluric lines
+
+
+     gnirsinfo - General package information
+   gnirsinfols - Longslit reduction information
+   gnirsinfoxd - Cross-dispersed reduction information
+  gnirsinfoifu - IFU reduction information
+ gnirsexamples - Examples of data reduction

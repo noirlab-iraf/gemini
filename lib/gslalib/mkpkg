@@ -1,0 +1,15 @@
+# Make the SLALIB subroutines needed for refro in gfcube
+
+$checkout libgslalib.a ../
+$update   libgslalib.a
+$checkin  libgslalib.a ../
+$exit
+
+libgslalib.a:
+        atms.f
+        atmt.f
+        drange.f
+        pa.f
+        refro.f
+	;
+

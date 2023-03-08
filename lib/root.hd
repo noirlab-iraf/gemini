@@ -1,0 +1,3 @@
+# Root help directory for gemini
+
+_gemini     pkg = gemini$lib/rootgemini.hd

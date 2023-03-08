@@ -1,0 +1,231 @@
+.help gmultiamp May2013 gemini.gmos
+.ih
+NAME
+gmultiamp -- Perform rough quick overscan correction, tile amplifiers,
+ create saturation and signal masks.
+.ih
+USAGE
+gmultiamp inimages
+.ih
+PARAMETERS
+.ls inimages
+GMOS images to either overscan correct, tile and create saturation and signal
+masks for. It can be a list of images. Wild cards are not supported.
+Any observing mode can be used.
+.le
+.ls outimages = ""
+Output MEF images. The parameter can be one single image name, a list of
+images or a list file. The number of output images must equal the number of
+input images. \fIoutimages\fR has precedence over \fIoutpref\fR.
+.le
+.ls outprefix = "gma"
+Prefix of output image names. Names of output images will be the names of
+the input images with the prefix attached. \fIoutpref\fR is used if
+\fIoutimages\fR="".
+.le
+.ls ret_roi = yes
+Return only data within ROIs defined by the DETRO?X, DETRO?XS, DETRO?Y and
+DETRO?YS keywords in the PHU of the input image.
+.le
+.ls req_roi = 0
+Which ROI(s) to return. A value of 0 means all ROIs will be returned. If not 0,
+then the value must be between 1 and the value defined by the keyword DETNROI
+in the PHU of the input image; only one value is allowed.
+.le
+.ls fl_goversub = "default" (default|yes|no)
+Perform a quick overscan correction of the input image? A value of "default"
+means that if there are more than one amplifier per CCD (defined by the NAMPS
+keyword in the PHU) GOVERSUB will be called to perform a quick overscan
+correction. Whereas, if there are only one amplifier per CCD then GOVERSUB will
+not be called by default. Depending on the call to GMULTIAMP if the image has
+been previously overscan subtracted GOVERSUB will read the relevant value used
+to overscan correct the image.
+.le
+.ls rawpath = ""
+Path to data file(s).
+.le
+.ls sci_ext = "SCI"
+Name of the MEF extension containing the science data.
+.le
+.ls var_ext = "VAR"
+Name of the MEF extensions containing the variance frames.
+.le
+.ls dq_ext = "DQ"
+Name of the MEF extensions containing the data quality arrays.
+.le
+.ls mdf_ext = "MDF"
+Name of the MEF extension containing the Mask Definition File.
+.le
+.ls key_biassec = "BIASSEC"
+Header keyword for the overscan section.
+.le
+.ls bias_type = "calc" (calc|static)
+Which type of overscan value to use if image is not already overscan
+corrected. A value of "calc" means GOVERSUB will use the \fIpixstat\fR of the
+bias section of the input image. A value of "static" means it will read the
+static bias value recorded in the file defined by the parameter \fIgaindb\fR.
+.le
+.ls pixstat = "midpt"
+Statistic to be calculated by IMSTATISTICS in GOVERSUB to determine the
+rough overscan level.
+.le
+.ls nbiascontam = 5
+Number of columns to strip from bias section on the side closest to the data
+section of the image.
+.le
+.ls statsec = "default"
+Section of overscan section to use. Coordinates are relative to the BIAS
+section and should take the form "[#:#,#:#]". If "default", the entire overscan
+section excluding the \fInbiascontam\fR rows closest to the data section will
+be used.
+.le
+.ls fl_gtile =  yes
+Call GTILE?
+.le
+.ls out_ccds = "all" ("all"|"1"|"2"|"3")
+Which of the CCDs to return ("all"|"1"|"2"|"3"). Use "all" to return all CCDs
+worth of data.
+.le
+.ls fl_stats_only = no
+Return a single extension fits file containing only the available tiled science
+data for the specified CCD or the entire detector or ROI.
+.le
+.ls fl_tile_det = no
+Tile the science data for the entire detector into a MEF with one extension.
+.le
+.ls fl_pad = no
+Include gaps between CCDs when \fIfl_tile_det\fR=yes.
+.le
+.ls fl_app_rois = no
+If the number of ROIs is greater than 1, return each ROI in its own extension
+of the output MEF?
+.le
+.ls key_detsec = "DETSEC"
+Header keyword for the detector section.
+.le
+.ls key_ccdsec = "CCDSEC"
+Header keyword for the CCD section.
+.le
+.ls key_datasec = "DATASEC"
+Header keyword for the data section.
+.le
+.ls key_ccdsum = "CCDSUM"
+Header keyword for the CCD binning.
+.le
+.ls fl_pretty = no
+This parameter is only for use during acquisitions / observations and is only
+available internally to GEMINI as it is not entirely scientifically
+valid. Remove any additional bias levels near amplifier boundaries and level
+amplifiers according to the ratio the amplifier gain and the average of all
+amplifiers in the output image.
+.le
+.ls fl_sat = no
+Create a MEF saturation mask for each input images?
+.le
+.ls satval = "default"
+If set to "default" the task GSAT will be called to determine the saturation
+level for each extension of the input image. If an image has been previously
+processed by GTILE or GMOSAIC, GSAT will not work. If not set to "default" this
+value will be used to flag pixels as saturated if they have values above
+\fIsatval\fR.
+.le
+.ls signal = INDEF
+Create a signal mask flagging pixels with counts above bias of \fIsignal\fR or
+higher.
+.le
+.ls satprefix = "default"
+Prefix attached to the input image name, used to name the output saturation
+mask file. If "default", the prefix will be \fIprefix\fR//"sat".
+.le
+.ls sigprefix = "default"
+Prefix attached to the input image name, used to name the output signal
+mask file. If "default", the prefix will be \fIprefix\fR//"sig".
+.le
+.ls gaindb = "default"
+Database file containing the GMOS gain data. The default value for \fIgaindb\fR
+is determined by GGDBHELPER and is generally gmos$data/gmosamps.dat.
+.le
+.ls logfile = "dev$null"
+Logfile for this task.
+.le
+.ls verbose = no
+Verbose?
+.le
+.ls status = 0
+Exit status will be 2 if the procedure halted with an error. If the output
+status is 1 then no errors occurred but the requested processing has already
+been done. Else, everything was done, no errors occurred and the output
+status will be 0. This parameter is always set by the task and should not be
+modified by the user.
+.le
+.ih
+DESCRIPTION
+
+GMULTIAMP is a wrapper script that calls GMOS tasks to partially reduce the
+input images and or create saturation and or signal masks. Input images can
+have any number of ROIs. If the input images have been processed by GTILE or
+GMOSAIC, certain functions will not work and will result in a specific error
+that should inform the user which things to switch off or on. This task is
+optimised for operations use and is included in the GMOS package as it is used
+by GDISPLAY.
+
+If there a superfluous extensions within the image, e.g., when there are more
+than one ROI but only one ROI is requested to be returned, the task GRETROI is
+used to remove them. GRETROI is also called by GTILE for the same reason.
+
+The task GOVERSUB is used to determine the overscan correction and apply it in
+certain circumstances.
+
+If \fIfl_pretty\fR=yes (only to be used for observations / acquisitions)
+any additional bias levels at amplifier boundaries will be removed (if not
+already overscan corrected) and the amplifiers in the output image will be
+leveled using the ratio of the gain of the amplifier to the
+average of gains of the amplifiers in the output image. NOTE: that overscan
+correction (if not already done) should be performed if setting
+\fIfl_pretty\fR=yes.
+
+In addition, MEF saturation and or signal masks can be created.
+
+Finally, GTILE can be called to tile the input extensions. Depending on how the
+flags \fIfl_tile_det\fR and \fl_stats_only\fR are 
+set and the ROI(s) specifications, the output image is either a MEF with one
+extension, a MEF with 3 extensions (one for each CCD) or a simple fits file. If
+the number of ROIs is greater than 1, the \fIfl_app_rois\fR can be used to
+return each of the tiled ROIs as its own extension within the output ROI. For
+more details read the help file for GTILE.
+
+In all cases all bias sections will be removed in the output image.
+.ih
+EXAMPLES
+
+.nf
+   cl> gmultiamp infile.fits fl_app_rois+ fl_goversub=yes fl_pretty+
+.fi
+
+In this example assume that infile.fits is a raw file, has 3 regions of
+interest and is taken in 3-amp mode (1 amp per CCD). This will overscan
+subtract the input extension using the "midpt" of the bias section. Then is
+defined, any additional bias levels will be removed before multiplying each
+extension by the ratio of the gain of the amplifier it belongs to the average
+of the unique amplifiers in the output image. Finally, each ROI will be tiled
+and then append to the output MEF file. The output file will have 3 extensions
+ordered and numbered according to their ROI designation.
+
+.nf
+   cl> gmultiamp infile2.fits fl_tile_det+ fl_sat+
+.fi
+
+infile2.fits is again a raw image an image with 3 ROIs but taken in 6-amp
+mode (2 amps per CCD). The file will be overscan corrected and then tiled into
+the size of the entire GMOS detector. The areas not covered by the ROIs will
+contain a value of zero. In addition, a saturation MEF mask will be created,
+having the same dimensions as the output image. Only those pixels that are
+saturated will have a non zero value, those pixels in the output image that are
+fake, i.e., not within the ROI will have a value of zero too in the saturation
+mask.
+
+.ih
+SEE ALSO
+
+GOVERSUB, GTILE, GRETROI, GGAIN, GEMEXPR, GSAT
+.endhelp

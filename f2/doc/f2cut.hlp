@@ -1,0 +1,238 @@
+.help f2cut October2013 gemini.f2
+.ih
+NAME
+f2cut -- Cut spectroscopic FLAMINGOS-2 data
+.ih
+USAGE
+f2cut inimages
+.ih
+PARAMETERS
+.ls inimages
+File names of the spectroscopic FLAMINGOS-2 data to cut. \fIinimages\fR may be 
+given as a comma separated list or on separate lines of a list file, given as 
+\fIinimages=@listinfile\fR, where \fIlistinfile\fR is the file name. Wildcards
+are also supported. The file names may include the directory path.
+\fIinimages\fR must have been processed with F2PREPARE.
+.le 
+.ls outimages= ""
+A list of output MEF image names. The list must contain the same number of 
+file names as in \fIinimages\fR. \fIoutimages\fR has preference over 
+\fIoutprefix\fR.
+.le
+.ls outprefix = "c"
+The prefix for the output images. If \fIoutimages\fR is not given, this 
+parameter is used to prefix the names of input images to create the names of 
+the output images.
+.le 
+.ls fl_vardq = yes
+Should variance and data quality extensions be propagated? When the science
+extensions are cut, the variance and data quality extensions are also cut.
+Other tasks in the Gemini package attempt to maintain these values. For MOS
+data, if the areas contaminated by overlap (i.e., the areas beyond the edge of
+the slit that may contain information from other slits) are to be flagged in
+the output data quality extensions and the corresponding pixels in the output
+science extensions are to be set to zero, \fIfl_vardq\fR must be set to yes. 
+.le
+.ls gradimage = ""
+The image to be used to identify slit edges. Slit edges are identified in MOS
+data only. A single image should be supplied. \fIgradimage\fR is normally a
+flat image taken using the same configuration (including the same MOS mask) as
+the input images \fIinimages\fR. The flat image should be dark subtracted but
+not normalized. Either \fIgradimage\fR or \fIrefimage\fR should be defined, but
+not both.
+.le
+.ls outslitim = "slits.fits"
+An output image containing peaks at the position of the slit edges that were
+found in \fIgradimage\fR. This output slit image can be used as input to the
+task NSSDIST to determine the spatial distortion (s-distortion) solution. 
+.le
+.ls minsep = "default"
+The minimum separation between peaks in the gradient image \fIgradimage\fR, in
+pixels. This value is used by \fIapfind\fR when identifying slit edges. Slit
+edges are identified in MOS data only. The default value for \fIminsep\fR is
+the minimum spectral width for the gradient image \fIgradimage\fR, as defined
+in the MDF. A single value can instead be supplied to the \fIminsep\fR
+parameter. Weaker spectra or noise within this distance of a stronger spectrum
+are rejected. See the help file for \fIapfind\fR for more details.
+.le
+.ls edgediff = 2.0
+The allowed difference in pixels between the offset between the left slit edge
+found using the gradient image \fIgradimage\fR and the left slit edge as
+determined from the MDF and the offset between the right slit edge found using
+the gradient image \fIgradimage\fR and the right slit edge determined from the
+MDF. If this difference is larger than the number of pixels given by the
+\fIedgediff\fR parameter, a warning is issued. Theoretically, the difference
+between the offsets should be zero, meaning that the edges found using the
+gradient image \fIgradimage\fR belong to the same particular slit in the
+MDF. In practice, the difference between the offsets is less than 0.1 pixels.
+Troublesome slits will have a difference greater than this.
+.le
+.ls refimage = ""
+The reference image containing an MDF that has columns describing the location
+of the slits. A reference image can be used for MOS data only. A single image
+should be supplied. The reference image \fIrefimage\fR is an image taken using
+the same configuration (including the same MOS mask) as the input images
+\fIinimages\fR that has already been processed by F2CUT. If \fIrefimage\fR
+contains DQ extensions, the areas contaminated by overlap as described by the
+pixels in the DQ extension of the reference image \fIrefimage\fR are flagged in
+the output data quality extensions and used to set the corresponding pixels in
+the output science extensions to zero. Either \fIgradimage\fR or \fIrefimage\fR
+should be defined, but not both.
+.le
+.ls database = ""
+The name of the directory that will contain the database files for the finding
+and tracing of the slits in \fIgradimage\fR. If unspecified, \fIf2.database\fR
+will be used.
+.le
+.ls logfile = ""
+The name of the logfile.  If unspecified, \fIf2.logfile\fR will be used.
+.le
+.ls verbose = yes
+Print actions to the screen. The default (yes) is recommended. 
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error. This 
+parameter is always set by F2CUT and should not be modified by the user.
+.le
+
+.ce
+Parameters from NSHEADERS
+.sp
+The following values are read from GNIRS.NSHEADERS
+.ls sci_ext
+Name of science extension
+.le
+.ls var_ext
+Name of variance extension
+.le
+.ls dq_ext
+Name of data quality extension
+.le
+.ls key_slit
+Header keyword for slit
+.le
+.ls key_pixscale
+Header keyword for pixel scale
+.le
+.ls key_grating
+Header keyword for grating
+.le
+.ls key_filter
+Header keyword for filter
+.le
+.ls key_cut_section
+Header keyword used to store section cut
+.le
+.ls key_delta
+Header keyword for linear dispersion
+.le
+.ls key_order
+Header keyword for storing spectral order
+.le
+.ih
+DESCRIPTION
+
+The F2CUT task is used to cut both FLAMINGOS-2 longslit and MOS data.
+
+For longslit data, a pre-defined region is used to cut the data. The
+\fIf2$data/f2offsets.fits\fR look-up table contains the x1 and x2 values that
+are used to cut longslit data and are defined such that no unilliminated pixels
+are present in the output cut data.
+
+For MOS data, the regions used to cut the data can be found by using either the
+\fIgradimage\fR parameter or \fIrefimage\fR parameter:
+
+.ls
+If a dark subtracted flat image is provided to the \fIgradimage\fR parameter,
+the image is convolved with a gradient filter and the positive and negative
+gradients are found, providing peaks that correspond to the edges of the
+slits. The closest peak (from an initial selection of peaks found in the
+gradient image \fIgradimage\fR within 0.75 times the slit width) to the
+calculated slit edge position as determined from the MDF is associated to that
+slit. The edges of the slits are then traced to determine the full extent of
+the slit in the spatial direction. If \fIfl_vardq\fR, pixels outside the extent
+of the slit are flagged in the output data quality extension and the
+corresponding pixels in the output science extensions are set to zero. The
+information relating to the region that was cut is written to the MDF attached
+to the output image \fIoutimages\fR under the columns SECX1, SECX2, SECY1 and
+SECY2.
+.le
+
+.ls
+If an image that has already been processed by F2CUT is provided to the
+\fIrefimage\fR parameter, the information in columns SECX1, SECX2, SECY1 and
+SECY2 in the MDF are used to cut the input data \fIinimages\fR. If
+\fIfl_vardq=yes\fR and \fIrefimage\fR contains data quality extensions, pixels
+outside the extent of the slit are flagged in the output data quality extension
+and the corresponding pixels in the output science extensions are set to zero.
+.le
+
+Three look-up tables are used internally by F2CUT to determine the appropriate
+wavelength range to cut:
+
+.ls f2$data/f2offsets.fits
+The \fIf2$data/f2offsets.fits\fR look-up table contains the offset along the
+dispersion direction (i.e., y for FLAMINGOS-2 data) from the centre of the
+array (i.e., y = 1024) that defines the pixel on the array that the central
+wavelength for a given grism / filter combination falls on.
+.le
+
+.ls f2$data/f2filters.fits
+The \fIf2$data/f2filters.fits\fR look-up table contains the cut-off wavelengths
+for the FLAMINGOS-2 filters. The 50% cut-on and cut-off wavelengths are used to
+define the section to cut by default.
+.le
+
+.ls gnirs$data/nsappwave.fits
+The \fIgnirs$data/nsappwave.fits\fR look-up table contains the approximate
+dispersion for a given grism / filter combination.
+.le
+
+The values from these look-up tables are used to determine the number of pixels
+in the dispersion direction that should be cut.
+
+In the case where one of the slit edges cannot be found (and therefore traced),
+the assumption is made that the other slit edge trace is identical to the
+missing slit edge trace. In the case where neither of the slit edges can be
+found, the slit is skipped. 
+
+It is recommended that the user inspects the output of F2CUT carefully to
+ensure that the cutting was done correctly.
+
+Cut FLAMINGOS-2 data can be displayed using F2DISPLAY.
+.ih
+EXAMPLES
+
+1. Cut a flat image using itself to detect the slit edges:
+.sp
+.nf
+    cl> f2cut inflat.fits outimages=cutflat.fits gradimage=inflat.fits
+.fi
+.sp
+
+2. Cut multiple science images using a flat image to detect the slit edges
+(this does not cut the flat image specified by the \fIgradimage\fR parameter)
+.sp
+.nf
+    cl> f2cut @sci.lis outimages=@cutsci.lis gradimage=inflat.fits
+.fi
+.sp
+
+3. Cut multiple science images using the cut flat image as the reference image:
+.sp
+.nf
+    cl> f2cut @sci.lis refimage=cutflat.fits
+.fi
+.sp
+.ih
+BUGS AND LIMITATIONS
+
+The task F2CUT will not run on data from instruments other than FLAMINGOS-2.
+F2CUT will not run on simple FITS files. FLAMINGOS-2 data must be processed
+with f2prepare prior to running F2CUT.
+.ih
+SEE ALSO
+
+f2display, gradient, apfind, aptrace
+
+.endhelp

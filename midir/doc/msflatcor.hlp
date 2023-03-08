@@ -1,0 +1,195 @@
+.help msflatcor December2011 gemini.midir
+.ih 
+NAME
+msflatcor -- Apply bias subtraction and flat fielding to a Michelle image
+.ih
+USAGE
+msflatcor inimage flat bias 
+.ih
+PARAMETERS
+.ls inimage
+This is the name of a Michelle image file.  It is intended that the 
+flat fielding and bias subtraction are applied to a raw image, but it can 
+be done for a prepared or stacked Michelle image as well.  Only a single 
+input file name can be used here, not lists or wildcard expressions.
+.le
+.ls flat
+This is the name of a Michelle flat image, which is assumed here to be 
+taken in stare mode.  Thus the file should have a single extension of 
+dimension [320,240,1,1].  Only a single input file name can be used here, 
+not lists or wildcard expressions.
+.le
+.ls bias
+This is the name of a Michelle bias image, which is assumed here to be 
+taken in stare mode.  Thus the file should have a single extension of 
+dimension [320,240,1,1].  It is used only if \fIfl_bias\fR is "yes".
+Only a single input file name can be used here, not lists or wildcard 
+expressions.
+.le
+.ls outimage = ""
+A optional output file name for the corrected image.  If blank, the output 
+file name is formed from the input file name and the \fIoutpref\fR parameter.
+.le
+.ls outpref = "f"
+A string to prefix to the input file name to make the output file name, 
+if the \fIoutimage\fR parameter is blank.  Otherwise it is ignored.
+.le
+.ls rawpath = ""
+The directory path for the flat, bias, and input images.  If the images are 
+in the current directory, this should be set to "".  Since the images are 
+usually raw images taken together during the observations, they are assumed 
+to be in the same directory.
+.le
+.ls fl_bias = yes
+A boolean variable which determines whether bias subtraction will be carried 
+out or not.  If the value is "no", then the \fIbias\fR is ignored.  In 
+any case bias subtraction is not carried out for chopped mode observations, 
+since it should subtract out in the difference frames.
+.le
+.ls fl_writeflat = no
+A boolean flag for whether to write out the normalized flat-field image or 
+not.  If this value is "no", the \fInormflat\fR parameter is ignored.
+.le
+.ls normflat = ""
+The name for an output image containing the normalized flat-field image.  
+If no name is given the routine will use "normflat" as the default.
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes the task use the logfile
+defined by \fImidir.logfile\fR.
+.le
+.ls verbose = yes
+Print actions to the screen.
+.le
+.ls status = 0
+An output status flag.  For successful execution the value is returned as 
+zero, otherwise it is set to 1.
+.le
+.ih
+DESCRIPTION
+This routine applies bias and flat-field corrections to a Michelle image.  
+The bias and flat-field observations are assumed to be taken in stare mode 
+for spectroscopic observations, and to be taken at the same time as the 
+input image.  The input image can be a spectrum taken in either the low 
+resolution mode or in the higher resolution modes.  In the case of low 
+resolution spectroscopy, which is assumed to be taken in chop-nod mode, 
+the bias correction will not be applied since it is removed in the formation 
+of the difference images.  These observations can still be flat-fielded,
+since that correction applies to the difference image in the same way as 
+to the images in the two chop positions.  All the input files are assumed 
+to be multi-extension fits files.
+.sp
+Both the flat field image and the bias image, if used, are assumed to be 
+of dimension [320,240,1,1] and be found in extension 1 of the file.  These 
+images are used in the IMARITH routine to carry out the operations.  
+A check is explicitly made that the first two image dimensions are 320 and 
+240 respectively.
+.sp
+If the \fIfl_bias\fR value is "yes" then the bias image is subtracted from 
+each extension of the input image when that image is determined to be 
+taken in NOD-only or STARE modes.  The \fIfl_bias\fR flag is overridden if 
+the third image dimension in an extension of the input image is any value 
+other than 1, in which case no bias subtraction is carried out in the 
+input image.
+.sp
+When bias subtraction is requested it is also applied to the flat-field 
+image.
+.sp
+The flat field image is normalized inside the routine to give a mean value 
+of 1 over the image.  For Michelle spectra taken in the higher resolution 
+modes the illuminated area of the detector is smaller than the full frame.  
+The routine attempts to locate these boundaries and exclude pixels outside 
+them from the calculation of the normalization value.  These regions are 
+screened out and replaced with a value of 1.0 in the normalized flat-field 
+image.  Spectra taken in low resolution mode generally have no such 
+unilluminated region on the detector, in which case the entire image is 
+used for the normalization.  A simple average value over the illuminated 
+region of the detector is found using IMSTAT and the original image 
+is divided by this value.
+.sp
+If the range of values in this flat field image is too large, the task 
+then carries out a fit of the flat image to try to remove the spectral 
+shape of the blackbody function.  This is an issue only for the low resolution
+modes.  In the higher resolution modes, especially for the echelle, the 
+variation of the blackbody function over the image is relatively small and 
+surface fitting is not required.  In these modes the fringing in the image 
+generally makes fitting the image difficult, and thus the simpler method is
+used to generate the flat field image.  There will be some large-scale 
+structure in the flat field due to the fringes and the blackbody function, 
+but it assumed that these can be calibrated out when the object spectrum 
+is ratioed to the standard spectrum, since they affect both images in 
+exactly the same manner.
+.sp
+When fitting needs to be done, the IMSURFIT task is used.  The 
+fit uses the illuminated sections of the array.  Legendre polynomials 
+are used, with order 10 in x and y plus cross-terms.
+.sp
+If the \fIfl_writeflat\fR flag is set to "yes" then the  resulting 
+flat field image is written out to a file specified by the \fInormflat\fR 
+parameter.  If this file already exists the routine will exit with an error.
+.sp
+The output file is generated by subtracting the bias value from each image 
+extension, if \fIfl_bias\fR is "yes" and the observing mode is NOD rather than 
+CHOP or CHOP-NOD, and then dividing by the normalized flat-field image.  The 
+output file has the same number of extensions as the input file does.  
+A check is made of the first two dimensions of the images in each extension.  
+If these values are not [320,240] the routine exits with an error condition.
+.sp
+The image manipulation is done using the IMARITH routine.
+.ih
+EXAMPLE
+1.  The following shows the default usage of MSFLATCOR to flat field a 
+raw low resolution N-band spectral observation.  All the files are 
+in the current directory.  The normalized flat field image is saved 
+in "flat118" for later examination.  The flat field is good over most 
+of the image but it does poorly in columns 1 to 12 because the input 
+blackbody spectrum is falling steeply at these short wavelengths.  
+Generally these wavelengths are completely blocked by the atmosphere so 
+this should not affect the resulting spectrum.  The statistics in the 
+region [13:320,*] are good, so the flat field is usable.  In this case 
+no output name is given so the prefix "f" is used to make the output file 
+name.  The output file is fN20051217S0117.fits.
+.sp
+Rows 228 to 240 were not illuminated and were masked out so that they 
+have a value near 1.0 in the normalized flat.
+.sp
+.nf
+    mi> msflatcor N20051217S0117 N20051217S0118 N20051217S0119 \
+    >>> fl_writeflat+ normflat="flat118" logfile="flat.log"
+    MSFLATCOR Rows 1 to 1 and 228 to 240 in N20051217S0118 replaced by average of inner regions (8361.844).
+
+    mi> !more flat.log
+    BOE  MSFLATCOR 2006-03-02T11:19:15
+    VIS  MSFLATCOR 
+    VIS  MSFLATCOR ---------------------------------------------------------
+    STAT MSFLATCOR Log opened at [Thu 11:19:15 02-Mar-2006]
+    VIS  MSFLATCOR 
+    VIS  MSFLATCOR --------------------
+    TSK  MSFLATCOR Input Parameters:
+    TSK  MSFLATCOR      inimage        = N20051217S0117
+    TSK  MSFLATCOR      flat           = N20051217S0118
+    TSK  MSFLATCOR      fl_bias        = yes
+    TSK  MSFLATCOR      bias           = N20051217S0119
+    TSK  MSFLATCOR      rawpath        = 
+    TSK  MSFLATCOR      outimage       = 
+    TSK  MSFLATCOR      outpref        = f
+    TSK  MSFLATCOR      fl_writeflat   = yes
+    TSK  MSFLATCOR      normflat       = flat118
+    VIS  MSFLATCOR --------------------
+    STAT MSFLATCOR Rows 1 to 1 and 228 to 240 in N20051217S0118 replaced by average of inner regions (8361.844).
+
+    mi> imstat flat118[1]
+    #               IMAGE      NPIX      MEAN    STDDEV       MIN       MAX
+               flat118[1]     76800     1.017    0.1665   -0.3644     3.838
+
+    mi> imstat flat118[1][13:320,*]
+    #               IMAGE      NPIX      MEAN    STDDEV       MIN       MAX
+     flat118[1][13:320,*]     73920    0.9949   0.04159  -0.02765     1.221
+
+.fi
+.ih
+BUGS AND LIMITATIONS
+.ih
+SEE ALSO
+imsurfit (in the images.imfit package)
+.endhelp

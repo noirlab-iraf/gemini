@@ -1,0 +1,271 @@
+.help mipstokes November2011 gemini.midir
+.ih
+NAME
+mipstokes -- Carry out a calculation of the Stokes parameters for 
+each nod pair of a Michelle polarimetry file
+.ih
+USAGE
+mipstokes inimages
+.ih
+PARAMETERS
+.ls inimages
+The input image(s) to be processed by the task. It can be an image name, 
+a list of image names, a wild-card image name, or the "@" syntax can be 
+used to direct the task to read a list of file names.  These all must be 
+files that have been made by the MPREPARE task.
+.le
+.ls outimages = ""
+The output image name(s) for the transformed files.  If this field is left 
+blank the \fIoutpref\fR string is used to create new file names from the 
+input file names.  Otherwise the number of output file names must match 
+the number of input file names or an error condition occurs.  The field 
+must contain either a list of output file names or use the "@" syntax to 
+direct the task to read a list of file names.  The task tests for whether 
+the output images exist and exits with an error condition if any of them 
+do exist.
+.le
+.ls outpref = "z"
+A prefix string which is prefixed to each input image name to make
+the corresponding output image name if the output file name(s) are 
+not specified via the \fIoutimages\fR parameter.
+.le
+.ls rawpath = ""
+The path to the directory containing the Michelle image files.  
+If the value is "" (empty string) the current directory is used.
+.le
+.ls frametype = "dif"
+A variable to mark which type of images are to be combined: the default is 
+"dif" for the difference frames, but it can also be "src" for the on-source 
+frames or "ref" for the sky reference frames.
+.le
+.ls combine = "average"
+A variable which can have the values "average" or "sum".  This determines 
+whether the combination of images is done via averaging or by summation. 
+This variable is passed to the IMCOMBINE task as its \fIcombine\fR 
+parameter.  Any value aside from "average" or "sum" produces an error.
+.le
+.ls fl_mask = yes
+A boolean variable which determines whether the polarization values should be 
+masked below a certain absolute value to remove noise from the images.
+.le
+.ls noise = 0.0
+A noise threshold value, in ADU, which is applied to the various Stokes 
+parameter images if \fIfl_mask\fR is "yes".  If the value is positive 
+then all pixels with absolute values less than or equal to this number 
+are masked to zero in the (I,Q,U) images.  If the value is zero or negative 
+then the \fIthreshold\fR value is used to calculate the masking threshold.
+.le
+.ls threshold = 0.5
+A percent polarization value for masking, used if \fIfl_mask\fR is "yes" and 
+the \fInoise\fR value is zero or negative.  If this value is used, the 
+noise level in the raw images is estimated by the standard deviation of all 
+pixels in the region defined by the \fIblankarea\fR parameter, and this is 
+taken to be the noise level.  Then the signal-to-noise level is calculated 
+using this value for all pixels, and those for which the S/N is less than 
+70.5/(threshold*threshold) are masked to zero.  This automatically excludes 
+all negative pixels in the input images.
+.le
+.ls blankarea = "[*,*]"
+An area of the images clear of sources, used to estimate the noise level for 
+the \fIthreshold\fR masking.  It is only used if \fIfl_mask\fR is positive and 
+\fInoise\fR is less than or equal to zero.
+.le
+.ls fl_register = no
+A boolean variable that flags whether the input images at the four 
+waveplate positions should be registered (using the XREGISTER task 
+in the images.immatch package) before the Stokes parameter calculation is 
+done.  If the value is "yes" then the \fIregions\fR parameter must be set 
+to whichever part of the images contains a bright source.  If the entire 
+image is used for registration the results may be poor.  Generally it is 
+best to define a small box around a bright object when doing registration.
+.sp
+Registration is done for each waveplate position independently of the 
+others.
+.le
+.ls regions = "[*,*]"
+This parameter specifies an image section to be used for registration of the 
+individual waveplate images before the calculation of the Stokes parameters 
+is done, if the \fIregister\fR parameter is set to "yes".
+.le
+.ls fl_stair = yes
+This is a flag for whether a correction should be made for the channel to 
+channel offsets in the waveplate images.
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes the task use the logfile
+defined by \fImidir.logfile\fR.
+.le
+.ls verbose = yes
+Set this for logging to the screen as well as the log file.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error. 
+This parameter is always set by the task, and should not be modified by 
+the user.
+.le
+.ih
+DESCRIPTION
+This task reads an MPREPAREd polarimetry file and creates output Stokes 
+parameter images (the I, Q, and U maps for linear polarization) for each
+pair of NOD positions, nods A and B.  Using pairs of AB nod positions is 
+required to remove the telescope radiative offset.  It is assumed that 
+the observations are carried out in chop-nod mode with an ABBA nod pattern.
+.sp
+There is an option to register the images with the XREGISTER routine 
+before carrying out the transformation.  This is recommended if there is a 
+relatively bright object in the field.  If this is done, a box needs to be 
+defined around the object, with something like 10 pixels space on all sides. 
+The image section to use for registration is defined in the \fIregions\fR 
+parameter.  Generally using the entire image for registration does not produce 
+the best results, especially because of the possible presence of the negative 
+chop beam images on the detector when doing imaging polarimetry.  When the 
+registration is requested the pixel offsets are printed to the terminal.  
+These offsets should not be large.  Offsets that are significantly more than 
+1 pixel in x or in y are probably not correct.
+.sp
+The formulae used for the transformation are as follows, where the four 
+waveplate images at angles 0, 22.5, 45, and 67.5 degrees are denoted by 
+I00, I45, I90, and I135 respectively:
+.sp 
+U = I00 - I90
+.sp
+Q = I45 - I135
+.sp
+I = (I00 + I45 + I90 + I135)/2
+.sp
+It is assumed that the observations are taken in standard mode where the 
+waveplate is positioned at 0, 45, 45, 0, 22.5, 67.5, 67.5, and 22.5 degrees 
+within each NOD position.  When MPREPARE is applied to polarimetry 
+files for each NOD position there are eight extensions, containing an image 
+of dimension [320,240,3] analogous to an individual image for a NOD position 
+in normal chop-nod mode.  To make the Stokes parameter images for a NOD pair 
+the sixteen images from the two NODs are taken as a group.  First the analogous
+A and B position images are combined to remove the telescope radiative offset.
+One then has 8 images of the field, one for each of the eight waveplate 
+positions.  Then the pairs of images at each waveplate position are combined
+together, either by addition or averaging depending upon the \fIcombine\fR 
+parameter.  The pairs are combined with registration if the \fIfl_register\fR 
+flag is "yes", otherwise they are just combined directly.  If registration is 
+requested it is done using the XREGISTER routine.
+.sp
+In addition to the Stokes I, U, and Q images, the task calculates the 
+unpolarized image, the polarized image, the percent polarization, and 
+the polarization vector angle in degrees for each pixel.  There are seven 
+image extensions per AB node pair in the output file.  The additional 
+images are calculated by
+.sp
+  I_polarized = sqrt(U*U+Q*q)
+.sp
+  I_unpolarized = I - I_polarized
+.sp
+  percent polarization = I_polarized/I
+.sp 
+  angle of polarization = atan2(U/q)/2
+.sp
+If the \fIfl_mask\fR flag is set to "yes" then the individual waveplate images 
+will have the low level pixels masked out, so as to avoid getting absurd 
+polarization values for pixels that are just noise.  The masking is done via 
+the IMREPLACE task, and is applied to all pixels whose absolute count 
+is lower than a given threshold.  The threshold can be set in one of two ways. 
+If the \fInoise\fR parameter is greater than zero then this value is used 
+directly as the threshold.  If it is zero or negative then the task uses 
+the image statistics in a region of the I Stokes image, set by the 
+\fIblankarea\fR parameter, to estimate the noise.  It is crucial that this 
+region be devoid of real signal else the noise estimate, from the standard 
+deviation of the pixels in the specified region, will be unrealistically high. 
+Once the noise value has been estimated then this is used with the 
+\fIthreshold\fR value to set the masking value.  The \fIthreshold\fR value 
+is the desired minimum percent polarization value that can be detected with 
+good signal-to-noise ratio.  The signal-to-noise needed in the Stokes I  
+images must be 70.5 (on a per pixel basis) for the output polarization 
+accuracy to be 1%.  The S/N needed is assumed to vary as the inverse square 
+of the threshold value in percent.  Since the noise level has been estimated 
+from the Stokes I image, knowing the S/N threshold sets the threshold for 
+masking off points.  All pixels below the threshold (and therefore all 
+negative pixels in the image) are masked off in the U and Q images.
+.sp 
+Rather than masking the pixels when the individual Stokes images are 
+created, another method is to combine the Stokes images and calculate 
+the variance, and then use that to mask out pixels with poor S/N.  That 
+can be done from the output of the MIPSSTK task.
+.sp
+Since the threshold is to apply to the final combined images, the screening 
+value used in the task is set lower by a factor of the square-root of the 
+number of AB nod pairs.  The noise is calculated for each AB pair, so it 
+will vary some from image to image in the output.
+.sp
+If one specifies a noise level explicitly with the \fInoise\fR parameter, 
+this is applied to all images as they are assembled.
+.sp
+There is also an option to correct for the channel to channel offsets in the 
+raw images.  The detector is read out with 16 channels, each being a strip 
+20 x pixels wide.  There are generally small channel to channel offsets in 
+the images.  If the \fIfl_stair\fR parameter is set to "yes" then an attempt 
+is made to remove these offsets.  For each 20 pixel section in the x direction 
+the median pixel value is found and this value is then subtracted off of the 
+pixels in that section.  This will work if the target is small, so that it 
+does not disturb the median values from the different channels.  If the 
+target object is large and bright this "staircase" correction will fail 
+because the median pixel in each section will be dependent on how the target 
+and its negative images are seen on the detector.
+.ih
+EXAMPLE
+1. The following shows how one can apply this task to an image with 
+a threshold value set to 10 ADU.  This value would have to be 
+determined from examination of the raw images in the polarization 
+observation, or by stacking up the observation via the use of 
+MIPSTACK and MIPTRANS and then examining the resulting Stokes I image.
+.sp
+.nf
+    mi> mipstokes mN20050131S0056 noise=10.
+    MIPSTOKES 
+    MIPSTOKES --------------------------------------------------------------
+    MIPSTOKES Log opened at [Mon 13:22:26 12-Dec-2005]
+    MIPSTOKES 
+    MIPSTOKES --------------------
+    MIPSTOKES Input Parameters:
+    MIPSTOKES      inimages       = mN20050131S0056
+    MIPSTOKES      outimages      = 
+    MIPSTOKES      outpref        = z
+    MIPSTOKES      rawpath        = 
+    MIPSTOKES      frametype      = dif
+    MIPSTOKES      fl_mask        = yes
+    MIPSTOKES      noise          = 10.
+    MIPSTOKES      threshold      = 0.5
+    MIPSTOKES      blankarea      = [*,*]
+    MIPSTOKES      fl_register    = no
+    MIPSTOKES      regions        = [*,*]
+    MIPSTOKES      fl_stair       = yes
+    MIPSTOKES      logfile        = 
+    MIPSTOKES      verbose        = yes
+    MIPSTOKES --------------------
+    MIPSTOKES   mN20050131S0056 --> zmN20050131S0056.fits
+    MIPSTOKES Instrument is:michelle
+    MIPSTOKES Number of extensions is 32
+    Masking value is set to be 10.
+ 
+    tmp1497rd -> tmp1497rd  function: square
+    tmp2497sd -> tmp2497sd  function: square
+    tmp1497rd -> tmp1497rd  function: sqrt
+    tmp2497vd -> tmp2497vd  function: atan
+    Masking value is set to be 10.
+ 
+    tmp1497hf -> tmp1497hf  function: square
+    tmp2497if -> tmp2497if  function: square
+    tmp1497hf -> tmp1497hf  function: sqrt
+    tmp2497lf -> tmp2497lf  function: atan
+    tmpfinal497be -> zmN20050131S0056.fits
+    MIPSTOKES --------------------
+    MIPSTOKES Exit status: SUCCESS
+    MIPSTOKES Log closed at [Mon 13:22:30 12-Dec-2005]
+    MIPSTOKES --------------------------------------------------------------
+    MIPSTOKES 
+.fi
+.ih
+BUGS AND LIMITATIONS
+The registration does not always work, and even if it does it is often 
+sensitive to the chosen region, especially if the region is small.
+.ih
+SEE ALSO
+mipstack, images.immatch.xregister, imreplace, mipsstk, miptrans
+.endhelp

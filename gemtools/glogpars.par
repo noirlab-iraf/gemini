@@ -1,0 +1,10 @@
+# Copyright(c) 2004-2006 Association of Universities for Research in Astronomy, Inc.
+
+# Logging preferences
+
+logfile,s,h,"",,,"Logfile name"
+fl_stat_level,b,h,yes,,,"Enable status level logs"
+fl_tsk_level,b,h,yes,,,"Enable task level logs"
+fl_sci_level,b,h,yes,,,"Enable science level logs"
+fl_eng_level,b,h,yes,,,"Enable engineering level logs"
+fl_vis_level,b,h,yes,,,"Enable visual (readability) level logs"

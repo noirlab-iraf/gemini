@@ -1,0 +1,108 @@
+.help gfresponse November2011 gemini.gmos
+.ih
+NAME
+gfresponse -- Determine relative fiber throughputs for the GMOS IFU
+.ih
+USAGE   
+gfresponse inimage outimage
+.ih
+PARAMETERS
+.ls inimage
+Input GMOS MEF IFU image. Lists and wild cards are not supported.
+The image should have been processed with GFEXTRACT to extract the GMOS IFU 
+spectra.
+.le
+.ls outimage
+Output MEF file of relative fiber responses.
+.le
+.ls title = ""
+Image title for the science extensions.
+.le
+.ls skyimage = ""
+Extracted spectra from twilight sky observations to use for illumination
+correction.
+.le
+.ls fl_inter = no
+Interactively control the fit in the dispersion direction.
+.le
+.ls fl_fit = no
+Fit the final flat field with a smooth function in the dispersion direction.
+.le
+.ls function = "chebyshev" (spline1|spline3|legendre|chebyshev)
+Fitting function.
+.le
+.ls order = 7
+Order of the 1D fit in the dispersion direction.
+.le
+.ls sample = "*"
+The range of sample points to be used in the 1D fit.
+.le
+.ls sci_ext = "SCI"
+Name of the MEF extension containing the science data.
+.le
+.ls var_ext = "VAR"
+Name of the MEF extensions containing the variance frame (not currently used)
+.le
+.ls dq_ext = "DQ"
+Name of the MEF extensions containing the data quality array (not currently 
+used).
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes the task use the logfile
+defined by gmos.logfile.
+.le
+.ls verbose = yes
+Print actions to the screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error.
+This parameter is always set by the task, and should not be modified by
+the user.
+.le
+.ih 
+DESCRIPTION 
+
+GFRESPONSE takes the extracted spectra from a GMOS IFU flat and
+calculates the relative lenslet/fiber throughputs. The input file
+should be extracted spectra as produced by GFEXTRACT. 
+
+All the spectra in the input image are
+averaged in the direction perpendicular to the dispersion axis. The
+average is fitted with the defined \fIfunction\fR and \fIorder\fR.
+This can be done interactively. Finally, each spectrum is
+divided by this fit to produce a "response map" of relative
+lenslet/fiber throughputs.  This also produces a a flatfield for each
+fiber.
+
+A response map from a twilight flat, \fIskyimage\fR, can also be used
+to correct any illumination pattern in a GCAL lamp flat. First the
+sky spectra are divided by the response map from the lamp flat. The
+resulting spectra are averaged in the dispersion direction, giving the 
+ratio of sky to lamp response for each fiber. The lamp response map is then
+multiplied by this ratio to produce the output response map.
+
+It is also possible to smooth the final flat if \fIfl_fit\fR=yes.
+The parameters \fIfunction\fR and \fIorder\fR defines the fit.
+
+.ih
+EXAMPLES
+
+1. Determine the relative fiber response from extracted twilight spectra.
+
+.nf
+    cl> gfresponse ergN20010908S112 ergN20010908S112resp fl_inter- verb-
+.fi
+
+2. Use this response file to correct the illumination patter in a GCAL flat.
+
+.nf
+    cl> gfresponse lampflat.fits response.fits skyimage=skyresponse.fits
+.fi
+
+.ih
+BUGS AND LIMITATIONS
+Variance and data quality planes are not supported.
+.ih
+SEE ALSO
+gmosinfoifu, gfreduce, gfextract
+.endhelp

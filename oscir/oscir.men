@@ -1,0 +1,7 @@
+       ohead - Print header information for OSCIR images
+       oview - Quick view of select frames in OSCIR image
+ obackground - View and plot statistics of reference frames
+     oreduce - Reduce images from OSCIR
+       oflat - Derive flat field for OSCIR
+
+   oscirinfo - General help and information for the OSCIR package

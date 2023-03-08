@@ -1,0 +1,26 @@
+# Copyright(c) 2004-2009 Association of Universities for Research in Astronomy, Inc.
+
+# GEMARITH parameters
+operand1,s,a,,,,First Operand
+op,s,a,,,,"Operator (+,-,*,/)"
+operand2,s,a,,,,Second Operand
+result,f,a,,,,Output MEF name
+
+sci_ext,s,h,"SCI",,,Name of science extensions
+var_ext,s,h,"VAR",,,Name of variance extensions
+dq_ext,s,h,"DQ",,,Name of data quality extensions
+mdf_ext,s,h,"MDF",,,Name of MDF extension 
+fl_vardq,b,h,no,,,Propagate variance and data quality
+# parms mimexpr wants too
+dims,s,h,"default",,,Output image dimensions
+intype,s,h,"double",,,Inputs are cast to this type for calculation
+outtype,s,h,"default",,,Output image pixel datatype
+refim,s,h,"default",,,Reference image for wcs etc
+rangecheck,b,h,yes,,,Perform range checking
+verbose,b,h,yes,,,Print informative messages
+lastout,s,h,"",,,Last output image
+
+# gemlog parms
+logfile,s,h,"",,,"Logfile name"
+glogpars,pset,h,"glogpars",,,"Logging preferences"
+status,i,h,0,,,"Exit status (0=good)"

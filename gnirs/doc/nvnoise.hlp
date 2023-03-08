@@ -1,0 +1,118 @@
+.help nvnoise July2006 gemini.gnirs
+.ih
+NAME
+.nf
+nvnoise -- Remove vertical striping that arises from offest bias
+           levels between the 32 amplifiers in GNIRS (and NIRI)
+           data.  
+.fi
+.ih
+USAGE
+nvnoise inimages
+.ih
+PARAMETERS
+.ls inimages
+Raw or NSPREPARE'd (or NPREPARE'd) images and spectra from GNIRS (or NIRI).  
+Can be a list of images.  The images must be multi-extension FITS format.  
+The data in the primary header unit [0] and DQ plane are 
+propagated to the output files.  The individual file name can also be 
+given on on separate lines of a list file, given as 
+\fIinimages\fR=@listfile, where listfile is the file name. 
+.le 
+.ls outimages= ""
+Output multi-extension FITS images. Can be a list of images. 
+\fIoutimages\fR has preference over \fIoutprefix\fR.
+.le
+.ls outprefix = "v"
+Prefix for output images. Names of output images are the
+names of the input images with a prefix attached.
+\fIoutprefix\fR is used if \fIoutimages\fR="".
+.le
+.ls statsec = "[20:1000,20:1000]"
+Region of the input images used for computing the offset statistics. 
+\fIstatsec\fR must include some area in each of the four quadrants.  NVNOISE
+will work best if \fIstatsec\fR is mostly at the same and lowest illumination
+level possible for the data.
+.le
+.ls stattype = "mode"
+Statistics type used by IMSTAT to determine the constant
+value to subtract from each amplifier's output.
+.le
+.ls sigma = 3.
+Sigma clipping limit used by IMSTAT to determine the constant
+value to subtract from each amplifier's output.
+.le
+.ls nclip = 5
+Number of interations used by IMSTAT.
+.le
+.ls fl_boundary = no
+If set to 'yes', NVNOISE will try to remove any quadrant offsets by adding or
+subtracting constants to each quadrant such that the differences between
+quadrants is minimized and the net offset equal to zero.  This has only been
+tested on NIRI data.
+.le 
+.ls logfile = ""
+Name of logfile.
+.le
+.ls verbose = yes
+Print actions to the screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with
+an error.  This parameter is always set, and should
+not be modified by the user.
+.le
+.ih
+DESCRIPTION
+.sp
+NVNOISE is used to remove the vertical striping and quadrant
+bias offsets sometimes seen in raw GNIRS and NIRI images.
+Input images must be multi-extension FITS files.  Input files
+can be raw images or ones previously run through *PREPARE.
+.sp
+NVNOISE determines the background level in all the pixels read
+out through each of the 32 amplifiers, rejecting bad pixels and
+pixels with signal.  The statistics are computed using IMSTAT,
+iteratively restricting the fit by \fIsigma\fR. The mean of
+all the values from each amplifier is subtracted so that the
+overall flux level in the frame remains unchanged.  The 
+mean-adjusted values for each amplifier are subtracted from
+the input image to form the output frame.  The values used
+are written by quadrant to the \fIlogfile\fR.
+.sp
+Note that NVNOISE can be run on raw frames, prior to being
+passed to NSPREPARE or NPREPARE.  It can also be used after
+NSPREPARE.  If the variance plane already exists, NVNOISE
+will regenerate it after removing the vertical pattern.
+.sp
+NVNOISE is designed to work on GNIRS cross-dispersed
+spectroscopic frames that have most pixels unilluminated.  
+It also works on NIRI imaging frames, but those images
+should be sky-subtracted and flattened first.  
+.sp
+NVNOISE can be run with a \fIstatsec\fR set to avoid bad 
+areas or to restrict the offset computation to a particular
+region.  The offsets are applied to the whole array.
+.sp
+NVNOISE will only work properly on subarrays that are 
+centered on the array.  These are the only subarrays that are
+currently supported.
+.ih
+EXAMPLES
+1. Fix the vertical pattern noise in a set of images.
+.sp
+.nf
+   gn> nvnoise S*
+.fi
+.sp
+or
+.sp
+.nf
+   gn> nvnoise @rawfiles
+.fi
+.ih
+BUGS AND LIMITATIONS
+.ih
+SEE ALSO
+imstat
+.endhelp

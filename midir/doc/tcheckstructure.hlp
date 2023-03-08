@@ -1,0 +1,78 @@
+.help tcheckstructure November2011 gemini.midir
+.ih
+NAME
+tcheckstructure -- Checks the structure of a T-ReCS file
+.ih
+USAGE
+tcheckstructure image
+.ih
+PARAMETERS
+.ls image
+The name of the image to be checked.  The task can only work on one image 
+at a time.  One can specify the full path to an image.  This is in fact 
+required for images in other directories, since one cannot specify a path
+to the image.
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes the task use the logfile
+defined by \fImidir.logfile\fR.
+.le
+.ls verbose = no
+Print actions to the screen.
+.le
+.ls modeflag = 0
+An output integer value that indicates the mode of the T-ReCS observation.  
+In the case of raw T-ReCS files the value is set to 1 for CHOP-NOD 
+observations, 2 for CHOP observations, 3 for NOD observations, 
+and 4 for STARE mode observations.  If the file is not a T-ReCS file 
+or the mode of observation cannot be determined, this value is set to 0.
+.sp
+In addition, if the file appears to be output from TPREPARE this 
+value is increased by 10 (i.e. 11 for CHOP-NOD, 12 for CHOP, etc).
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error. 
+This parameter is always set by the task, and should not be modified by 
+the user.
+.le
+.ih
+DESCRIPTION
+This is a utility routine which examines the structure of a T-ReCS file.  
+It is intended to insure that the file has the proper physical structure: 
+the correct number of extensions, and the correct image dimensions in 
+the extensions.
+.sp
+The task reads the primary header and attempts to determine how many image 
+extensions the file should have based upon the values of keywords such as 
+SAVESETS, NNODS, and NNODSETS.  It then counts the actual 
+number of extensions and compares this to the expected value.  If they do not 
+match, the task exits with an error message.
+.sp
+If the expected number of extensions is found, then the task looks at the 
+image dimensions of all the extensions to make sure that they are correct 
+for the mode of the observation.  It will flag any instances of "wrong" image 
+dimensions.
+.sp
+Depending upon whether any problems are detected, the task sets the 
+\fIstatus\fR value to either 1 (in case of errors) or 0 (in the case 
+where the file seems to be correct).  It is this value and the \fImodeflag\fR 
+value which other T-ReCS tasks look at after TCHECKSTRUCTURE has been 
+called.
+.ih
+EXAMPLE
+1. The way the task is used is:
+.sp
+.nf
+    cl> tcheckstructure S2003B0909S0012 
+.fi
+.sp
+One can then examine the exit status or the mode of the observation by 
+querying \fItcheckstructure.status\fR and \fItcheckstructure.modeflag\fR.  
+Entries are also written to the logfile, and to the terminal if the 
+\fIverbose\fR flag is set.
+.ih
+BUGS AND LIMITATIONS
+.ih
+SEE ALSO
+tbackground, tview, tprepare
+.endhelp

@@ -1,0 +1,203 @@
+.help nsstack November2011 gemini.gnirs
+.ih
+NAME
+nsstack -- Combine images by nod position.
+.ih
+USAGE
+nsstack inimages
+.ih
+PARAMETERS
+.ls inimages
+Input images to combine. The frames can be entered as a comma
+separated list or from a file using the @ character. If any of the
+files does not exist, the task will exit.
+.le
+.ls tolerance = 0.5
+Images separated by a distance smaller than \fItolerance\fR
+are combined.  The separations are calculated from the world-coordinates
+system information in the headers. The tolerance is in units of arcseconds.
+.le
+.ls combtype = "average" (average|median)
+Type of combination performed using GEMCOMBINE.
+.le
+.ls rejtype = "sigclip" (none|minmax|ccdclip|crreject|sigclip|avsigclip|pclip)
+Rejection algorithm used when combining the frames. See
+GEMCOMBINE for more information.
+.le
+.ls masktype = "goodvalue"  (none|goodvalue)
+Type of pixel masking to use. See GEMCOMBINE.
+.le
+.ls maskvalue = 0.
+Mask value used with the \fImasktype\fR parameter.  See GEMCOMBINE.
+.le
+.ls statsec = "[*,*]"
+Section in frames from where the statistics for scaling, weighting, and
+normalizing are computed. If no section is given, the statistics in the entire 
+image are computed. 
+.le
+.ls stacksuffix = "_stack"
+The name of the output combined frame (the stack) is created from the name of
+the first frame with this suffix \fIstacksuffix\fR. 
+.le
+.ls dispaxis = 1
+The dispersion axis, if not present in the image headers (see 
+\fIkey_dispaxis\fR below).
+.le
+.ls pixscale = 1.
+The pixel scale is taken from the header of the images. If it is not in the
+header under the name \fIkey_pixscale\fR (see below), its value is taken from
+\fIpixscale\fR. The units are arcsec/pixel.
+.le
+.ls scale = "none" (none|mode|median|mean|exposure|!<keyword>)
+Input frames can be scaled before combining. See GEMCOMBINE.
+.le
+.ls zero = "none" (none|mode|median|mean|!<keyword>)
+Input frames can be shifted in intensity before combining. See GEMCOMBINE.
+.le
+.ls weight = "none" (none|mode|median|mean|exposure|!<keyword>)
+Weights to be applied during the final combination. See GEMCOMBINE.
+.le
+.ls lthreshold = INDEF, hthreshold = INDEF
+Low  and  high  thresholds  to  be  applied to the input pixels.
+This is done before scaling, rejecting, and  combining.   If
+INDEF the thresholds are not used. See GEMCOMBINE.
+.le
+.ls  nlow = 1,  nhigh = 1 (minmax)
+The  number  of  low  and  high  pixels  to  be  rejected by the
+"minmax" algorithm. See GEMCOMBINE.
+.le
+.ls nkeep = 0
+The minimum number of pixels to retain or the maximum number  to
+reject  when  using  the clipping algorithms (ccdclip, crreject,
+sigclip, avsigclip, or pclip). See GEMCOMBINE.
+.le
+.ls mclip = yes (ccdclip, crreject, sigclip, avsigclip)
+Use the median as the estimate for  the  true  intensity  rather
+than  the  average  with  high  and  low  values excluded in the
+"ccdclip", "crreject", "sigclip", and "avsigclip" algorithms? See GEMCOMBINE.
+.le
+.ls lsigma = 5., hsigma = 5. (ccdclip, crreject, sigclip, avsigclip, pclip)
+Low  and  high  sigma  clipping  factors  for   the   "ccdclip", 
+"crreject", "sigclip", "avsigclip", and "pclip" algorithms. See GEMCOMBINE.
+.le
+.ls ron = 0.0, gain = 1.0 
+CCD  readout noise in electrons and gain in electrons/DN.  These
+parameters  are  used  with   the   "ccdclip"   and   "crreject" 
+algorithms.   They are used only if values do not appear in the
+data headers.
+.le
+.ls snoise = "0.0" (ccdclip, crreject)
+Sensitivity noise as a fraction. See GEMCOMBINE.
+.le
+.ls sigscale = 0.1 (ccdclip, crreject, sigclip, avsigclip)
+This parameter determines when poisson corrections are  made  to
+the  computation  of  a  sigma  for  images with different scale
+factors. See GEMCOMBINE.
+.le
+.ls pclip = -0.5 (pclip)
+Percentile clipping algorithm parameter. See GEMCOMBINE.
+.le
+.ls grow = 0.0
+Radius in pixels for additional  pixel  to  be  rejected  in  an
+image   with   a  rejected  pixel  from  one  of  the  rejection 
+algorithms. See GEMCOMBINE.
+.le
+.ls nrejfile = ""
+List of output file(s) with number of rejected pixels for each science 
+extension within a group.  
+This is intended for debugging/investigating the rejection behaviour.
+The extension indices within each file are sequentially numbered from 
+zero and correspond to the output science frames for that group.  
+There are no extension names or versions and the file does not 
+contain a PHU.
+For each group of images combined a name is taken from the list.  If
+no more names are available, the task will print a warning and continue,
+ without generating further files.  See \fIimcombine.nrejmasks\fR.
+.le
+.ls fl_vardq = yes
+Make variance and data quality planes?
+.le
+.ls logfile = ""
+Name of the logfile.
+.le
+.ls verbose = yes
+Print actions to screen.
+.le
+.ls debug = no
+Print detailed actions to screen.
+.le
+.ls force = no
+The GEMOFFSETLIST task may not work on versions of IRAF before 2.12.2a.
+Setting this flag ignores a test for those versions when that task is
+called.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an
+error. This parameter is always set by the task, and should
+not be modified by the user.
+.le 
+
+.ce
+Parameters from NSHEADERS
+.sp
+The following values are read from gnirs.nsheaders.  NSSTACK itself
+does not use those values, rather they are used the subtask NSCHELPER
+which does the actual work.
+.ls key_ron
+Header keyword for read noise (e-)
+.le
+.ls key_gain
+Header keyword for gain (e-/ADU)
+.le
+.ls key_exptime 
+Header keyword for exposure time
+.le
+.ls key_xoff
+Header keyword for storing gemoffsetlist x offset (in arcsec)
+.le
+.ls key_yoff
+Header keyword for storing gemoffsetlist y offset (in arcsec)
+.le
+.ls sci_ext
+Name of science extension
+.le
+.ls var_ext
+Name of variance extension
+.le
+.ls dq_ext
+Name of data quality extension
+.le
+.ih
+DESCRIPTION
+This task groups frames taken at the "same" position and creates as
+many output frames (stacks) as there are offsets. The offsets are
+calculated from the world-coordinates in the primary header unit.
+.sp
+The coordinates of the first file in the list of input frames are
+taken from the header. The coordinates of the rest of the frames are
+compared to it and every frame within a distance smaller than
+\fItolerance\fR is considered the same location and combined.
+.sp
+Two lists are created in the first pass: one that contains frames in
+the stack list, i.e. "same" position, and a complementary list,
+i.e. those that do not fall within \fItolerance\fR arcsec of the first
+frame.  All frames in the stack list are combined using
+GEMCOMBINE. The next steps take the first frame in the complementary
+list to make additional lists. This process continues until there are
+no more frames in the complementary list.
+.sp
+The parameters to control the type of combination and rejection can be
+set when calling NSSTACK.
+.ih
+EXAMPLE
+1. Group and combine frames in input.lst that are closer than 3 arcsec:
+.sp
+.nf
+   ni> nsstack @input.lst 3
+.fi
+.ih
+BUGS AND LIMITATIONS
+.ih
+SEE ALSO
+gemoffsetlist, gemcombine, nschelper
+.endhelp

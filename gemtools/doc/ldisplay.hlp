@@ -1,0 +1,154 @@
+.help ldisplay December2012 gemini.gemtools
+.ih
+NAME
+ldisplay -- Display hexagonal geometry IFU's 
+.ih
+USAGE
+ldisplay input
+.ih
+PARAMETERS
+.ls input = "ldispdemo$spiral.ms"
+Input IFU data.  This is a multispec spectral file, a text file containing
+flux values, or a raw 2D fibre image.  For text file input the spectral
+plotting options are not available.  For raw 2D fibre image input the quick
+look parameters are used to create a quick extraction of the fibre data.
+.le
+.ls band = 1
+Band number to use in input multispec file.
+.le
+
+.ls output = "ldisplay"
+Temporary lens array image to be created.  If this image exists, say from
+a previous execution, it will be replaced.
+.le
+.ls siz = 512 (128-2048)
+Size of out lens array image.
+.le
+.ls title = "Lens array output"
+Title for the output lens array image.
+.le
+
+.ls ldispdir = "ldispdemo$"
+Directory for configuration files.
+.le
+.ls lconf = "spiral.cfg"
+Configuration file containing lens array geometry.
+.le
+.ls deadfibs = ""
+Configuration file with locations of dead fibres.
+.le
+.ls lscale = 0.7
+Centre to centre (arcsec) lenslet distance.
+.le
+.ls xflip = no
+Flip lens array image about the x-axis?"
+.le
+.ls yflip = no
+Flip lens array image about the y-axis?"
+.le
+.ls axisflip = no
+Flip the lens array image about the x=y axis?
+.le
+
+.ls disqu = yes
+Automatically display the lens array image?
+.le
+.ls display = "display frame=1 image="
+Command to display lens array image.
+.le
+.ls imagecur = ""
+Image cursor input.  If no value is given the image display cursor
+is used otherwise the specified file is read.
+.le
+.ls device = "stdgraph"
+Graphics device (usually STDGRAPH)
+.le
+.ls graphcur = ""
+Graphics cursor input.  If no value is given the graphics cursor
+is used otherwise the specified file is read.
+.le
+
+The following parameters perform a quick extraction of fibre data from
+a raw two dimensional exposure.
+.ls quick = no
+Quick reduction of input fibre file?
+.le
+.ls flatfield = ""
+Optional raw flat-field fibre file.
+.le
+.ls qfibres = 100
+Number of fibres in flat field.
+.le
+.ls wfibres = 3
+Width in pixels of single fibre.
+.le
+.ls firfib = 33
+Row number of first fibre.
+.le
+.ls lasfib = 251
+Row number of last fibre.
+.le
+.ls dispaxis = 1
+Dispersion axis of image.
+.le
+.ih
+DESCRIPTION
+Using a user-specified configuration file, a hexagonal array is drawn and
+output to an image. The intensities of individual lenses are specified by
+some determined quantity from an input multispec file, or in quick look
+mode, with a data image or/and a flat field image.
+
+The aim is to interact with the user and easily produce plots of emission
+line strengths or whatever.
+
+.ih
+EXAMPLES
+1.  Display and interact with the demonstration data.  This data was
+take with the SPIRAL IFU system.
+
+.nf
+    cl> ldisplay ldispdemo$spiral.ms ldisp=ldispdemo$ lconf=spiral.cfg
+    Found 37 lens positions in the file 'ldispdemo$spiral.cfg' 
+    img_setup: I've found a file called 'ldisplay'.
+    img_setup: I am overwriting new image on that.
+
+    img_setup: Making the new image...
+    img_setup: Created new file 'ldisplay' with size [512,512]
+    displhex: Executing the cl command:'display frame=1 image=ldisplay'
+    z1=0. z2=106292.9
+
+    [IFU hexagonal lenslet array is displayed and the image
+    cursor is
+     enabled for input.  Type '?' to get a short listing of
+     image cursor commands.  Move the image cursor to a lenslet
+     and type ' ' (space bar).  A spectrum is shown.  Type 'c'
+     in the image display on the lenslet.  The graphics cursor
+     is now enabled.  Type 'c' at two points in the spectrum.
+     The flux between those points for each lenslet spectrum is
+     summed and a new image is displayed.  Exit with 'q'.]
+.fi
+
+2.  The demonstration data also includes a text file with fluxes and
+a configuration file for COHSI.
+
+.nf
+    cl> ldisplay ldispdemo$cohsi_test.dat ldisp=ldispdemo$ lconf=cohsi.cfg
+.fi
+.ih
+REFERENCES
+This task was written as part of a thesis project.  The thesis may be
+found at
+
+http://fromage.as.arizona.edu/~mak/work/thesis/
+
+Section 6 includes some discussion about how LDISPLAY works, especially
+the quick look mode.
+.ih
+CREDITS
+This task was originally written by Matthew Kenworthy as part of his
+thesis work.  At this stage only minor configuration changes and repackaging
+have been performed.
+
+.ih
+SEE ALSO
+.endhelp

@@ -1,0 +1,149 @@
+.help gmosinfoimag June2012 gemini.gmos
+.ih
+NAME
+gmosinfoimag -- Description of reduction scripts for GMOS imaging data
+.ih
+USAGE
+gmosinfoimag
+.ih
+DESCRIPTION
+
+The GMOS package contains tasks for processing GMOS imaging, 
+long-slit, multi-object, and integral field spectroscopy data. 
+The specifics of the individual tasks can 
+be found in their help files. This document describes the common 
+features of the imaging tasks.
+
+The tasks are designed to provide a fairly complete and flexible
+reduction for the purpose of assessing data quality at the time
+of observation.  Real-time reductions may not be optimal for a 
+particular science application.  The GMOS package scripts can be
+optimized for a particular application using the hidden parameters to
+achieve the best possible results.
+
+The tasks produce logfiles of the performed processing steps.
+The name of the logfile may be set in each individual task, or at
+the package level by setting \fIgmos.logfile\fR.
+
+The tasks add header keywords to the output images. These header
+keywords contain information about the performed processing steps
+and the values of the critical parameters that were used.
+
+All GMOS images are written as multi-extension FITS (MEF) files.
+Raw data can have up to six unnamed extensions.  
+Most of the header information is written to the primary header unit [0] 
+(PHU).  After being processed with GPREPARE, GMOS data extensions will be 
+named as described in GMOSINFO.  
+
+It is recommended to use \fIimtype\fR="fits". This is set automatically
+when loading the GEMINI package.
+
+.ih
+SHORT DESCRIPTIONS OF THE IMAGING TASKS
+.ls GIFLAT - Derive imaging flat field.
+GIFLAT is used for deriving normalized flat fields for the GMOS 
+imaging data. The input images are
+calibration unit (GCAL) flat fields, twilight flats, or dome flats.
+The output images are the normalized flat field.  
+If the input files are raw, GIFLAT calls GPREPARE to update the
+headers and GIREDUCE to trim input images, subtract the overscan 
+level, subtract the bias image and create variance and data quality 
+frames. The images are also multiplied with the gains.
+GIFLAT uses GEMTOOLS.GEMCOMBINE to combine the flat fields. 
+.le
+.ls GIREDUCE - Reduce GMOS imaging data 
+GIREDUCE is used to trim, subtract overscan level, subtract bias image,
+and subtract (scaled) dark image,
+and flat field correct the science data.  
+Any subset of these reductions may be chosen by setting the flags
+of the task accordingly.
+After processing with GIREDUCE the images have
+been multiplied with the gains and the count levels in the output images 
+are in units of electrons.
+GIREDUCE creates variance and data quality planes if requested. Variance
+frames based on Poisson statistics are only created if bias subtracting.
+.le
+.ls GIFRINGE - Derive fringe frame for GMOS images
+GIFRINGE is used to create fringe frames for GMOS imaging data.
+Fringing is significant for i' and z' imaging from both GMOS-N and
+GMOS-S. GIFRINGE may also be used to create scattered light frames.
+.le
+.ls GIRMFRINGE - Subtract fringe frame from GMOS images
+GIRMFRINGE is used to subtract off a fringe frame created by
+GIFRINGE. Scaling of thee fringe frame is possible.
+.le
+.ls GMOSAIC - Mosaic the 3 GMOS CCDs into one image
+GMOSAIC will create MEF file with a single pixel extension that 
+contains the a mosaic of the 3 CCDs. GMOSAIC correctly accounts 
+for the gaps between the CCDs.
+.ih
+TYPICAL REDUCTIONS
+For typical reductions the user will need appropriate bias, 
+dark, and flat field images, and the science image.
+A fringe frame (or scattered light frame) may be created
+from the science data or from observations of a blank field.
+
+1. Use GPREPARE to update the raw data headers for the 
+reductions.  The other tasks will
+call GPREPARE as needed if the data has not been GPREPAREd.
+
+2. Use GBIAS to create a bias image.
+It is recommended to use \fIfl_over\fR=yes and subtract the overscan level.
+
+3. Use GIFLAT to derive normalized flat fields.
+For twilight flats, the parameters may need adjusting to correctly
+clean the images for signal from stars.
+
+4. Use GIREDUCE to trim the images, subtract the overscan level, 
+subtract the bias image,
+subtract the scaled dark image and divide by the flat field.
+The dark current for GMOS is low enough that 
+subtraction of the dark image is normally not needed, i.e.,
+it is recommended to use \fIfl_dark\fR=no.
+
+5. If needed use GIFRINGE to create a fringe frame, or scattered
+light frame. Use GIRMFRINGE to subtract the fringe frame from
+the science data.
+
+6. Use GMOSAIC to create a mosaic of the 3 GMOS CCDs into one image.
+
+.ih
+WHAT TO DO NEXT
+The processed images may be co-added with the task GEMTOOLS.IMCOADD.
+Photometry may be derived with any suitable photometry package.
+Images processed to the point of mosaicing with GMOSAIC may be used
+for mask designs using the GMOS Mask Making Software. Dithered observations
+may be co-added with GEMTOOLS.IMCOADD and then used for mask design.
+Further information about the GMOS Mask Making is available at
+.nf
+    http://www.gemini.edu/sciops/instruments/gmos/gmosMOS.html
+.fi
+and by following links on that page.
+
+.ih
+REDUCTION EXAMPLE
+An example reduction script is available, see GMOSEXAMPLES.
+
+.ih
+BUGS AND LIMITATIONS
+The tasks in the GMOS package have been tested with three and 
+six extension MEF files. 
+
+The tasks in the GMOS package are designed to operate on MEF FITS
+images that have been processed using GPREPARE.  GPREPARE will not
+run on data from instruments other than GMOS.  The GMOS tasks will
+not run on simple FITS files.
+
+Input image names should in general not contain directory paths as not
+all tasks have been tested in this mode.
+
+Improvements to the (previously semi-functional) variance and
+data quality propagation in the GMOS package have undergone limited
+testing; the accuracy of the results should still be verified at
+each step by the scientist, particularly for spectroscopic data
+reduction tasks.
+.ih
+SEE ALSO
+gprepare, giflat, gifringe, girmfringe, gireduce, gbias, gmosaic, gmosinfo, 
+gmosexamples, imcoadd
+.endhelp

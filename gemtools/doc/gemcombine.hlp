@@ -1,0 +1,204 @@
+.help gemcombine May2013 gemini.gemtools
+.ih
+NAME
+gemcombine -- Combine MEF files by extension
+.ih
+USAGE
+gemcombine input output
+.ih
+PARAMETERS
+.ls input
+List of MEF images to combine.
+.le
+.ls output
+Output MEF image.
+.le
+.ls title = ""
+Title for output image.
+.le
+.ls combine = "average" (average|median)
+Type of combining operation performed on the final set of pixels (after
+offsetting, masking, thresholding, and rejection).  The choices are
+"average" or "median".  The median uses the average of the two central
+values when the number of pixels is even.
+.le
+.ls reject = "avsigclip" (none|minmax|ccdclip|crreject|sigclip|avsigclip|pclip)
+Type of rejection operation performed on the pixels remaining after offsetting,
+masking and thresholding.  The algorithms are described in the help for 
+IMCOMBINE.
+.fi
+.le
+.ls offsets = "none" (none|wcs|grid|<filename>)
+Integer offsets to add to each image axis.
+.le
+.ls masktype = "none" (none|goodvalue)
+Type of pixel masking to use.  Note that not all IMCOMBINE options are
+currently available.  See the IMCOMBINE help page for more details.
+.le
+.ls maskvalue = 0.
+Mask value to use with the \fImasktype\fR parameter.  See the IMCOMBINE help
+page for a complete description.
+.le
+.ls scale = "none" (none|mode|median|mean|exposure|@<file>|!<keyword>)
+Multiplicative image scaling to be applied.
+.le
+.ls zero = "none" (none|mode|median|mean|@<file>|!<keyword>)
+Additive zero level image shifts to be applied.  
+.le
+.ls weight = "none" (none|mode|median|mean|exposure|@<file>|!<keyword>)
+Weights to be applied during the final averaging.  
+.le
+.ls statsec = "[*,*]"
+Section of images to use in computing image statistics for scaling,
+weighting, and normalizing.  If no section is given then the entire region of 
+the input is sampled (for efficiency the images are sampled if they are big 
+enough). Allowed syntax, i.e., standard and non-standard IRAF syntax, can be
+found in the help for GEMSECCHK.
+.le
+.ls  expname = "EXPTIME"
+Image header keyword to be used with the exposure scaling and weighting
+options.
+.le
+
+.ce
+Algorithm Parameters
+.ls lthreshold = INDEF, hthreshold = INDEF
+Low and high thresholds to be applied to the input pixels.  This is done
+before any scaling, rejection, and combining.  If INDEF the thresholds
+are not used.
+.le
+.ls nlow = 1,  nhigh = 1 (minmax)
+The number of low and high pixels to be rejected by the "minmax" algorithm.
+.le
+.ls nkeep = 1
+The minimum number of pixels to retain or the maximum number to reject
+when using the clipping algorithms (ccdclip, crreject, sigclip,
+avsigclip, or pclip).  
+.le
+.ls mclip = yes (ccdclip, crreject, sigclip, avsigclip)
+Use the median as the estimate for the true intensity rather than the
+average with high and low values excluded in the "ccdclip", "crreject",
+"sigclip", and "avsigclip" algorithms?  
+.le
+.ls lsigma = 3., hsigma = 3. (ccdclip, crreject, sigclip, avsigclip, pclip)
+Low and high sigma clipping factors for the "ccdclip", "crreject", "sigclip",
+"avsigclip", and "pclip" algorithms.  
+.le
+.ls key_ron = "RDNOISE", key_gain = "GAIN", ron = 0.0, gain = 1.0 
+CCD readout noise in electrons and gain in electrons/DN.  
+These parameters are used with the "ccdclip" and "crreject"
+algorithms.  \fIron\fR and \fIgain\fR are only used if the keywords
+\fIkey_ron\fR and \fIkey_gain\fR are set to "".  
+.le
+.ls snoise = "0.0" (ccdclip, crreject)
+Sensitivity noise as a fraction. 
+.le
+.ls sigscale = 0.1 (ccdclip, crreject, sigclip, avsigclip)
+This parameter determines when poisson corrections are made to the
+computation of a sigma for images with different scale factors. 
+.le
+.ls pclip = -0.5 (pclip)
+Percentile clipping algorithm parameter.  
+.le
+.ls grow = 0.0
+Radius in pixels for additional pixel to be rejected in an image with a
+rejected pixel from one of the rejection algorithms.  
+.le
+
+.ls bpmfile = ""
+Name of bad pixel mask file.
+.le
+.ls nrejfile = ""
+Name of output file with number of rejected pixels for each science 
+extension.
+This is intended for debugging/investigating the rejection behaviour.
+The extension indices are sequentially numbered from zero - there are
+no extension names or versions and the file does not contain a PHU.
+See \fIimcombine.nrejmasks\fR.
+.le
+.ls sci_ext = "SCI"
+Name(s) or number(s) of the science extensions.  This can be a list.  If
+the MEFs use extension versions, then just give the extension name.
+.le
+.ls var_ext = "VAR"
+Name(s) or number(s) of the variance extensions. This can be a list.  If
+the MEFs use extension versions, then just give the extension name.
+.le
+.ls dq_ext = "DQ"
+Name(s) or number(s) of the data quality extensions. This can be a list.  If
+the MEFs use extension versions, then just give the extension name.
+.le
+.ls fl_vardq = no
+Make variance and data quality planes?
+.le
+.ls logfile = "gemcombine.log"
+Name of log file.
+.le
+.ls fl_dqprop = no
+Propagate all DQ values?
+.le
+.ls verbose = yes
+Verbose output?
+.le
+.ls status = 0
+Exit status.  Equal to 0 for proper completion, greater than 0 if an error 
+occurred.
+.le
+.ih 
+DESCRIPTION 
+
+This task combines MEF images, extension by extension, using
+IMCOMBINE.  If the input images have multiple science extensions
+(e.g. [SCI,1],[SCI,2],...) then all the extensions of a given version
+number are combined and put in the output extension of that same
+number. If the extension names do not use extension version numbers,
+then lists of science, variance, and data quality extensions can be
+given (e.g. SCI1,SCI2,SCI3).  There must be the same number of
+extensions in each list.  If the input images have data quality (DQ)
+planes, then the science planes are combined with the DQ planes
+serving as bad pixel masks.  If the images do not have DQ planes and a
+bad pixel mask is given, then that is used.
+
+The output image is also a MEF file. If \fIfl_vardq\fR=yes, then the sigma
+image from IMCOMBINE is squared to make the output variance plane. If
+\fIfl_dqprop\fR=yes, then the DQ values from all the input images are
+propagated to the final DQ plane using bit-wise arithmetic, otherwise
+the output mask file from IMCOMBINE is used for the final DQ plane.
+
+Note that, although this routine calls IMCOMBINE, it does not produce
+identical results.  In particular, any DQ information available in the
+input images is used to exclude pixels (even when \fIreject\fR=none)
+and the VAR data are derived from the variation in the SCI data, not
+from the input VAR frames.
+.ih
+EXAMPLES
+.sp
+1.  Average a list of raw NIRI darks.
+.sp
+.nf
+        cl> gemcombine @dark5s.lis Dark5.niri.fits bpmfile=bpmniri.pl \
+        >>> title="Dark 5s"
+.fi
+.sp
+2.  Median some nprepared images and propagate the DQ planes.
+.sp
+.nf
+        cl> gemcombine n*.fits medsky.fits combine=median fl_dqprop+
+.fi
+.sp
+3.  Average GSREDUCEd spectra to improve the signal-to-noise or remove
+cosmic rays.
+.sp
+.nf
+        cl> gemcombine gsN20020508S0237,gsN20020508S0238 \
+        >>> gsN20020508S0237_avg
+.fi
+.ih
+REVISIONS
+.ih
+BUGS AND LIMITATIONS
+The input images must be MEF files.
+.ih
+SEE ALSO
+imcombine
+.endhelp

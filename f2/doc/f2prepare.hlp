@@ -1,0 +1,320 @@
+.help f2prepare October2013 gemini.f2
+.ih
+NAME
+f2prepare -- Prepare raw FLAMINGOS-2 data for reduction
+.ih
+USAGE
+f2prepare inimages
+.ih
+PARAMETERS
+.ls inimages
+File names of the raw FLAMINGOS-2 data to prepare. \fIinimages\fR may be 
+given as a comma separated list or on separate lines of a list file, given as 
+\fIinimages\fR=@listinfile, where listinfile is the file name. Wildcards are 
+also supported. The file names may include the directory path. The raw data 
+must be multi-extension FITS (MEF) files with only a single science extension 
+in extension [1] (raw FLAMINGOS-2 data are in this form already, but 
+extensions are unnamed). The data in the primary header unit (PHU) [0] are 
+propagated to the output file. 
+.le 
+.ls rawpath = ""
+The path to the directory where the \fIinimages\fR are located. This parameter 
+may be set if the raw data are not located in the current working directory or 
+if a path was not specified as part of \fIinimages\fR. \fIrawpath\fR allows 
+F2PREPARE to be run in a new, empty directory, copying the data required from 
+an archive directory.
+.le
+.ls outimages= ""
+A list of output MEF image names. The list must contain the same number of 
+file names as in \fIinimages\fR. \fIoutimages\fR has preference over 
+\fIoutprefix\fR.
+.le
+.ls outprefix = "f"
+The prefix for the output images. If \fIoutimages\fR is not given, this 
+parameter is used to prefix the names of input images to create the names of 
+the output images.
+.le 
+.ls bpm = ""
+The input bad pixel mask file, which is used to flag bad pixels in the data 
+quality extension (if \fIfl_vardq\fR = yes).
+.le
+.ls fl_vardq = yes
+Should variance and data quality extensions be generated? Other tasks in the 
+Gemini package attempt to maintain these values. They appear as FITS 
+extensions with the names VAR and DQ.
+.le
+.ls fl_correct = no
+Correct for non-linearity in the data? This uses the task irred.irlincor and 
+the coefficients defined in \fIarraytable\fR (not yet implemented).
+.le
+.ls fl_saturated = yes, fl_nonlinear = yes
+Flag saturated and non-linear pixels in DQ extension (if \fIfl_vardq\fR = yes)?
+.le
+.ls arraytable = "f2$data/f2array.fits"
+The FITS look-up table that contains, for a given detector ID and number of
+non-destructive read pairs, the following array related characteristics: read
+noise, gain, well depth, linear limit, coefficients for non-linearity
+correction (coeff1, coeff2, coeff3) and non-linear limit.
+
+The number of non-destructive read pairs is determined using 
+\fInsheaders.key_lnrs\fR.
+.le
+.ls fl_addmdf = yes
+Attach a Mask Definition File (MDF) to the output images? If \fIfl_addmdf\fR = 
+yes, the task will look for the MDF given either by the keyword \fIkey_mdf\fR 
+or by the MDF defined in \fImdffile\fR. The task will first check the current 
+working directory for the requested MDF and then check the directory defined 
+by \fImdfdir\fR. F2PREPARE will not attach an MDF to data that is not MOS 
+data. MOS data should be processed with \fIfl_addmdf\fR = yes. 
+.le
+.ls key_mdf = "MASKNAME"
+The header keyword containing the name of the MDF associated with the input 
+image. If \fIkey_mdf\fR is not defined or does not exist in the header then 
+the MDF defined in \fImdffile\fR is used. In this case, the task will set 
+\fIkey_mdf\fR equal to MASKNAME and write this keyword to the PHU of the 
+output image with a value equal to the name of the file. \fIkey_mdf\fR has 
+precedence over \fImdffile\fR. If both \fIkey_mdf\fR and \fImdffile\fR are 
+blank or if the designated file does not exist, the task will exit with an 
+error.
+.le
+.ls mdffile = ""
+The name of the MDF to attach if \fIfl_addmdf\fR = yes and the keyword 
+\fIkey_mdf\fR is not found in the image header. If \fIinimages\fR is a list of 
+images, the same MDF will be attached to all the images.
+.le
+.ls mdfdir = "f2$data/"
+The directory containing the MDFs, if they are not present in the current 
+working directory. 
+.le
+.ls fl_dark_mdf = no
+Force the attachment of MDFs to dark frames? FLAMINGOS-2 MOS data can be cut
+using the information located in an attached MDF. However, normally it is not
+necessary to cut darks frames prior to subtraction from other MOS data.
+.le
+.ls logfile = ""
+The name of the logfile. The F2 package logfile "f2.log" is used by default.
+.le
+.ls verbose = yes
+Print actions to the screen. The default (yes) is recommended. 
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error. This 
+parameter is always set by F2PREPARE and should not be modified by the user.
+.le
+
+.ce
+Parameters from NSHEADERS
+.sp
+The following values are read from GNIRS.NSHEADERS
+.ls sci_ext
+Name of science extension
+.le
+.ls var_ext
+Name of variance extension
+.le
+.ls dq_ext
+Name of data quality extension
+.le
+.ls key_ron
+Header keyword for read noise [electrons]
+.le
+.ls key_gain
+Header keyword for gain [electrons/ADU]
+.le
+.ls key_sat
+Header keyword for saturation [ADU]
+.le
+.ls key_nonlinear
+Header keyword for non-linear regime [ADU]
+.le
+.ls key_filter
+Header keyword for filter
+.le
+.ls key_lnrs
+Header keyword for number of non-destructive read pairs
+.le
+.ls key_camera
+Header keyword for camera
+.le
+.ls key_fpmask
+Header keyword for focal plane mask
+.le
+.ls key_dispaxis
+Header keyword for dispersion axis
+.le
+.ls key_section 
+Header keyword for image section to cut
+.le
+.ls key_pixscale
+Header keyword for pixel scale
+.le
+.ls key_xoff
+Header keyword for instrument offset in x [arcsec]
+.le
+.ls key_yoff
+Header keyword for instrument offset in y [arcsec]
+.le
+.ls key_date
+Header keyword for date
+.le
+.ih
+DESCRIPTION
+
+The F2PREPARE task is used to prepare FLAMINGOS-2 raw data from Gemini South 
+for further processing. Preparation includes the following steps:
+.ls Validating data
+The input data are checked (e.g., they must exist, be MEF files; the bpm, if 
+given, must match the data size, etc.)
+.le
+.ls Add header keywords
+F2PREPARE adds or modifies the following essential header keywords in the PHU:
+
+.nf
+    RDNOISE     Default keyword for read noise [electrons]
+    GAIN        Default keyword for gain [electrons/ADU]
+    SATURATI    Default keyword for saturation level [ADU]
+    NONLINEA    Default keyword for non-linear regime [ADU]
+    FILTER      Default keyword for unique filter string
+    PIXSCALE    Default keyword for pixel scale [arcsec/pixel]
+    XOFFSET     Default keyword for instrument offset in x
+    YOFFSET     Default keyword for instrument offset in y
+    DATE-OBS    Default keyword for observation date
+    NONLINCR    Values used for non-linearity correction
+    BPMFILE     The bad pixel file used
+    NEXTEND     The total number of extensions
+    PREPARE     Date and time stamp
+.fi
+
+The RDNOISE, GAIN, FILTER and PIXSCALE keywords already exist in raw 
+FLAMINGOS-2 data. If these keywords have a value equal to 0 in the raw data, 
+they are overwritten by F2PREPARE, otherwise, the raw values are copied to the 
+following keywords:
+
+.nf
+    RAWRDNOI    The raw RDNOISE keyword value
+    RAWGAIN     The raw GAIN keyword value
+    RAWFILT     The raw FILTER keyword value
+    RAWPIXSC    The raw PIXSCALE keyword value
+.fi
+ 
+In longslit mode, F2PREPARE additionally adds the following essential header 
+keywords in the PHU: 
+
+.nf
+    DISPAXIS  Dispersion axis, always equal to 2 for FLAMINGOS-2 data
+.fi
+
+The output MEF will have the following structure (example with VAR/DQ 
+extensions): 
+
+.nf
+    EXT#  EXTTYPE             EXTNAME       EXTVE DIMENS     BITPI INH OBJECT 
+    0     f2image.fits                                       16        star
+    1      IMAGE              SCI           1     2048x2048  -32   F   star
+    2      IMAGE              VAR           1     2048x2048  -32   F   star
+    3      IMAGE              DQ            1     2048x2048  16    F   star
+.fi
+.le
+.ls Reading array data
+F2PREPARE reads the FLAMINGOS-2 detector characteristics from the FITS 
+look-up table specified by \fIarraytable\fR (f2$data/f2array.fits as default):
+
+.nf
+    gain = 4.44 (+/- 0.35) electrons / ADU
+    saturation = 155,400 electrons == 35,000 ADU
+    non-linear up to 0.63 * saturation (<0.5% departure)
+.fi
+
+The read noise values from \fIarraytable\fR depend on the number of 
+non-destructive read pairs and are the average read noise from all 32 
+amplifiers, referenced to a Correlated Double Sampling (CDS) read.
+.le
+.ls Linear limit levels (not yet implemented)
+The linear limit is a fixed fraction of the saturation level. If the data are 
+to be corrected for non-linearity (\fIfl_correct\fR = yes) then linearlimit is 
+used, otherwise nonlinlimit is used (see \fIarraytable\fR). 
+.le
+.ls Correction for non-destructive reads
+FLAMINGOS-2 data taken with multiple non-destructive reads are rescaled to 
+make sure that the output data numbers correspond to the total number of 
+electrons detected divided by the gain. This means that data taken using 
+multiple non-destructive reads must be divided by the number of 
+non-destructive read pairs (header keyword LNRS). When the number of 
+non-destructive read pairs is 3-16 (i.e., Correlated Multiple Sampling (CMS)
+readout mode), the raw data has values LNRS times larger than a CDS exposure
+(i.e., when LNRS = 1) with the same exposure time. Therefore, CMS exposures are
+divided by the number of non-destructive read pairs to make it comparable to
+CDS exposures:
+
+.nf
+    output = input / (n reads)
+.fi
+
+.le
+.ls Correction for non-linearity (not yet implemented)
+The science data are corrected for non-linearity using the task irred.irlincor 
+and the coefficients from \fIarraytable\fR, if \fIfl_correct\fR = yes.
+.le
+.ls Calculating variance
+If \fIfl_vardq\fR = yes, the variance is calculated as 
+
+.nf
+     var = (read noise / gain) ^ 2 + data / gain (for data numbers > 0)
+.fi
+
+This calculation is made after correcting for non-linearity.
+.le
+.ls Calculating data quality
+If \fIfl_vardq\fR = yes, the preliminary DQ extension is constructed by using 
+the bad pixel mask specified by \fIbpm\fR to set bad pixels to 1, pixels in 
+the non-linear regime to 2 and saturated pixels to 4. Good pixels have a value 
+of 0.
+.le
+.ls Attach an MDF file to MOS data
+FLAMINGOS-2 MOS data should be processed with \fIfl_addmdf\fR = yes. 
+F2PREPARE will not attach an MDF to data that is not MOS data. 
+.le
+
+If the PREPARE keyword exists in the header (indicating that the file has 
+previously been processed using F2PREPARE), these modifications will not be 
+made again.
+.ih
+EXAMPLES
+
+1. Create variance and data quality extensions for a raw FLAMINGOS-2 image.
+.sp
+.nf
+    cl> f2prepare /data/inimage1 outimages=outimage1 fl_vardq+ 
+.fi
+.sp
+
+2. Do the same for a list of images.
+.sp
+.nf
+    cl> f2prepare inimage1,inimage2,inimage3 \
+    >>> outimages=outimage1,outimage2,outimage3 fl_vardq+ 
+.fi
+.sp
+
+3. Prepare all images in a raw data directory "night1", found on a particular 
+data disk. The composite path in this example will be /data/flamingos/night1/. 
+Output images will reside in the current working directory and will be 
+constructed by attaching the prefix "f" to the input image names, resulting in 
+file names fraw*.fits.
+.sp
+.nf
+    cl> f2prepare raw*fits outprefix="f" rawdir="/data/flamingos/night1/" 
+.fi
+.sp
+.ih
+BUGS AND LIMITATIONS
+
+The task F2PREPARE will not run on data from instruments other than 
+FLAMINGOS-2. F2PREPARE will not run on simple FITS files.
+.ih
+SEE ALSO
+
+f2examples, f2info, f2infoimaging, f2infols, f2infomos, gnirs.info, 
+gnirs.nsheaders, niri.niriinfo, fitsutil
+
+.endhelp

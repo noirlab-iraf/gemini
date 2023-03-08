@@ -1,0 +1,47 @@
+# Make the gemini libraries
+
+
+relink:
+update:
+	$iffile (libgemini.a)
+	    ;
+	$else
+	    !ln -sf ../bin/libgemini.a libgemini.a
+	    !ln -sf ../bin/libpdainterp.a libpdainterp.a
+	    !ln -sf ../bin/libmefio.a libmefio.a
+            !ln -sf ../bin/libdbc.a libdbc.a
+            !ln -sf ../bin/libgslalib.a libgslalib.a
+            !ln -sf ../bin/libirafdb.a libirafdb.a
+	$endif
+
+        $update libgemini.a
+        $update libpdainterp.a
+	$update libmefio.a
+        $update libdbc.a
+        $update libgslalib.a
+        $update libirafdb.a
+        ;
+
+libgemini.a:
+        @gemini
+        ;
+
+libpdainterp.a:
+        @pda
+	;
+
+libmefio.a:
+	@mefio
+        ;       
+
+libdbc.a:
+        @dbc
+        ;
+
+libgslalib.a:
+        @gslalib
+        ;
+
+libirafdb.a:
+        @irafdb
+        ;

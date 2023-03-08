@@ -1,0 +1,111 @@
+.help nfquick Feb2005 gemini.gnirs
+.ih
+NAME
+.nf
+nfquick -- Generate an acquisition image from IFU data
+.fi
+.ih
+USAGE
+nfquick image
+.ih
+PARAMETERS
+.ls image
+Either a range specification for the file name indices (if \fIprefix\fR) is
+also given), or a filename
+
+See GEMLIST for more information on specifying input using the ranges.
+.le
+.ls prefix = ""
+The date/instrument part of the file name (everything up to the
+per-night index, typically ending in "S").
+.le
+.ls datadir = "/net/reggie/staging/perm/"
+The directory in which the raw data are found.  This is preprended to
+the file names generated using \fIroot\fR and \fIrange\fR.
+.le
+.ls outimages = ""
+A list of output images.  The number of entries must match \fIinimages\fR
+unless the parameter is empty (in which case \fIoutprefix\fR is used).
+.le
+.ls outprefix = "a"
+The prefix used to generate output image names from the input image
+list \fIinimages\fR if \fIoutimages\fR="".
+.le
+.ls mdf = "gnirs$data/gnirs-ifu-short-32-mdf2.fits
+The MDF that describes the mapping from detector to sky.
+.le
+.ls shiftx, shifty = 0.0
+The shifts to apply to the mapping in \fItable\fR (used if 
+\fIfl_shift\fR=no).
+.le
+.ls xscale, yscale = 0.15
+Arcsec/pixel for converting measurements for display.
+.le
+.ls dispaxis = 2
+Dispersion axis (2 for GNIRS IFU)
+.le
+.ls fl_inter = yes
+Measure shift interactively?
+.le
+.ls fl_compress = yes
+Compress aperture to single row of pixels?
+.le
+.ls fl_display = yes
+Display each image on stdimage?
+.le
+.ls raw_frame = 1
+Frame to display raw data.
+.le
+.ls img_frame = 2
+Frame to display reconstructed image data.
+.le
+.ls fl_shift = yes
+Measure the shift to a central star in the image (used during acquisition).
+.le
+.ls logfile = ""
+Name of logfile.  The GNIRS package logfile "gnirs.log" is used by default.
+.le
+.ls verbose = yes
+Print more actions to the screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error.
+This parameter is always set by the task, and should not be modified
+by the user.
+.le
+.ih
+DESCRIPTION
+This task copies data from the IFU observations into new files, shifting
+the data to create an approximation to sky observed.
+.sp
+The input parameters for specifying the input files work as for the
+GEMLIST task.  This makes use during observing as simple as possible.
+.sp
+The task may work with other IFU data, but the output (instrument shifts
+etc) is tailored to the GNIRS IFU.
+.ih
+EXAMPLE
+1.  The basic usage is
+.sp
+.nf
+  cl> nfquick 161
+...
+NFQUICK: press a or x to identify star and then q to quit
+...
+============================================================================
+    GNIRS IFU instrument offsets (arcsec)  p=0.582  q=-1.680
+============================================================================
+ 
+                    Raw data source  S20041120S0161[1]
+                Image size (pixels)  (35.000, 22.000)
+         Standard location (pixels)  (17.500, 10.500)
+             Measured peak (pixels)  (28.700, 14.380)
+                    Offset (pixels)  (11.200, 3.880 )
+                    Offset (arcsec)  (1.680 , 0.582 )
+.fi
+.ih
+BUGS AND LIMITATIONS
+.ih
+SEE ALSO
+gemlist
+.endhelp

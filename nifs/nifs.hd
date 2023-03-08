@@ -1,0 +1,21 @@
+# Copyright(c) 2005-2011 Association of Universities for Research in Astronomy, Inc.
+#
+# Help directory for the nifs package
+
+$doc = "nifs$doc/"
+
+nfacquire       hlp = doc$nfacquire.hlp, src=nifs$nfacquire.cl
+nfdispc         hlp = doc$nfdispc.hlp, src=nifs$nfdispc.cl
+nfextract       hlp = doc$nfextract.hlp, src=nifs$nfextract.cl
+nffixbad        hlp = doc$nffixbad.hlp, src=nifs$nffixbad.cl
+nfimage         hlp = doc$nfimage.hlp, src=nifs$nfimage.cl
+nfmap           hlp = doc$nfmap.hlp, src=nifs$nfmap.cl
+nfpad           hlp = doc$nfpad.hlp, src=nifs$nfpad.cl
+nfprepare       hlp = doc$nfprepare.hlp, src=nifs$nfprepare.cl
+nfsdist         hlp = doc$nfsdist.hlp, src=nifs$nfsdist.cl
+nftelluric      hlp = doc$nftelluric.hlp, src=nifs$nftelluric.cl
+nfwcs           hlp = doc$nfwcs.hlp, src=nfwcs.cl
+nifcube         hlp = doc$nifcube.hlp, src=nifcube.cl
+
+nifsinfo        hlp = doc$nifsinfo.hlp
+nifsexamples    hlp = doc$nifsexamples.hlp

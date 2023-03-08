@@ -1,0 +1,133 @@
+.help gsscatsub October2015 gemini.gmos
+.ih
+NAME
+
+gsscatsub -- Model and subtract scattered light background for LS data.
+.ih
+USAGE
+
+gsscatsub inimages
+.ih
+PARAMETERS
+
+.ls inimages
+GMOS LS Inputs image(s) to have the instrumental scattered light
+subtracted. List syntax can be used.
+.le
+.ls outimages = ""
+List of output images, with the instrumental scattered light subtracted. Number
+of images must equal number of images suppled in \fIinimages\fR"
+.le
+.ls prefix = "b"
+Prefix of output image names. Names of output images will be
+the names of the input images with the prefix attached. \fIprefix\fR is
+used if \fIoutimages\fR="".
+.le
+.ls nfind = 1
+Number of source spectra to find with APFIND. The scattered light background is
+then measured from unilluminated regions outwith these source apertures.
+.le
+.ls column = INDEF
+Column in which to look for peaks corresponding to source spectra (APFIND
+line parameter). This can usually be left at INDEF to let APFIND determine the
+column automatically but sometimes needs adjustment to avoid finding artifacts
+such as cosmic rays.
+.le
+.ls t_order = 3
+Aperture tracing order.
+.le
+.ls order1 = "11"
+Order to use to fit cross-dispersion.
+.le
+.ls sample1 = "*"
+Cross-dispersion sample points.
+.le
+.ls order2 = "7"
+Order to use to in dispersion direction.
+.le
+.ls niterate2 = 3
+Number of iterations to use to clip data along the dispersion direction
+.le
+.ls database = "database"
+Directory for files containing aperture traces.
+.le
+.ls fl_inter = no
+Run the underlying call to apscatter interactively, i.e., fit data
+interactively?
+.le
+.ls fl_display = yes
+Display the scattered light image to be subtracted?
+.le
+.ls fl_vardq = no
+Propagate the variance and data quality planes?
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes the task use the logfile
+defined by gmos.logfile.
+.le
+.ls verbose = no
+Verbose?
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted
+with an error. This parameter is set by the task and should not be
+modified by the user.
+.le
+.ls scanfile ""
+For internal use only
+.le
+.ih
+DESCRIPTION
+
+GSSCATSUB is used to fit the scattered light above the bias, and subtracts the
+resulting model fits from its input file, to obtain true object+sky
+signal. This can provide an important improvement in the zero-point accuracy of
+flat field spectra in particular, as well as scientific exposures, helping avoid
+flat-fielding residuals or systematic errors in flux. GSSCATSUB is a MEF
+wrapper for SPECRED.APSCATTER.
+
+From the help for APSCATTER:
+
+.in 4
+The scattered light outside the apertures defining the two
+dimensional spectra is extracted, smoothed, and subtracted from
+each input image. The approach is to first select the pixels
+outside the defined apertures and outside a buffer distance from
+the edge of any aperture at each point along the dispersion
+independently. A one dimensional function is fit using the icfit
+package. This fitting uses an iterative algorithm to further
+reject high values and thus fit the minima between the spectra.
+(This even works reasonably well if no apertures are defined).
+Because each fit is done independently the scattered light thus
+determined will not be smooth along the dispersion. If desired
+each line along the dispersion in the scattered light surface may
+then be smoothed by again fitting a one dimensional function using
+the icfit package.
+.in -4
+
+When choosing which sample points (\fIsample1\fR) to use, it is recommend to use
+parts of the detector that should not be illuminated. Thus, ensuring that the
+true instrumental scattered light is being modeled and subtracted.
+.ih
+EXAMPLES
+
+1. Model and subtract the scattered light in a GMOS LS science image:
+
+.nf
+   cl> gsscatsub sci.fits t_order=5 order1=11 \
+           sample1="4:192 299:466" order2=7
+.fi
+.ih
+LIMITATIONS
+
+The GSSCATSUB task has undergone limited testing and should be thought of as
+experimental. In Gemini IRAF v1.13, the parameter corresponding to
+\fIapscat2.niterate\fR was incorrectly named \fIn1iterate\fR here; this has
+now been changed to \fIniterate2\fR.
+
+GSSCATSUB should not be used with MOS data.
+.ih
+SEE ALSO
+
+APSCATTER
+.endhelp

@@ -1,0 +1,31 @@
+# From APEXTRACT & IDENTIFY
+
+$checkout libirafdb.a ../
+$update   libirafdb.a
+$checkin  libirafdb.a ../
+$exit
+
+libirafdb.a:
+	apalloc.x	apertures.h
+	apcveval.x	<math/curfit.h>
+	apdb.x		apertures.h <math/curfit.h> <pkg/dttext.h>
+
+	apio.x		<time.h>
+	appars.x	<math/iminterp.h>
+	idcenter.x	identify.h <smw.h>
+	iddb.x		identify.h <imset.h> <math/curfit.h> <pkg/dttext.h>\
+			<smw.h> <units.h>
+	idfitdata.x	identify.h <pkg/gtools.h> <smw.h> <units.h>\
+			<math/curfit.h>
+	idgdata.x	identify.h <imhdr.h> <imio.h> <pkg/gtools.h> <smw.h>\
+			<units.h>
+	idinit.x	identify.h <gset.h> <math/curfit.h>
+	idlabel.x	
+	idlinelist.x	identify.h <error.h> <mach.h> <units.h>
+	idmap.x		identify.h <ctype.h> <imhdr.h> <smw.h> <units.h>
+	idnewfeature.x	identify.h <mach.h>
+	idnoextn.x	
+	idpeak.x	identify.h <smw.h>
+	peaks.x	
+	;
+

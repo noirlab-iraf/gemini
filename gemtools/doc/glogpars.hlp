@@ -1,0 +1,169 @@
+.help glogpars November2011 gemini.gemtools
+.ih
+NAME
+glogpars -- Gemini log facility parameter file
+.ih
+USAGE
+glogpars
+.ih
+PARAMETERS
+.ls logfile = ""
+Name of the logfile.  If the logfile in not specified by the other GEMLOG
+tasks (GLOGINIT, GLOGPRINT, GLOGCLOSE), the value of this parameter will be
+used.  See the help on GLOGINIT for further details.
+.le
+.ls fl_stat_level = yes
+Write the "status" level log entries to the Gemini log file.
+.le
+.ls fl_tsk_level = yes
+Write the "task" level log entries to the Gemini log file.
+.le
+.ls fl_sci_level = yes
+Write the "science" level log entries to the Gemini log file.
+.le
+.ls fl_eng_level = yes
+Write the "engineering" level log entries to the Gemini log file.
+.le
+.ls fl_vis_level = yes
+Write the "visual" (readability) level log entries to the Gemini log file.
+.le
+.ih
+DESCRIPTION
+The GLOGPARS pset allows the user of a Gemini task implementing GEMLOG to 
+select which categories of entries to write to the log file.  A task 
+implementing GEMLOG has all the information necessary to write all types of 
+entries, it is up to the user of that task to decide which logs s/he wants.  
+In most cases, however, it is recommended to let the task write all entries 
+and to review the log file using GLOGEXTRACT.  GLOGEXTRACT can "extract", from 
+a Gemini log file, entries based on the user's selection criteria. 
+.sp
+There are 5 categories of log entries, which we will refer to as "log entry
+levels".  The levels are "status", "task", "science", "engineering", and
+"visual".  The log entry levels are defined as follow:
+.ls status
+Entries related to the execution status of the task.  For example:
+.sp
+.nf
+  - Open and close logfile messages
+  - Exit status of the task (success or failure?)
+  - Error and warning messages
+  - General 'processing' messages.
+       o "Processing image N20031109S0058 ..."
+       o "Finished processing image N20031109S0058"
+  - Fork messages, i.e. when calling a child process, or when returning
+    from a child process.
+.fi
+.sp
+The "status" level entries will often have a date/time information.  The
+associated descriptor, written at the beginning of each line, is "STAT".
+.sp
+Examples:
+.nf
+  STAT MPREPARE Log opened at [Wed 16:01:45 28-Apr-2004]
+  STAT MPREPARE Log closed at [Wed 16:02:03 28-Apr-2004]
+
+  STAT MPREPARE Exit status: SUCCESS
+
+  STAT MPREPARE Processing 7 files ...
+  STAT MPREPARE Finished with image 1 at [Wed Apr 28 16:01:48 HST 2004]
+.fi
+.le
+.ls task
+Entries related to the task's inputs and outputs.  The list of task input 
+parameters and values should be given a "task" level.  Other examples would be 
+any logs concerning input or output files.  The associated descriptor, written 
+at the beginning of each line, is "TSK".
+.sp
+Examples:
+.nf
+  TSK  MPREPARE Input Parameters:
+  TSK  MPREPARE      inimages   = N*.fits
+  TSK  MPREPARE      rawpath    = 
+  TSK  MPREPARE      outimages  = 
+  TSK  MPREPARE      outprefix  = m
+  TSK  MPREPARE      logfile    = 
+  TSK  MPREPARE      sci_ext    = SCI
+  TSK  MPREPARE      key_sat    = SATURATI
+  TSK  MPREPARE      key_filter = FILTER
+  TSK  MPREPARE      database   = midir$midir.dat
+  TSK  MPREPARE      verbose    = yes
+
+  TSK  MPREPARE     input file    ->    output file
+  TSK  MPREPARE N20031109S0058.fits[0] -> mN20031109S0058.fits
+.fi
+.le
+.ls science
+Entries related to scientifically useful information, like the gain used, the
+scale factors in IMCOMBINE, image statistics, etc.   The associated 
+descriptor, written at the beginning of each line, is "SCI".
+.sp
+Examples:
+.nf
+  SCI  GGAIN gN20011221S139.fits[SCI,1]: EEV 9273-16-03, right 2.1 3.5
+  SCI  GGAIN gN20011221S139.fits[SCI,2]: EEV 9273-20-04, right 2.337 3.3
+  SCI  GGAIN gN20011221S139.fits[SCI,3]: EEV 9273-20-03, left  2.3 3.
+
+  SCI  GEMCOMBINE                 Images     Exp   Mean  Scale
+  SCI  GEMCOMBINE   gsN20011221S139.fits[SCI,1]   3.0  18079.  1.000
+.fi
+.le
+.ls engineering
+Entries providing details that are not essential to the review of a successful
+process, or entries that do not fit in the other categories.  Those entries
+would be useful to track down a problem when something goes wrong.  The
+associated descriptor, written at the beginning of each line, is "ENG".
+.sp
+Examples:
+.nf
+  ENG  MPREPARE Rearranged image for nod 1
+  
+  ENG  GSCUT Slit 4: slit height = 101
+.fi
+.le
+.ls visual
+Entries that improve readability, like empty lines and strings of '-'.  Those
+entries do not contain any information, except the name of the task
+that had it written.  The associated descriptor, written at the beginning of 
+each line, is "VIS".
+.sp
+Example:
+.nf
+   VIS  MPREPARE --------------------
+.fi
+.le
+.ih
+EXAMPLE
+1. Below is a section of a Gemini logfile.  Note that, although 
+human-readable, the Gemini logfile is mostly meant to be examined with 
+GLOGEXTRACT.
+.sp
+.nf
+    [...]
+  STAT GSCUT Exit status: SUCCESS
+  STAT GSCUT Log closed at [Tue 11:09:50 13-Apr-2004]
+  EOE  GSCUT 2004-04-13T11:09:50
+  VIS
+  VIS  GSFLAT --------------------------------------------------------------
+  STAT GSFLAT FORK -- Returning to GSFLAT.
+  VIS  GSFLAT
+  STAT GSFLAT Begin fitting response functions for slit(s)
+  SCI  GSFLAT Sample in fitting 1:2044,2086:4131,4176:6218
+  VIS  GSFLAT
+  ENG  GSFLAT Fitting response for slit#1 - SpecSec = [1:6218,377:478]
+  ENG  GSFLAT Fitting response for slit#2 - SpecSec = [1:6218,274:359]
+  ENG  GSFLAT Fitting response for slit#3 - SpecSec = [1:6218,196:239]
+    [...]
+  ENG  GSFLAT Fitting response for slit#32 - SpecSec = [1:6218,4289:4419]
+  ENG  GSFLAT Fitting response for slit#33 - SpecSec = [1:6218,4148:4278]
+  ENG  GSFLAT Fitting response for slit#34 - SpecSec = [1:6218,4419:4491]
+  VIS  GSFLAT
+  STAT GSFLAT Finished Loop over slits. Now packing output MEF...
+  VIS  GSFLAT
+  STAT GSFLAT Exit status: SUCCESS
+  STAT GSFLAT Log closed at [Tue 11:13:35 13-Apr-2004]
+  EOE  GSFLAT 2004-04-13T11:13:35
+.fi
+.ih
+SEE ALSO
+glogclose, glogextract, gloginit, glogprint, gemlog
+.endhelp

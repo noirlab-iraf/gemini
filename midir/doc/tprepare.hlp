@@ -1,0 +1,346 @@
+.help tprepare December2011 gemini.midir
+.ih
+NAME
+tprepare -- Prepare T-ReCS data for further reduction with the MIDIR tasks
+.ih
+USAGE
+tprepare inimages
+.ih
+PARAMETERS
+.ls inimages
+The input image(s) to be converted from raw T-ReCS format to the standard 
+MIDIR image format.  It can be an image name, a list of image names, 
+a wild-card image name, or the "@" syntax can be used to direct the 
+task to read a list of file names.
+.le
+.ls outimages = ""
+The output image name(s) for the "prepared" files.  If this field is left 
+blank the \fIoutpref\fR string is used to create new file names from the 
+input file names.  Otherwise the number of output file names must match 
+the number of input file names or an error condition occurs.  The field 
+must contain either a list of output file names or use the "@" syntax to 
+direct the task to read a list of file names.  The task tests for whether 
+the output images exist and exits with an error condition if any of them 
+do exist.
+.le
+.ls outpref = "t"
+A prefix string which is prefixed to each input image name to make
+the corresponding output image name if the output file name(s) are 
+not specified via the \fIoutimages\fR parameter.
+.le
+.ls rawpath = ""
+The path to the directory containing the T-ReCS images files.  If the 
+value is "" (empty string) the current directory is used.
+.le
+.ls stackoption = "stack"
+This parameter can be set to either "stack" or "register".  If the value is 
+"stack", which is the default, then the various saveset images are simply 
+averaged/summed with no shifting.  If the parameter is set to "register" 
+then the difference images from each saveset are shifted using the XREGISTER 
+task, to the first good image in a given group of savesets, and then the 
+average/sum is created.
+.le
+.ls combine = "average"
+A variable which can have the values "average" or "sum".  This determines 
+whether the combination of the savesets images is done via averaging or 
+by summation. This variable is passed to the IMCOMBINE task as 
+its \fIcombine\fR parameter.  Any value aside from "average" or "sum" 
+produces an error.
+.le
+.ls fl_check = yes
+A boolean variable for whether checks are made of the integrity of the 
+T-ReCS raw data file.  If the value is "yes", the default, then in the 
+task the completion status of the T-ReCS observation is checked in the 
+primary header and the structure of the file is checked to insure that 
+it matches the expected structure.
+.le
+.ls logfile = ""
+Name of the logfile. The default value makes the task use the logfile
+defined by \fImidir.logfile\fR.
+.le
+.ls verbose = yes
+Print actions to the screen.
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error. 
+This parameter is always set by the task, and should not be modified by 
+the user.
+.le
+.ih
+DESCRIPTION
+.sp
+This routine takes raw T-ReCS image files and either averages or sums 
+the images at each NOD position to make standard MIDIR package 
+image files.
+.sp
+Given a list of input images, or the name of a file containing a set of 
+input file names, the TPREPARE task takes each raw T-ReCS image 
+and averages the savesets for each chop position of a given nod position 
+to produce (for CHOP or CHOP-NOD observations) a mean "on-source" image 
+and mean "off-source" or "reference" image.  Then for each nod position 
+these two averaged images along with the difference image "on-source" 
+- "off-source" are written to an extension of an output MEF file.  For 
+the modes that do not involve chopping, STARE or NOD, the savesets are 
+averaged and the resulting mean image is stored in the extension.
+.sp
+The previous paragraph speaks of averaging the frames.  This is the case 
+when \fIcombine\fR is set to "average".  When it is set to "sum" then 
+instead of averaging the sum of the images is used, but other than 
+effectively multiplying by a constant there will be no difference between 
+the resulting images for the two cases.
+.sp
+The \fIfl_check\fR parameter determines whether checks are made to the raw
+T-ReCS data file before the processing is done.  The default is to 
+check the observation status header keyword first, then check the internal 
+structure of the file to insure that it is complete.  If any of these 
+checks fail then the processing is terminated without any output.  If this 
+flag is set to "no" then the task attempts to carry on the processing as 
+much as possible despite either a bad observation status keyword or having 
+less than the expected number of extensions due to incomplete nods in the 
+observation.  This process of "rescuing" partial observations is limited 
+and does not work in all cases, but in some instances it allows partial 
+recovery of an observation despite some types of errors at the telescope 
+during an observation.
+.sp
+The output MEF file has a primary header extension, [0], followed by 
+one or more image MEF extensions starting from [1].  For CHOP or CHOP-NOD 
+observations each extension contains an image of dimension [320,240,3] with 
+image section [*,*,1] being the on-source frame, image section [320,240,2] 
+being the off-source frame, and image section [320,240,3] being the 
+difference image.  For STARE or NOD observations the image dimensions are 
+[320,240].  All these images are of type DOUBLE.  The output file has the 
+same number of extensions as does the original file.
+.sp
+One output file is produced for each input file.  If the number of input 
+and output files listed do not match the task exits with an error condition. 
+One can have automatically generated output file names by specifying the 
+\fIoutpref\fR parameter and NOT specifying the \fIoutimages\fR parameter. 
+If neither of these is specified, the \fIoutpref\fR parameter is set to be 
+"f".  One cannot overwrite the input file by the output file.
+.sp
+In case the raw T-ReCS images are in a different directory than the current
+one, the user can specify the \fIrawpath\fR parameter which is then prefixed 
+to the input file name(s).
+.sp
+The routine writes to a logfile.  If the task logfile name is not specified 
+then the routine looks for the MIDIR logfile name.  If that is also 
+not specified, the logfile name is set to "midir.log".  If the logfile 
+exists, any messages are appended to it.  The \fIverbose\fR parameter 
+does not effect the logfile, but does change how much information is 
+written to the terminal.
+.ih
+Stack and Register
+.sp
+The \fIstackoption\fR parameter determines how the difference images in each 
+saveset for an individual nod position are combined.  The default behaviour 
+is to carry out a simple average/sum of the difference frames, which are 
+formed from the individual signal and reference frames first and then 
+combined to give the average or aggregate "on - off" image.  (The 
+signal and reference frames are simply averaged or summed irrespective of 
+what is done with the difference frames.)
+.sp
+When the "stack" option is chosen all "good" frames are averaged/summed 
+with the IMCOMBINE task, using the \fIreject\fR=none option.  Each frame 
+has equal weight in the averaging.
+.sp
+When images are "registered" each difference image is created for a given 
+nod position, and these are then shifted to match the first image of the 
+group using the XREGISTER routine, and using the entire image for the 
+determination of the best shift.
+.sp
+After the shifted images have been made, the averaging or summation is done 
+with \fIsigclip\fR rejection (see IMCOMBINE) which tends to eliminate bad 
+pixels, since the shifts from frame to frame are typically of order 1 pixel.
+.sp
+Tests of the "stack" and "register" options suggest that registering the images
+actually slightly increases the FWHM of a point source, but that the total 
+number of counts is preserved to < 1%.  Registering images should only be done 
+when there is some strong extended source in the field of view, and not for 
+observations of a very faint source.  This option has also not yet been tested 
+much for spectroscopic observations.  If one has a sufficiently bright target 
+source it may be that registering spectra will give the best possible spectral 
+resolution, but this is to be determined.
+.sp
+When registering is used, the averaged/summed difference image is no longer 
+equal to the difference of the "signal" and "reference" images since these 
+are not shifted.  There is also a small difference in the results that are 
+obtained by either (1) simply averaging/summing the "signal" frames and 
+the "reference" frames and then subtracting these two mean frames, and by 
+(2) forming the individual difference frames first which are then 
+averaged/summed.  The latter method is used here when the "stack" 
+option is requested.
+.ih 
+T-ReCS Data Format
+.sp
+The basic T-ReCS file structure is a multi-extension FITS file with
+the primary header in extension 0, and one or more image extensions 
+containing T-ReCS data frames.  For CHOP or STARE mode observations 
+there will be only one extension.  For CHOP-NOD or NOD mode there 
+will be one extension per NOD position.  Each extension contains 
+a small FITS extension header with some of the parameters specific 
+to the images--such as the start and end UT times and the airmass.
+(For CHOP or STARE mode with just one extension these could have 
+been put in the primary header, but for MEF files with more than one 
+extension the values change for each image extension.)  The extension 
+then has the image.  Each image is made up of one or more raw frames 
+from T-ReCS.  One frame is a [320,240] array of data values of type LONG.
+.sp
+The format of the image(s) in the extension(s) depends upon the mode of
+the observation.  They all contain one or several, usually more than one, 
+frames.  When chopping there are frames from each chop position.  In that 
+case each pair of frames from the two chop positions are called a 
+"saveset".  In STARE mode or NOD mode where there is no chopping 
+one has a number of frames and the image dimension is [320,320,1,N] 
+where N stands for the number of frames taken during the observation.  
+This value is determined by the T-ReCS set-up and the total exposure time.
+.sp
+In CHOP or CHOP-NOD mode one has two chop positions per saveset and some 
+number M of savesets.  The image size is then [320,240,2,M].  The 
+most common observation mode is CHOP-NOD mode, and each extension contains 
+the savesets for a single NOD position.  As the T-ReCS NOD observations 
+are done by starting at NOD position A and then going to NOD position B for 
+the same length of time.  With T-ReCS the telescope then returns to NOD 
+position A and observations are taken in ABABABAB pattern.  Proper NOD or 
+CHOP-NOD observations with T-ReCS therefore should have an even number of 
+image extensions.
+.sp
+When T-ReCS is observing in NOD position A the target is in chop position 
+A.  When the telescope is nodded to position B, the target is then located 
+in chop position B.  By subtracting the "on-source" and "reference" frames
+much of the sky and telescope background is removed.  In any of the T-ReCS 
+chopping modes the image sections [*,*,1,1], [*,*,1,2], etc are for chop 
+position A and image sections [*,*,2,1], [*,*,2,2], etc are for chop 
+position B.
+.sp
+The main differences in data format between T-ReCS and Michelle are:
+.ls o
+T-ReCS saves multiple savesets per NOD position, whereas Michelle saves
+one accumulated image per NOD position
+.le
+.ls o
+T-ReCS has an ABABABAB nodding pattern, whereas Michelle generally uses 
+an ABBAABBA nodding pattern
+.le
+.ls o
+T-ReCS stores values as type LONG, and Michelle stores them as type DOUBLE
+.le
+.ls o
+The internal format of frames within the image sections differ between 
+T-ReCS and Michelle.
+.le
+.sp
+The tasks TPREPARE and MPREPARE are designed to transform the 
+individual image formats of the two instruments into a common format, as 
+well as harmonizing the FITS header keywords.
+.ih
+Exposure Times in T-ReCS Images
+.sp
+There are three different "exposure times" that are relevant for T-ReCS 
+observations:
+.ls The frame time
+This is the actual time that the detector integrates before being read out. 
+Due to the high mid-infrared background this is a short time, usually of 
+order 25 milli-seconds.  It varies with the filter and observation mode, 
+and also may vary depending upon the background conditions.
+.le
+.ls The time per saveset
+This is the time spend co-adding individual frames read-out from the 
+detector until a saveset is written.  It is determined by the saveset 
+time set in the OT file for the observations.  The frames are internally 
+stacked for chop positions A and B (or only the A position in STARE or NOD 
+mode observations) and written out to the raw data file at intervals.  
+The number of frames coadded per saveset can be found from the 
+FRMTIME, FRMCOADD, CHPCOADD, and CHPDUTY values in the primary header 
+of the T-ReCS data file.  The time on target per saveset is given by 
+.sp
+ t = FRMTIME * FRMCOADD * CHPCOADD
+.sp
+in milli-seconds.  In older T-ReCS files the keywords were different and 
+for these the SAVETIME multiplied by the CHPDUTY value divided by 200 
+gives the time.  The value of 200 occurs because CHPDUTY is in percent and 
+only half the time chopping is spent on the target field.
+.le
+.ls The total time on source
+This is found by multiplying the time per saveset by the number of savesets 
+per NOD position and then by the total number of NODs in the observation.  
+It is this total on-source time that determines the end signal-to-noise 
+ratio of the observation.  This is equivalent to the "exposure time" for 
+optical instruments. The SAVESETS, NNODS and NNODSETS keywords in the header 
+can be used to determine the number of images in an observation.  Multiplying 
+this by the time per saveset gives the total time on-source.
+.le
+.ih
+The "MIDIR" Data Format
+.sp
+In order to have a common format for files from the T-ReCS and Michelle 
+instruments, the format of the "prepared" files was defined as follows:
+.sp
+Chopping Observations: (CHOP or CHOP-NOD mode)
+.sp
+For each NOD position, the output file from TPREPARE or MPREPARE 
+has an image extension with size [320,240,3] of type DOUBLE.  The three 
+"planes" of this three-dimensional image are the on-source average image, 
+in image section [*,*,1], the off-source average image, in image section 
+[*,*,2,], and the difference image [*,*,1] - [*,*,2] in image section [*,*,3].
+.sp
+Non-chopping Observations: (STARE or NOD mode)
+.sp
+For each NOD position (only one for STARE mode, presumably an even number 
+for NOD mode) the output file from TPREPARE or MPREPARE 
+has an image extension with size [320,240] of type DOUBLE containing the 
+average of frames taken on the target field.
+.ih
+EXAMPLES
+.sp
+1. The basic usage is
+.sp
+.nf
+    cl> tprepare S2003B0909S0012 
+.fi
+.sp
+which will produce an output file named tS2003B0909S0012.fits. (Assuming 
+that there are no errors.)
+.sp
+2. Using TPREPARE for images in another directory is done as with 
+.sp
+.nf
+    cl> tprepare S2003B0909S0012 rawpath="/home/user/trecs"
+.fi
+.sp
+which would read "/home/user/trecs/S2003B0909S0012.fits" and produce an 
+output file named "tS2003B0909S0012.fits" if all goes well.
+.sp
+3. Defining the output file name works the following way:
+.sp
+.nf
+    cl> tprepare S2003B0909S0012 frame12
+.fi
+.sp
+which should produce "frame12.fits" in the current directory
+.sp
+4. If one wants to define the prefix explicitly and apply it to all 
+the images in a list it is done by
+.sp
+.nf
+    cl> tprepare @file.list prefix="new" logfile="test.log" \
+    >>> verbose=no
+.fi
+.sp
+which produces an output file named "newS2003B0909S0012.fits" for an 
+input file name "S2003B0909S0012" listed in file "files.list".  In this 
+example the logfile name is set to "test.log" and the messages to the 
+terminal are kept to a minimum by setting verbose to "no".
+.ih
+BUGS AND LIMITATIONS
+.sp
+The XREGISTER routine does not always produce good shifts in the individual 
+images when the \fIstackoption\fR is set to "register".  It is best to try 
+both register and stack followed by a detailed comparison of the two output 
+files to make sure that registering the savesets actually improves things. 
+This appears to be primarily due to limitations in the use of XREGISTER 
+when there may be a significant residual background in the difference images 
+and when the source may be small in the field.
+.ih
+SEE ALSO
+tbackground, tview, midir, images.immatch.xregister, imcombine
+.endhelp

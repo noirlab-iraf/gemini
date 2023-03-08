@@ -1,0 +1,138 @@
+.help nstransform October2013 gemini.gnirs
+.ih
+NAME
+nstransform -- Rectify 2D spectra
+.ih
+USAGE
+nstransform inimages
+.ih
+PARAMETERS
+.ls inimages
+Input spectra. The  task  is  designed for 2D Multi-Extension FITS
+images.  \fIinimages\fR may be given as  a  comma  separated  list,  a
+@filelist, or using wildcards.
+.le
+.ls outspectra = ""
+Output spectra.  The number of output spectra must match the
+number of input spectra.
+.le
+.ls outprefix = "t"
+Prefix  for  output images. Names of output images are the names
+of the input images with a prefix attached.  \fIoutprefix\fR  is  used
+if \fIoutspectra\fR="".
+.le
+.ls dispaxis = 1
+Dispersion axis, if not defined from the header.
+.le
+.ls database = ""
+Directory for files containing calibration files (feature input data 
+and fitting output).  If unspecified, \fIgnirs.database\fR will be used.
+.le
+.ls fl_stripe = no
+Replace each spatial line in the image with the median non-zero value from
+that line.  This gives a reference arc image for wavelength calibrating 
+cross-dispersed data.  See NSWAVELENGTH for more information.
+.le
+.sp
+The following parameters are passed to TRANSFORM:
+.ls interptype = "poly3" (nearest|linear|poly3|poly5|spline3)
+Interpolation type for TRANSFORM.
+.le
+.ls xlog = no
+Logarithmic x coordinate for TRANSFORM.
+.le
+.ls ylog = no
+Logarithmic y coordinate for TRANSFORM.
+.le
+.ls pixscale = 1.
+Pixel scale (arcsec) if \fIkey_pixscale\fR is not present (see below).
+.le
+.ls logfile = ""
+Name of logfile. If empty, then the package logfile
+is used.
+.le
+.ls verbose = yes
+Print actions to screen?
+.le
+.ls debug = no
+Print detailed actions to the screen?
+.le
+.ls status = 0
+Exit status will be non-zero if the procedure halted with an error.
+This parameter is always set by the task, and should not be modified
+by the user.
+.le
+
+
+.ce
+Parameters from NSHEADERS
+.sp
+The following values are read from gnirs.nsheaders
+.ls key_dispaxis
+Header keyword for dispersion axis
+.le
+.ls sci_ext
+Name of science extension
+.le
+.ls var_ext
+Name of variance extension
+.le
+.ls dq_ext
+Name of data quality extension
+.le
+.ls key_pixscale
+Header keyword for pixel scale
+.le
+.ls key_mode
+Header keyword for reduction mode (value will be LS, IFU, or XD)
+.le
+.ih
+DESCRIPTION
+NSTRANSFORM is used for rectifying spectra. NSWAVELENGTH, NSSDIST and
+NSFITCOORDS must first have been used to establish the wavelength calibration
+and the S-distortion and create the appropriate database files. NSTRANSFORM may
+also be used if only the wavelength calibration or only the S-distortion have
+been established. The input is checked for previous processing by NSFITCOORDS.
+It is possible for NSTRANSFORM to be run on the input more than once. It is an
+error if no suitable input data is found. A warning is issued if the output
+already exists. It is an error if the input and output lists do not match.
+.sp
+Every extension is resampled to the same output size and scales.  The
+sampling information is defined by the keywords FCX1, FCX2, FCDX, FCNX,
+FCY1, FCY2, FCDY, and FCNY in the primary header.  These correspond to
+the TRANSFORM task parameters x1, x2, dx, nx, y1, y2, dy, and ny.  If a
+keyword is absent the value INDEF is used to apply the TRANSFORM default.
+TRANSFORM.  The keywords FX1, FX2, FY1, and FY2 are normally
+set by NSFITCOORDS to define the limits that include all the data in the input
+while the other keywords are absent to select the same number of pixels as
+the input and a scale that provides that number of pixels between the
+specified limits.
+
+The distortion and dispersion maps are specified by header keywords in the
+science extensions.  The keywords are FCDB for the database directory,
+FCFIT1 for the dispersion map name, and FCFIT2 for the distortion map name.
+Both maps need not be specified but it is an error if neither is specified
+or if a database file cannot be found.  The database and map names are
+normally created set in the header by NSFITCOORDS.
+
+.ih
+EXAMPLES
+1. Transform a spectrum previously processed with NSREDUCE and NSFITCOORDS.
+.sp
+.nf
+   ge> nstransform frnN20020303S0100 
+.fi
+.ih
+BUGS AND LIMITATIONS
+Due to limitations in IRAF, NSTRANSFORM does not yet support different 
+wavelength units.  Any spectrum with the wavelength solution defined in the 
+header may be plotted in microns by using:
+.sp
+.nf
+   ge> splot spectrum[SCI] units=microns
+.fi
+.ih
+SEE ALSO
+nsfitcoords, fitcoords, transform, nswavelength, nssdist, nsreduce, nsprepare, 
+nscut, gemcombine, nfcube.
+.endhelp

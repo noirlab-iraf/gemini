@@ -1,0 +1,90 @@
+.help nresidual December2011 gemini.niri
+.ih
+NAME
+nresidual -- Mark saturated pixels in subsequent DQ masks
+.ih
+USAGE
+nresidual inimages
+.ih
+PARAMETERS
+.ls inimages
+Images to reduce. Can be a list of images.  The images must be
+multi-extension FITS images.  Variance and data quality planes
+must already exist.  
+All input files must have been run through *PREPARE previously.
+.le
+.ls outimages= ""
+Output multi-extension FITS images. Can be a list of images. \fIoutimages\fR 
+has preference over \fIoutprefix\fR.
+.le
+.ls outprefix = "b"
+Prefix for output images. Names of output images are the
+names of the input images with a prefix attached.
+\fIoutprefix\fR is used if \fIoutimages\fR="".
+.le
+.ls proptime = 2.
+Propagation time in minutes, or the time residual images continue to be
+significant in subsequent frames.  Saturated pixels marked in a
+particular data quality frame are propagated into subsequent
+images taken within this time.
+.le
+.ls logfile = ""
+Name of logfile.
+.le
+.ls sci_ext = "SCI"
+Name or number of science extension.
+.le
+.ls var_ext = "VAR"
+Name or number of variance extension.
+.le
+.ls dq_ext = "DQ"
+Name or number of data quality extension.
+.le
+.ls key_time = "UT", key_date="DATE-OBS"
+Header keywords for the time and date.
+.le
+.ls verbose = yes
+Print actions to the screen?
+.le
+.ls status = 0
+This flag is non-zero after execution of NRESIDUAL if a fatal error was
+encountered.
+.le
+.ih
+DESCRIPTION
+.le
+NRESIDUAL is used when there are saturated or non-linear pixels
+in the data.  In this case, residual images from saturated
+objects typically persist for one or two exposures.  This
+script combines the DQ planes of the previous frames so that
+residual images are flagged as bad pixels, and can be corrected
+in subsequent data reduction steps.  The parameter
+\fIproptime\fR defines the length of time over which masks
+are combined, and is 2 minutes by default.  If there are no
+other images within the time limit, then the input file is
+copied into the output file unchanged.
+
+NRESIDUAL is run after the *PREPARE script, and before any
+subsequent data processing (e.g., NISKY).
+
+NRESIDUAL does not modify the SCI or VAR planes.
+
+Because NRESIDUAL is meant to propagate bad pixels into
+subsequent frames, it only works on two or more images.
+
+.le
+.ih
+EXAMPLES
+
+1. To propagate bad pixels in a series of files 
+.nf
+     cl> nresidual @filelist proptime=2.
+.fi
+
+.ih
+BUGS
+
+.ih
+SEE ALSO
+nprepare, addmasks
+.endhelp

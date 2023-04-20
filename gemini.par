@@ -1,7 +1,7 @@
-# Copyright(c) 2000-2017 Association of Universities for Research in Astronomy, Inc.
+# Copyright(c) 2000-2023 Association of Universities for Research in Astronomy, Inc.
 #
 # Package parameters for the gemini package
  
-version,s,h,"20Jul2017",,,"Package version date"
-verno,s,h,"v1.14",,,"Package version number"
+version,s,h,"20Apr2023",,,"Package version date"
+verno,s,h,"v1.16",,,"Package version number"
 motd,b,h,"yes",,,"Print welcome message"

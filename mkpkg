@@ -28,7 +28,7 @@ gemtools:
 
 # Multiple architecture support
 
-generic:				#generic installation (no bin)
+generic:				# generic installation (no bin)
 	$ifnfile (bin.generic)
 	    !mkdir bin.generic
 	$endif
@@ -37,43 +37,16 @@ generic:				#generic installation (no bin)
 	!$(hlib)/mkfloat.csh generic -d $(DIRS)
 	;
 
-alpha:					# install DEC Alpha binaries
-	$ifnfile (bin.alpha)
-	    !mkdir bin.alpha
+linux64:				# install 64-bit Linux binaries
+	$ifnfile (bin.linux64)
+	    !mkdir bin.linux64
 	$endif
 	$verbose off
 	$set DIRS = "lib gmos gnirs gemtools"
-	!$(hlib)/mkfloat.csh alpha -d $(DIRS)
+	!$(hlib)/mkfloat.csh linux64 -d $(DIRS)
 	;
 
-freebsd:				# install FreeBSD binaries
-	$ifnfile (bin.freebsd)
-	    !mkdir bin.freebsd
-	$endif
-	$verbose off
-	$set DIRS = "lib gmos gnirs gemtools"
-	!$(hlib)/mkfloat.csh freebsd -d $(DIRS)
-	;
-
-hp700:					# install HPUX series 700 binaries
-	$ifnfile (bin.hp700)
-	    !mkdir bin.hp700
-	$endif
-	$verbose off
-	$set DIRS = "lib gmos gnirs gemtools"
-	!$(hlib)/mkfloat.csh hp700 -d $(DIRS)
-	;
-
-irix:					# install SGI IRIX binaries
-	$ifnfile (bin.irix)
-	    !mkdir bin.irix
-	$endif
-	$verbose off
-	$set DIRS = "lib gmos gnirs gemtools"
-	!$(hlib)/mkfloat.csh irix -d $(DIRS)
-	;
-
-linux:					# install Slackware Linux binaries
+linux:					# install 32-bit Linux binaries
 	$ifnfile (bin.linux)
 	    !mkdir bin.linux
 	$endif
@@ -82,7 +55,7 @@ linux:					# install Slackware Linux binaries
 	!$(hlib)/mkfloat.csh linux -d $(DIRS)
 	;
 
-macosx:					# install Mac OS X binaries
+macosx:					# install 64-bit OSX (Apple) binaries
 	$ifnfile (bin.macosx)
 	    !mkdir bin.macosx
 	$endif
@@ -91,7 +64,7 @@ macosx:					# install Mac OS X binaries
 	!$(hlib)/mkfloat.csh macosx -d $(DIRS)
 	;
 
-macintel:					# install Mac OS X Intel binaries
+macintel:				# install 64-bit OSX Intel binaries
 	$ifnfile (bin.macintel)
 	    !mkdir bin.macintel
 	$endif
@@ -100,56 +73,12 @@ macintel:					# install Mac OS X Intel binaries
 	!$(hlib)/mkfloat.csh macintel -d $(DIRS)
 	;
 
-redhat:					# install Redhat Linux binaries
-	$ifnfile (bin.redhat)
-	    !mkdir bin.redhat
+macos64:				# install 64-bit OSX (alt) binaries
+	$ifnfile (bin.macos64)
+	    !mkdir bin.macos64
 	$endif
 	$verbose off
 	$set DIRS = "lib gmos gnirs gemtools"
-	!$(hlib)/mkfloat.csh redhat -d $(DIRS)
+	!$(hlib)/mkfloat.csh macos64 -d $(DIRS)
 	;
 
-rs6000:					# install IBM AIX binaries
-	$ifnfile (bin.rs6000)
-	    !mkdir bin.rs6000
-	$endif
-	$verbose off
-	$set DIRS = "lib gmos gnirs gemtools"
-	!$(hlib)/mkfloat.csh rs6000 -d $(DIRS)
-	;
-
-sparc:					# install sparc binaries
-	$ifnfile (bin.sparc)
-	    !mkdir bin.sparc
-	$endif
-	$verbose off
-	$set DIRS = "lib gmos gnirs gemtools"
-	!$(hlib)/mkfloat.csh sparc -d $(DIRS)
-	;
-
-ssun:					# install Sun/Solaris binaries
-	$ifnfile (bin.ssun)
-	    !mkdir bin.ssun
-	$endif
-	$verbose off
-	$set DIRS = "lib gmos gnirs gemtools"
-	!$(hlib)/mkfloat.csh ssun -d $(DIRS)
-	;
-
-suse:					# install SuSE Linux binaries
-	$ifnfile (bin.suse)
-	    !mkdir bin.suse
-	$endif
-	$verbose off
-	$set DIRS = "lib gmos gnirs gemtools"
-	!$(hlib)/mkfloat.csh suse -d $(DIRS)
-	;
-
-sunos:					# install SunOS (Solarix x86) binaries
-	$ifnfile (bin.sunos)
-	    !mkdir bin.sunos
-	$endif
-	$verbose off
-	$set DIRS = "lib gmos gnirs gemtools"
-	!$(hlib)/mkfloat.csh sunos -d $(DIRS)
-	;

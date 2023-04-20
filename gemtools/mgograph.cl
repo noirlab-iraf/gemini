@@ -4,7 +4,7 @@
 procedure mgograph(intab,xcolumn,ycolumn)
 
 # MONGO like graph directly from STSDAS tables or ASCII files
-#    using stsdas.stplot.igi
+#    using st4gem.stplot.igi
 #
 # Version  Sept 1, 2000  IJ
 #          Sept 20,2002  IJ v1.4 release

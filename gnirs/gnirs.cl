@@ -25,7 +25,7 @@ longslit
 imred # needed for irred
 crutil # needed for nsedge
 irred # needed for irlincor in nsreduce
-stsdas.analysis.fourier # needed for nsoffset
+st4gem.analysis.fourier # needed for nsoffset
 
 package gnirs
 

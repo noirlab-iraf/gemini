@@ -55,9 +55,6 @@ task    gemhead=gemtools$gemhead.cl
 task    wmef=gemtools$wmef.cl
 task    gemwcscopy=gemtools$gemwcscopy.cl
 
-task    date=gemtools$date.cl
-hidetask('date')
-
 hidetask("gemwcscopy")
 
 task    gemvsample=gemtools$gemvsample.cl

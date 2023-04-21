@@ -26,39 +26,11 @@
 #
 # The latest version of the Gemini IRAF package is only compatible with
 # IRAF v2.16 from AstroConda (or Ureka)
-if (defpar ("release")) {
-    if (release >= "2.16") {
-        # There appear to be several issues related to the new image template
-        # code in IRAF v2.16, so do not use the new image templates 
-        if (defvar("use_new_imt")) {
-            set use_new_imt = "no"
-        }
-        if (!access("iraf$ur/") && !access("iraf$conda_build.sh")) {
-            printf ("WARNING: The Gemini IRAF package is not compatible \n")
-            printf ("         with IRAF v2.16, unless installed using AstroConda \n")
-            printf ("         or Ureka \n")
-            printf ("Tested with IRAF 2.16 from AstroConda\n")
-            sleep 10
-        }
-    } else {
-        printf ("WARNING: The Gemini IRAF pacakge is only compatible with \n")
-        printf ("         IRAF v2.16 and above.\n")
-        printf ("Tested with IRAF 2.16 from AstroConda\n")
-        sleep 10
-    }
-    #} else if ((release < "2.14.1") || (release > "2.15.1a")) {
-    #    printf ("WARNING: The Gemini IRAF package is only compatible with\n")
-    #    printf ("         versions of IRAF between v2.14.1 and v2.15.1a\n")
-    #    printf ("         and with v2.16 in Ureka\n")
-    #    printf ("Tested with IRAF 2.16 from Ureka/AstroConda\n")
-    #    sleep 10
-    #}
-} else {
-        printf ("WARNING: The Gemini IRAF package is only compatible with\n")
-        printf ("         IRAF v2.16 and above, as distributed through AstroConda\n")
-        printf ("         or Ureka\n")
-        printf ("Tested with IRAF 2.16 from AstroConda\n")
-        sleep 10
+
+# There appear to be several issues related to the new image template
+# code in IRAF v2.16, so do not use the new image templates 
+if (defvar("use_new_imt")) {
+    set use_new_imt = "no"
 }
 ;
 
@@ -80,8 +52,12 @@ astutil
 digiphot
 apphot
 ptools
-if(defpac("stsdas") == no) stsdas (motd-)
+if(defpac("st4gem") == no) st4gem (motd-)
 ;
+st4gem
+analysis
+toolbox
+graphics
 tools
 fitting
 artdata
@@ -131,30 +107,23 @@ task f2.pkg       = f2$f2.cl
 task midir.pkg    = midir$midir.cl
 task gsaoi.pkg    = gsaoi$gsaoi.cl
 
-
 task $sed = $foreign
 hidetask sed
 
 if (motd) {
-print(" ")
-print("     +------------------- Gemini IRAF Package -------------------+")
-print("     |                 Version 1.14, July 20, 2017               |")
-print("     |                                                           |")
-print("     |               Requires IRAF v2.16 or greater              |")
-print("     |              Tested with AstroConda IRAF v2.16            |") 
-print("     |             Gemini Observatory, Hilo, Hawaii              |")
-print("     |    Please use the help desk for submission of questions   |")
-print("     |  http://www.gemini.edu/sciops/helpdesk/helpdeskIndex.html |")
-print("     |     You can also check the Data Reduction User Forum      |")
-print("     |                 http://drforum.gemini.edu                 |")
-print("     +-----------------------------------------------------------+")
-print(" ")
-print("     Warning setting imtype=fits")
-if (defvar("use_new_imt")) {
-    print("     Warning setting use_new_imt=no")
-}
-print(" ")
-
+    print(" ")
+    print("     +----------------- Gemini IRAF Package -----------------+")
+    print("     |               Version 1.16, April 20, 2023            |")
+    print("     |                                                       |")
+    print("     |             Requires IRAF v2.16 or greater            |")
+    print("     +-------------------------------------------------------+")
+    print(" ")
+    print("     Warning setting imtype=fits")
+    if (defvar("use_new_imt")) {
+        print("     Warning setting use_new_imt=no")
+    }
+    print(" ")
 }
 ;
+
 clbye()

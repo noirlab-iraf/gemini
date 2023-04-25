@@ -1487,7 +1487,7 @@ next_overscan_image:
                     tmptrim = mktemp ("tmptrim")
                     imcopy (output[ii]//"["//l_sci_ext//","//jj//"]"//\
                         l_datasec, tmptrim, verbose-)
-                    sleep(1)
+                    #sleep(1)   # MJF
                     imcopy (tmptrim, \
                         output[ii]//"["//l_sci_ext//","//jj//",overwrite]", \
                         verbose-)

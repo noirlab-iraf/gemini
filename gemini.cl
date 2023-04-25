@@ -110,9 +110,8 @@ hidetask sed
 if (motd) {
     print(" ")
     print("     +----------------- Gemini IRAF Package -----------------+")
-    print("     |               Version 1.16, April 20, 2023            |")
-    print("     |                                                       |")
-    print("     |             Requires IRAF v2.16 or greater            |")
+    print("     |              Version 1.16, April 20, 2023             |")
+    print("     |             Requires IRAF v2.18 or greater            |")
     print("     +-------------------------------------------------------+")
     print(" ")
     print("     Warning setting imtype=fits")

@@ -123,4 +123,5 @@ if (motd) {
 }
 ;
 
+keep
 clbye()

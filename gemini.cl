@@ -52,12 +52,9 @@ astutil
 digiphot
 apphot
 ptools
-if(defpac("st4gem") == no) st4gem (motd-)
+if(defpac("st4gem") == no)
+    st4gem (motd-)
 ;
-st4gem
-analysis
-toolbox
-graphics
 tools
 fitting
 artdata
@@ -69,12 +66,12 @@ if (deftask("fitsutil") == no) {
 }
 ;
 fitsutil
-
 nproto
 
 reset imtype = "fits"
-
 flpr
+
+keep
 
 cl < "gemini$lib/zzsetenv.def"
 

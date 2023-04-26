@@ -2674,11 +2674,11 @@ NS_LS_SKIP:
                     if (thisobsmode == "MOS") {
                         # Obtain the MDF row number for this SCI extension
                         keypar (l_refimg//thisextn, l_key_mdfrow, silent+)
-                        printf ("%03d", int(keypar.value)) | \
+                        printf ("%03d\n", int(keypar.value)) | \
                             scan (ext_formated)
 
                     } else if (thisobsmode == "LONGSLIT") {
-                        printf ("%03d", kk) | scan (ext_formated)
+                        printf ("%03d\n", kk) | scan (ext_formated)
                     }
 
                     if (thisobsmode == "MOS" || thisobsmode == "LONGSLIT") {

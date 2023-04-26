@@ -472,7 +472,7 @@ begin
         # Test the tbltype
         if (tinfo.tbltype == "fits") {
             # Copy out MDF
-            ttools.tcopy (intable=infile//"["//l_mdf_ext//"]", \
+            nttools.tcopy (intable=infile//"["//l_mdf_ext//"]", \
                 outtable=outfile//"["//l_mdf_ext//"]", \
                 verbose-)
         }

@@ -2371,7 +2371,7 @@ CORRIM_EXISTS_NS:
             # Copy refimg MDF to output too
             # Send the output to dev$null because longslit data may not have
             # a MDF. Always use the refimg MDF
-            ttools.tcopy (l_refimg//"["//l_mdf_ext//"]", \
+            nttools.tcopy (l_refimg//"["//l_mdf_ext//"]", \
                 l_corrimg//"["//l_mdf_ext//"]", verbose=no, \
                 >& "dev$null")
 
@@ -3753,7 +3753,7 @@ NEXT_INIMAGE:
                 # Test the tbltype
                 if (tinfo.tbltype == "fits") {
                     # Copy out MDF
-                    ttools.tcopy (intable=l_input//"["//l_mdf_ext//"]", \
+                    nttools.tcopy (intable=l_input//"["//l_mdf_ext//"]", \
                         outtable=l_output//"["//l_mdf_ext//"]", \
                         verbose-)
                 }

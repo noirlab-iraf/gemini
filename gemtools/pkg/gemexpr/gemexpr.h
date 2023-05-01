@@ -36,7 +36,7 @@ define	IE_INTYPE	Memi[$1+10]		# minimum input operand type
 define	IE_OUTTYPE	Memi[$1+11]		# datatype of output image
 define	IE_BWIDTH	Memi[$1+12]		# npixels boundary extension
 define	IE_BTYPE	Memi[$1+13]		# type of boundary extension
-define	IE_BPIXVAL	Memr[$1+14]		# boundary pixel value
+define	IE_BPIXVAL	Memr[P2R($1+14)]	# boundary pixel value
 define	IE_V		Memi[$1+15+($2)-1]	# position in output image
 define	IE_NOPERANDS	Memi[$1+22]		# number of input operands
 			# align

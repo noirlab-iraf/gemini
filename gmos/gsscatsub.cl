@@ -509,7 +509,8 @@ begin
             # causing it to prompt the user even in non-interactive mode.
             apfind(thisextn, nfind=l_nfind, apertures="", references="", \
                 interactive=l_fl_inter, find+, recenter-, resize-, edit+, \
-                line=l_column, nsum=l_nsum, order="increasing")
+                line=l_column, nsum=l_nsum)
+                #line=l_column, nsum=l_nsum, apfind.order="increasing")
             apscatter(thisextn, apsimg, apertures="", \
                 scatter=bkgimg, interactive=l_fl_inter, find=no, \
                 recenter=no, resize=yes, edit=no, trace=yes, fittrace=yes, \

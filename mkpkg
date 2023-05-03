@@ -56,12 +56,16 @@ linux:					# install 32-bit Linux binaries
 	;
 
 macosx:					# install 64-bit OSX (Apple) binaries
+macos64:
 	$ifnfile (bin.macosx)
 	    !mkdir bin.macosx
 	$endif
 	$verbose off
 	$set DIRS = "lib gmos gnirs gemtools"
 	!$(hlib)/mkfloat.csh macosx -d $(DIRS)
+	$ifnfile (bin.macos64)
+	    !ln -s bin.macosx bin.macos64
+	$endif
 	;
 
 macintel:				# install 64-bit OSX Intel binaries
@@ -72,13 +76,3 @@ macintel:				# install 64-bit OSX Intel binaries
 	$set DIRS = "lib gmos gnirs gemtools"
 	!$(hlib)/mkfloat.csh macintel -d $(DIRS)
 	;
-
-macos64:				# install 64-bit OSX (alt) binaries
-	$ifnfile (bin.macos64)
-	    !mkdir bin.macos64
-	$endif
-	$verbose off
-	$set DIRS = "lib gmos gnirs gemtools"
-	!$(hlib)/mkfloat.csh macos64 -d $(DIRS)
-	;
-

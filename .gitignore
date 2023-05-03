@@ -19,7 +19,7 @@ _*
 
 # Libraries
 *.lib
-*.a
+#*.a
 *.la
 *.lo
 
@@ -30,12 +30,12 @@ _*
 *.dylib
 
 # Executables
-*.e
+#*.e
 *.exe
 *.out
 *.app
 *.i*86
-*.x86_64
+#*.x86_64
 *.hex
 
 # Debug files

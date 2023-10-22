@@ -1114,7 +1114,7 @@ nextimage:
                     gainval="default", logfile=l_logfile, \
                     verbose=no)
                 if (gsat.status != 0) {
-                    printlog ("ERROR - GIREDUCE: GSAT returned a "//\
+                    printlog ("ERROR - GIFLAT: GSAT returned a "//\
                         "non-zero status. Exiting", \
                         l_logfile, verbose+)
                     status = 1

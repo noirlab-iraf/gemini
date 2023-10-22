@@ -444,7 +444,7 @@ begin
             l_rawpath = l_rawpath//"/"
         }
         if (!access(l_rawpath)) {
-            printlog ("ERROR - GIREDUCE: Cannot access rawpath: "//l_rawpath, \
+            printlog ("ERROR - GSREDUCE: Cannot access rawpath: "//l_rawpath, \
                 l_logfile, verbose+)
             goto clean
         }
@@ -1088,7 +1088,7 @@ begin
             if (l_fl_vardq) {
                 if ((!imaccess(l_flatim//"["//l_var_ext//"]")) \
                     || (!imaccess(l_flatim//"["//l_dq_ext//"]"))) {
-                    printlog ("WARNING - GIREDUCE: Flat field image does \
+                    printlog ("WARNING - GSREDUCE: Flat field image does \
                         not contain both VAR and DQ planes.", l_logfile, \
                         verbose+)
                     printlog ("                    Setting fl_vardq=no and \

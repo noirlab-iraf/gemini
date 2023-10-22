@@ -308,7 +308,7 @@ begin
             l_rawpath = l_rawpath//"/"
         }
         if (!access(l_rawpath)) {
-            printlog ("ERROR - GIREDUCE: Cannot access rawpath: "//l_rawpath, \
+            printlog ("ERROR - GTILE: Cannot access rawpath: "//l_rawpath, \
                 l_logfile, verbose+)
             goto crash
         }

@@ -108,17 +108,17 @@ task $sed = $foreign
 hidetask sed
 
 if (motd) {
-    print(" ")
-    print("     +----------------- Gemini IRAF Package -----------------+")
-    print("     |              Version 1.16, April 20, 2023             |")
-    print("     |             Requires IRAF v2.18 or greater            |")
-    print("     +-------------------------------------------------------+")
-    print(" ")
-    print("     Warning setting imtype=fits")
-    if (defvar("use_new_imt")) {
-        print("     Warning setting use_new_imt=no")
-    }
-    print(" ")
+  print(" ")
+  print("           +----------------- Gemini IRAF Package -----------------+")
+  print("           |              Version 1.16, April 20, 2023             |")
+  print("           |             Requires IRAF v2.18 or greater            |")
+  print("           +-------------------------------------------------------+")
+  print(" ")
+  print("     Warning setting imtype=fits")
+  if (defvar("use_new_imt")) {
+      print("     Warning setting use_new_imt=no")
+  }
+  print(" ")
 }
 ;
 

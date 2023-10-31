@@ -292,11 +292,11 @@ end
 
 # GX_OPEN_NULL -- Open a stream or return NULL
 
-pointer procedure gx_open_null (file)
+int procedure gx_open_null (file)
 
 char	file[ARB]		# I The file description (or "")
 
-pointer	open()
+int	open()
 
 begin
 	if (EOS == file[1]) {

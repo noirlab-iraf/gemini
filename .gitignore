@@ -18,6 +18,9 @@ _spool.*
 z
 zz
 
+# Test data
+f2/data/f2offsets_eng.fits
+
 # Object files
 *.o
 *.ko
